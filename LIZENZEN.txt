@@ -1,0 +1,7 @@
+Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
+- globe.gl (MIT) und three.js (MIT), vendor/globe.gl.min.js
+- d3 (ISC), vendor/d3.min.js
+- Erdtexturen aus dem Paket three-globe (MIT): img/earth-blue-marble.jpg (NASA Blue Marble, gemeinfrei),
+  img/earth-topology.png, img/night-sky.png
+- Küstenlinien: Natural Earth (gemeinfrei) über world-atlas (ISC), vereinfacht -> data/land*.json
+- Reichsgrenzen (data/reiche.json): eigene, handgezeichnete, stark vereinfachte Näherungen. KEINE Atlasdaten.
