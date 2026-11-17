@@ -1,3 +1,5 @@
+# HINWEIS: Die Reichsdaten (data/reiche.json) werden inzwischen mit build_reiche.py erzeugt.
+# Dieses Skript nur noch fuer land.json verwenden (der Teil fuer reiche.json ist veraltet).
 import json, warnings; warnings.filterwarnings("ignore")
 from shapely.geometry import shape, Polygon, box, mapping, MultiPolygon
 from shapely.ops import unary_union

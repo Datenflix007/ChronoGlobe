@@ -36,8 +36,17 @@
     <button id="tglHan" class="chip han on" aria-pressed="true"><i></i>Han-Reich</button>
   </section>
   <section>
+    <h2>Nachbarreiche</h2>
+    <div class="nb-grid" id="nbChips"></div>
+    <div class="row allrow">
+      <button id="allOn" class="small" title="Alle Reiche einblenden">Alle einblenden</button>
+      <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
+    </div>
+  </section>
+  <section>
     <h2>Globus</h2>
     <button id="tglOrte" class="chip plain" aria-pressed="false">Orte anzeigen</button>
+    <button id="tglSchl" class="chip plain on" aria-pressed="true">Schlachten anzeigen</button>
     <button id="tglRot" class="chip plain on" aria-pressed="true">Automatisch drehen</button>
     <div class="row">
       <button id="goRom" class="small">→ Rom</button>
@@ -58,13 +67,11 @@
   <div class="tl-head">
     <button id="play" class="play" title="Zeitleiste abspielen">▶</button>
     <div class="year" id="yearOut">117 n. Chr.</div>
+    <button id="lanesToggle" class="lanes-toggle" aria-expanded="true" title="Spuren der Nachbarreiche ein- oder ausklappen"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Nachbarreiche</span></button>
     <div class="tl-tools"><button id="yMinus" class="small" title="10 Jahre zurück">−10</button><button id="yPlus" class="small" title="10 Jahre vor">+10</button></div>
   </div>
   <div class="track" id="track">
-    <div class="lanes" id="lanes">
-      <div class="lane rom" id="rowRom"></div>
-      <div class="lane han" id="rowHan"></div>
-    </div>
+    <div class="lanes" id="lanes"></div>
     <input id="year" type="range" min="-300" max="480" step="1" value="117" aria-label="Jahr">
     <div class="ticks" id="ticks"></div>
   </div>
@@ -94,7 +101,7 @@
 <div id="modal" class="modal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="mt">
     <h2 id="mt">Hinweise</h2>
-    <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen nur ungefähr wieder. Die Zeitstufen springen (kein stufenloses Wachsen). Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
+    <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> (grob nach Provinzen bzw. Regionen mit Erwerbs- und Verlustjahr) und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen und Jahreszahlen nur ungefähr wieder. Schlachtsymbole erscheinen für etwa 25 Jahre ab dem Schlachtjahr. Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble“ (NASA, gemeinfrei, über das Paket three-globe), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert.</p>
     <button id="modalClose" class="small">Schließen</button>
