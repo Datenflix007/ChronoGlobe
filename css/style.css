@@ -301,3 +301,15 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .wsub{margin:16px 0 8px;font-size:17px}
 .wum{margin:0;padding:0;list-style:none}
 .wum li{margin:0 0 12px;line-height:1.45;font-size:15px}
+.wanchor{position:relative;width:0;height:0;pointer-events:none}
+.wanchor .wtag{position:absolute;width:max-content;max-width:240px}
+.wanchor.oben .wtag{bottom:64px;left:0;transform:translateX(-50%)}
+.wanchor.unten .wtag{top:64px;left:0;transform:translateX(-50%)}
+.wanchor.links .wtag{right:64px;top:0;transform:translateY(-50%)}
+.wanchor.rechts .wtag{left:64px;top:0;transform:translateY(-50%)}
+.wstem{position:absolute;background:rgba(255,255,255,.75)}
+.wanchor.oben .wstem,.wanchor.unten .wstem{left:-1px;width:2px;height:64px}
+.wanchor.oben .wstem{bottom:0} .wanchor.unten .wstem{top:0}
+.wanchor.links .wstem,.wanchor.rechts .wstem{top:-1px;height:2px;width:64px}
+.wanchor.links .wstem{right:0} .wanchor.rechts .wstem{left:0}
+.wanchor::after{content:"";position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}

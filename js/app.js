@@ -92,6 +92,7 @@
     globe.labelsData(visibleCities().concat(tv.places));
     globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv)));
     globe.pathsData(tradeGlobePaths(tv));
+    setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
     flashTimer = setTimeout(function () { globe.polygonCapColor(capColor); }, 1350);
   }
@@ -129,7 +130,7 @@
       .polygonCapCurvatureResolution(3)
       .polygonsTransitionDuration(900)
       .polygonLabel(polyLabel)
-      .labelLat('lat').labelLng('lng').labelText('name')
+      .labelLat('lat').labelLng('lng').labelText(function (d) { return d.kind === 'handel' ? d.name.replace(/Ó/g, 'O') : d.name; })
       .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.006).labelResolution(2)
       .labelColor(function (d) {
         if (d.kind === 'handel') return TRADE_COL[(routeById(d.an[0][0]) || { art: 'land' }).art];
@@ -142,8 +143,10 @@
         var t = el('div', 'gtip'); t.appendChild(el('b', null, d.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(d.vermittler + ' · Klick für Infos')); return t.outerHTML;
       })
-      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.03 : 0.01; }).htmlElement(htmlEl).htmlTransitionDuration(0);
+      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.009 : 0.01; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
+    globe.controls().addEventListener('change', scheduleTagSides);
+    window.addEventListener('resize', scheduleTagSides);
     var c = globe.controls();
     c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
     c.minDistance = 118; c.maxDistance = 520; c.zoomSpeed = 0.9; c.enablePan = false;
@@ -564,7 +567,7 @@
       var n = v.pfad.length, s = v.seiten;
       function mk(teil, a, b, belegt, quelle) {
         var p = { id: v.id + ':' + teil, route: v, teil: teil, pts: v.pfad.slice(a, b + 1), belegt: belegt || v.belegt, quelle: quelle || v.quelle };
-        p.flow = { id: p.id + ':flow', route: v, teil: teil, pts: p.pts, flow: true };
+        p.flowObj = { id: p.id + ':flow', route: v, teil: teil, pts: p.pts, flow: true };
         return p;
       }
       PARTS[v.id] = s
@@ -623,8 +626,9 @@
     return tv.routes.map(function (rt) {
       var key = rt.v.id + ':' + Object.keys(rt.teile).join('');
       if (!WTAGS[key]) {
-        var pts = joinPts(rt.parts), mid = pts[Math.floor(pts.length / 2)];
-        WTAGS[key] = { kind: 'waren', route: rt.v, lng: mid[0], lat: mid[1] };
+        // Ankerpunkt auf der Mitte der sichtbaren Strecke; die Box hängt per Stiel darüber (Landweg) bzw. darunter (Seeweg)
+        var pts = dense(joinPts(rt.parts)), mid = pts[Math.floor(pts.length / 2)];
+        WTAGS[key] = { kind: 'waren', route: rt.v, lng: mid[0], lat: mid[1], seite: rt.v.art === 'land' ? 'oben' : 'unten', pts: pts.filter(function (x, j) { return j % 2 === 0; }) };
       }
       return WTAGS[key];
     });
@@ -656,16 +660,58 @@
   }
   function warenEl(t) {
     if (t.__el) return t.__el;
+    // Nullgroßer Anker; die Box sitzt darüber (Landweg) bzw. darunter (Seeweg), damit die Route frei bleibt
+    var anchor = el('div', 'wanchor ' + t.seite);
     var e = el('div', 'wtag');
     t.route.richtung_waren.forEach(function (w) { e.appendChild(wareChip(w)); });
-    e.title = 'Waren: ' + t.route.name;
+    e.title = 'Waren: ' + t.route.name + ' (Klick für Infos)';
     e.addEventListener('click', function (ev) { ev.stopPropagation(); openTradeInfo(t.route); });
-    t.__el = e; return e;
+    anchor.appendChild(el('i', 'wstem')); anchor.appendChild(e);
+    t.__el = anchor; return anchor;
   }
+  /* Waren-Boxen: nach oben oder unten klappen, je nachdem wo auf dem Bildschirm Platz ist */
+  var tagSideRaf = 0;
+  function updateTagSides() {
+    tagSideRaf = 0;
+    var tags = Object.keys(WTAGS).map(function (k) { return WTAGS[k]; }).filter(function (t) { return t.__el && t.__el.isConnected; });
+    if (!tags.length) return;
+    var top = 70, bottom = window.innerHeight - (document.getElementById('timeline').offsetHeight || 180) - 24, Wd = window.innerWidth, STEM = 64;
+    var pov = globe.pointOfView();
+    // Bildschirmpunkte aller sichtbaren Routen (nur Vorderseite des Globus)
+    var scr = [];
+    (CUR_TV ? CUR_TV.parts : []).forEach(function (p) {
+      dense(p.pts).forEach(function (c, j) {
+        if (j % 2 || d3.geoDistance([pov.lng, pov.lat], c) > 1.45) return;
+        var q = globe.getScreenCoords(c[1], c[0], 0.008); scr.push([q.x, q.y]);
+      });
+    });
+    var placed = [];
+    tags.forEach(function (t) {
+      var sc = globe.getScreenCoords(t.lat, t.lng, 0.009), box = t.__el.querySelector('.wtag'), w = box.offsetWidth, h = box.offsetHeight;
+      var cand = {
+        oben: [sc.x - w / 2, sc.y - STEM - h, w, h], unten: [sc.x - w / 2, sc.y + STEM, w, h],
+        links: [sc.x - STEM - w, sc.y - h / 2, w, h], rechts: [sc.x + STEM, sc.y - h / 2, w, h]
+      };
+      var best = null, bestScore = 1e9;
+      ['oben', 'unten', 'links', 'rechts'].forEach(function (k, i) {
+        var r = cand[k], score = (k === t.seite ? 0 : 0.5) + i * 0.01;
+        if (r[0] < 8 || r[0] + r[2] > Wd - 8 || r[1] < top || r[1] + r[3] > bottom) score += 1000;
+        scr.forEach(function (q) { if (q[0] > r[0] - 6 && q[0] < r[0] + r[2] + 6 && q[1] > r[1] - 6 && q[1] < r[1] + r[3] + 6) score += 3; });
+        placed.forEach(function (o) {
+          var ow = Math.min(r[0] + r[2], o[0] + o[2]) - Math.max(r[0], o[0]), oh = Math.min(r[1] + r[3], o[1] + o[3]) - Math.max(r[1], o[1]);
+          if (ow > 0 && oh > 0) score += 200;
+        });
+        if (score < bestScore) { bestScore = score; best = k; }
+      });
+      placed.push(cand[best]);
+      ['oben', 'unten', 'links', 'rechts'].forEach(function (k) { t.__el.classList.toggle(k, k === best); });
+    });
+  }
+  function scheduleTagSides() { if (!tagSideRaf) tagSideRaf = requestAnimationFrame(updateTagSides); }
   function htmlEl(d) { return d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
   function tradeGlobePaths(tv) {
     var a = [];
-    tv.parts.forEach(function (p) { a.push(p, p.flow); });
+    tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
     tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
     return a;
   }
