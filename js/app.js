@@ -5,6 +5,7 @@
 
   var YMIN = -300, YMAX = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117 };
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true };
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null;
 
@@ -87,8 +88,10 @@
     if (prevVis) polys.forEach(function (f) { if (f.properties.id !== undefined && !prevVis.has(f)) f.__flash = now; });
     prevVis = new Set(polys);
     globe.polygonsData(polys);
-    globe.labelsData(visibleCities());
-    globe.htmlElementsData(visibleBattles(state.year));
+    var tv = CUR_TV || tradeVisible(state.year);
+    globe.labelsData(visibleCities().concat(tv.places));
+    globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv)));
+    globe.pathsData(tradeGlobePaths(tv));
     clearTimeout(flashTimer);
     flashTimer = setTimeout(function () { globe.polygonCapColor(capColor); }, 1350);
   }
@@ -128,8 +131,19 @@
       .polygonLabel(polyLabel)
       .labelLat('lat').labelLng('lng').labelText('name')
       .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.006).labelResolution(2)
-      .labelColor(function (d) { return mix(M(d.reich).farbe, '#ffffff', 0.7); })
-      .htmlLat('lat').htmlLng('lng').htmlAltitude(0.01).htmlElement(battleEl).htmlTransitionDuration(0);
+      .labelColor(function (d) {
+        if (d.kind === 'handel') return TRADE_COL[(routeById(d.an[0][0]) || { art: 'land' }).art];
+        return mix(M(d.reich).farbe, '#ffffff', 0.7);
+      })
+      .labelSize(function (d) { return d.kind === 'handel' ? 1.0 : 0.85; })
+      .labelDotRadius(function (d) { return d.kind === 'handel' ? 0.42 : 0.28; })
+      .labelLabel(function (d) {
+        if (d.kind !== 'handel') return '';
+        var t = el('div', 'gtip'); t.appendChild(el('b', null, d.name)); t.appendChild(el('br'));
+        t.appendChild(document.createTextNode(d.vermittler + ' · Klick für Infos')); return t.outerHTML;
+      })
+      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.03 : 0.01; }).htmlElement(htmlEl).htmlTransitionDuration(0);
+    initTradeGlobe();
     var c = globe.controls();
     c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
     c.minDistance = 118; c.maxDistance = 520; c.zoomSpeed = 0.9; c.enablePan = false;
@@ -311,7 +325,8 @@
     var ev = DATA.reihen.map(function (r) { var e = activeEvent(r, y); return e ? e.jahr : 'x'; }).join(',');
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten;
+    var tv = tradeVisible(y); stateKey.tv = tv;
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key;
   }
   function setYear(y, fromSlider) {
     y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
@@ -321,7 +336,7 @@
     $('#track').style.setProperty('--pf', (y - YMIN) / (YMAX - YMIN));
     var key = stateKey(y);
     if (key !== lastKey) {
-      lastKey = key; refreshGlobe(); renderCards(); updateMarkers(); updateChips();
+      lastKey = key; CUR_TV = stateKey.tv; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
       if (mapOpen) drawMap(mapReich, true);
     }
     visibleBattles(y).forEach(function (b) { if (b.__el) b.__el.classList.toggle('fresh', y - b.jahr <= 4); });
@@ -457,16 +472,19 @@
     });
     // Städte
     var cg = svg.append('g').attr('font-family', 'Georgia, serif');
-    var seen = {};
+    var seen = {}; mapCityNames = {}; mapCityBoxes = [];
     DATA.orte.forEach(function (o) {
       if (o.reich !== r && !state.on[o.reich]) return;
       if (!regionsAt(o.reich, y).length || seen[o.name]) return;
       if (y < o.von || (o.bis !== null && y > o.bis)) return;
       var xy = proj([o.lng, o.lat]); if (!xy || xy[0] < 0 || xy[0] > W || xy[1] < 0 || xy[1] > H) return;
-      seen[o.name] = 1;
+      seen[o.name] = 1; mapCityNames[o.name] = 1;
       cg.append('circle').attr('cx', xy[0]).attr('cy', xy[1]).attr('r', 5).attr('fill', '#2b2110').attr('stroke', '#f5ecd2').attr('stroke-width', 1.5);
-      cg.append('text').attr('x', xy[0] + 9).attr('y', xy[1] + 5).attr('font-size', 17).attr('fill', '#2b2110').attr('stroke', 'rgba(239,227,194,.9)').attr('stroke-width', 3.5).attr('paint-order', 'stroke').attr('font-weight', 600).text(o.name);
+      var ctx = cg.append('text').attr('x', xy[0] + 9).attr('y', xy[1] + 5).attr('font-size', 17).attr('fill', '#2b2110').attr('stroke', 'rgba(239,227,194,.9)').attr('stroke-width', 3.5).attr('paint-order', 'stroke').attr('font-weight', 600).text(o.name);
+      mapCityBoxes.push([xy[0] - 7, xy[1] - 13, 18 + ctx.node().getComputedTextLength(), 24]);
     });
+    // Handelswege
+    var tradeOnMap = drawTrade(svg, proj, path, r);
     // Schlachten
     var bg = svg.append('g').attr('font-family', 'Georgia, serif');
     var bats = visibleBattles(y);
@@ -506,6 +524,15 @@
     if (own.some(function (x) { return x.properties.art === 'einfluss'; }))
       lgRow('repeating-linear-gradient(45deg,#e9c55f,#e9c55f 3px,#9a6b00 3px,#9a6b00 4px)', 'Einflussbereich (Westliche Regionen)');
     DATA.reihen.forEach(function (k) { if (k !== r && inView[k]) lgRow(rgba(M(k).farbe, 0.5), M(k).name); });
+    if (tradeOnMap) {
+      var tl = document.createElement('div'); tl.className = 'lg-trade';
+      tl.innerHTML = '<span><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke="#8a4b12"/></svg>Landweg</span>' +
+        '<span><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke="#155f86"/></svg>Seeweg</span><br>' +
+        '<span><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</span>' +
+        '<span><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="8 5"/></svg>vermittelt</span>' +
+        '<span><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</span>';
+      lg.appendChild(tl);
+    }
     if (bats.length) {
       var d = document.createElement('div'); d.innerHTML = '<span class="lsw">' + SWORDS + '</span>'; d.appendChild(document.createTextNode('Schlacht')); lg.appendChild(d);
     }
@@ -518,6 +545,420 @@
       b.addEventListener('click', function () { setYear(st.jahr); });
       sb.appendChild(b);
     });
+  }
+
+  /* ---------- Handel & Austausch ---------- */
+  var TRADE_COL = { land: '#ffcf6b', see: '#5fd8ff' };           // Globus (dunkler Hintergrund)
+  var TRADE_MAP = { land: '#8a4b12', see: '#155f86' };           // Pergament (heller Hintergrund)
+  var DASH_GLOBE = { belegt: [1, 0], vermittelt: [0.035, 0.018], umstritten: [0.006, 0.012] };
+  var DASH_MAP = { belegt: null, vermittelt: '12 7', umstritten: '1 7' };
+  var BELEGT_TXT = { belegt: 'belegt', vermittelt: 'vermittelt (Zwischenhandel)', umstritten: 'umstritten' };
+  var TEIL_TXT = { rom: 'Römische Seite', mitte: 'Mittelstück (Vermittler)', han: 'Chinesische Seite', ganz: 'Gesamte Strecke' };
+  var KONTAKT_JAHRE = 20;
+  var ENVOY = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 4h10a2 2 0 0 1 2 2v13a2 2 0 0 0 2-2V8"/><path d="M6 4a2 2 0 0 0-2 2v1h4V6a2 2 0 0 0-2-2z"/><path d="M8 7v12a2 2 0 0 0 2 2h10"/><path d="M11 10h4M11 14h4"/></g></svg>';
+  var HANDEL = null, PARTS = {}, WTAGS = {}, CUR_TV = null, mapCityNames = {}, mapCityBoxes = [];
+
+  function initTrade() {
+    HANDEL.verbindungen.forEach(function (v) {
+      var n = v.pfad.length, s = v.seiten;
+      function mk(teil, a, b, belegt, quelle) {
+        var p = { id: v.id + ':' + teil, route: v, teil: teil, pts: v.pfad.slice(a, b + 1), belegt: belegt || v.belegt, quelle: quelle || v.quelle };
+        p.flow = { id: p.id + ':flow', route: v, teil: teil, pts: p.pts, flow: true };
+        return p;
+      }
+      PARTS[v.id] = s
+        ? { rom: mk('rom', 0, s.rom.bis_punkt, s.rom.belegt, s.rom.quelle), mitte: mk('mitte', s.rom.bis_punkt, s.han.ab_punkt), han: mk('han', s.han.ab_punkt, n - 1, s.han.belegt, s.han.quelle) }
+        : { ganz: mk('ganz', 0, n - 1) };
+    });
+    HANDEL.orte.forEach(function (o) { o.kind = 'handel'; });
+    HANDEL.kontakte.forEach(function (k) {
+      k.kind = 'kontakt';
+      if (k.pfad) k.pathObj = { id: 'k:' + k.id, kontakt: k, pts: k.pfad };
+    });
+  }
+  function routeById(id) { return HANDEL.verbindungen.filter(function (x) { return x.id === id; })[0]; }
+  function reichAktiv(r, y) { return !!DATA.meta[r] && !!state.on[r] && exists(r, y); }
+  function seiteAktiv(v, side, y) {
+    var s = v.seiten[side];
+    return reichAktiv(side, y) && y >= (s.von != null ? s.von : v.von) && y <= (s.bis != null ? s.bis : v.bis);
+  }
+  /* Sichtbare Teilstrecken, Orte, Gesandtschaften. Regel: Reich eingeblendet UND existiert im Jahr.
+     Nur ein Reich aktiv -> nur dessen Seite (bis zu den Vermittlern); beide aktiv -> durchgehende Verbindung. */
+  function tradeVisible(y) {
+    var res = { routes: [], parts: [], places: [], kontakte: [], key: 'aus' };
+    if (!TRADE.on) return res;
+    HANDEL.verbindungen.forEach(function (v) {
+      if (y < v.von || y > v.bis) return;
+      if (v.art === 'land' ? !TRADE.land : !TRADE.see) return;
+      var P = PARTS[v.id], t = {};
+      if (P.ganz) { if (v.reiche.some(function (r) { return reichAktiv(r, y); })) t.ganz = 1; }
+      else {
+        var a = seiteAktiv(v, 'rom', y), b = seiteAktiv(v, 'han', y);
+        if (a) t.rom = 1; if (b) t.han = 1; if (a && b) t.mitte = 1;
+      }
+      var teile = ['rom', 'mitte', 'han', 'ganz'].filter(function (k) { return t[k]; });
+      if (!teile.length) return;
+      var parts = teile.map(function (k) { return P[k]; });
+      res.routes.push({ v: v, teile: t, parts: parts });
+      res.parts.push.apply(res.parts, parts);
+    });
+    var seen = {};
+    HANDEL.orte.forEach(function (o) {
+      if (y < o.von || y > o.bis || seen[o.id]) return;
+      var ok = o.an.some(function (a) { return res.routes.some(function (rt) { return rt.v.id === a[0] && rt.teile[a[1]]; }); });
+      if (ok) { seen[o.id] = 1; res.places.push(o); }
+    });
+    if (TRADE.gesandt) HANDEL.kontakte.forEach(function (k) {
+      if (y >= k.jahr && y <= k.jahr + KONTAKT_JAHRE && k.reiche.some(function (r) { return reichAktiv(r, y); })) res.kontakte.push(k);
+    });
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt].join('') + '|' +
+      res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
+      res.kontakte.map(function (k) { return k.id; }).join(',');
+    return res;
+  }
+  function joinPts(parts) { return parts.reduce(function (a, p) { return a.concat(a.length ? p.pts.slice(1) : p.pts); }, []); }
+  function wareTags(tv) {
+    if (!TRADE.waren) return [];
+    return tv.routes.map(function (rt) {
+      var key = rt.v.id + ':' + Object.keys(rt.teile).join('');
+      if (!WTAGS[key]) {
+        var pts = joinPts(rt.parts), mid = pts[Math.floor(pts.length / 2)];
+        WTAGS[key] = { kind: 'waren', route: rt.v, lng: mid[0], lat: mid[1] };
+      }
+      return WTAGS[key];
+    });
+  }
+  function dense(coords) {
+    var out = [coords[0]];
+    for (var i = 1; i < coords.length; i++) {
+      var a = coords[i - 1], b = coords[i], n = Math.max(1, Math.ceil(d3.geoDistance(a, b) * 180 / Math.PI / 0.75)), ip = d3.geoInterpolate(a, b);
+      for (var j = 1; j <= n; j++) out.push(ip(j / n));
+    }
+    return out;
+  }
+  function fmtRange(a, b) { return b >= YMAX ? 'ab ' + fmtYear(a) : fmtYear(a) + ' bis ' + fmtYear(b); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function wareChip(w) {
+    var ow = w.von_nach === 'ost->west', c = el('span', 'wchip ' + (ow ? 'ow' : 'wo'), ow ? '← ' + w.name : w.name + ' →');
+    c.title = w.name + ': ' + (ow ? 'von Osten nach Westen' : 'von Westen nach Osten');
+    return c;
+  }
+  function badge(b) { return el('span', 'tbadge ' + b, BELEGT_TXT[b] || b); }
+
+  /* Globus-Elemente */
+  function kontaktEl(k) {
+    if (k.__el) return k.__el;
+    var e = el('div', 'envoy'); e.innerHTML = ENVOY; e.appendChild(el('span', null, k.name + ' ' + shortYear(k.jahr)));
+    e.title = k.name + ' (' + fmtYear(k.jahr) + ')';
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openKontaktInfo(k); });
+    k.__el = e; return e;
+  }
+  function warenEl(t) {
+    if (t.__el) return t.__el;
+    var e = el('div', 'wtag');
+    t.route.richtung_waren.forEach(function (w) { e.appendChild(wareChip(w)); });
+    e.title = 'Waren: ' + t.route.name;
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openTradeInfo(t.route); });
+    t.__el = e; return e;
+  }
+  function htmlEl(d) { return d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function tradeGlobePaths(tv) {
+    var a = [];
+    tv.parts.forEach(function (p) { a.push(p, p.flow); });
+    tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
+    return a;
+  }
+  function pathColor(d) {
+    if (d.kontakt) return 'rgba(230,210,255,0.95)';
+    if (d.flow) return 'rgba(255,255,255,0.9)';
+    return TRADE_COL[d.route.art];
+  }
+  function pathDash(d, i) {
+    if (d.kontakt) return [0.01, 0.02][i];
+    if (d.flow) return [0.012, 0.09][i];
+    return DASH_GLOBE[d.belegt][i];
+  }
+  function initTradeGlobe() {
+    globe.pathsData([])
+      .pathPoints('pts').pathPointLat(function (p) { return p[1]; }).pathPointLng(function (p) { return p[0]; })
+      .pathPointAlt(0.008)
+      .pathColor(pathColor)
+      .pathStroke(function (d) { return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2; })
+      .pathDashLength(function (d) { return pathDash(d, 0); })
+      .pathDashGap(function (d) { return pathDash(d, 1); })
+      .pathDashAnimateTime(function (d) { return d.flow ? 14000 : d.kontakt ? 30000 : 0; })
+      .pathResolution(1)
+      .pathTransitionDuration(600)
+      .pathLabel(function (d) {
+        var t = el('div', 'gtip');
+        if (d.kontakt) { t.appendChild(el('b', null, d.kontakt.name + ' (' + fmtYear(d.kontakt.jahr) + ')')); return t.outerHTML; }
+        t.appendChild(el('b', null, d.route.name)); t.appendChild(el('br'));
+        t.appendChild(document.createTextNode(TEIL_TXT[d.teil] + ': ' + BELEGT_TXT[PARTS[d.route.id][d.teil].belegt] + ' · Klick für Infos'));
+        return t.outerHTML;
+      })
+      .onPathClick(function (d) { if (d.kontakt) openKontaktInfo(d.kontakt); else openTradeInfo(d.route); })
+      .onLabelClick(function (d) { if (d.kind === 'handel') openPlaceInfo(d); });
+  }
+
+  /* Liste im Menü (Zugang per Tastatur) */
+  function renderTradeList(tv) {
+    var box = $('#routeList'); box.innerHTML = '';
+    if (!TRADE.on) return;
+    if (!tv.routes.length && !tv.kontakte.length) {
+      box.appendChild(el('p', 'rl-none', 'Keine Verbindung für die eingeblendeten Reiche in diesem Jahr.'));
+      return;
+    }
+    tv.routes.forEach(function (rt) {
+      var b = el('button', 'rl-item ' + rt.v.art); b.type = 'button';
+      b.appendChild(el('i')); b.appendChild(el('span', null, rt.v.name));
+      if (rt.v.seiten && !rt.teile.mitte) b.appendChild(el('small', null, rt.teile.rom ? 'nur römische Seite' : 'nur chinesische Seite'));
+      b.addEventListener('click', function () { openTradeInfo(rt.v); });
+      box.appendChild(b);
+    });
+    tv.kontakte.forEach(function (k) {
+      var b = el('button', 'rl-item kontakt'); b.type = 'button';
+      b.innerHTML = ENVOY; b.appendChild(el('span', null, 'Gesandtschaft ' + fmtYear(k.jahr) + ': ' + k.name));
+      b.addEventListener('click', function () { openKontaktInfo(k); });
+      box.appendChild(b);
+    });
+  }
+
+  /* Infokarten */
+  var tinfoReturn = null;
+  function showInfo(build) {
+    var body = $('#tinfoBody'); body.innerHTML = '';
+    build(body);
+    var t = $('#tinfo'); if (t.hidden) tinfoReturn = document.activeElement;
+    t.hidden = false; t.querySelector('.tinfo-box').scrollTop = 0;
+    $('#tinfoClose').focus({ preventScroll: true });
+  }
+  function closeInfo() {
+    var t = $('#tinfo'); if (t.hidden) return false;
+    t.hidden = true;
+    if (tinfoReturn && document.body.contains(tinfoReturn) && tinfoReturn.focus) tinfoReturn.focus({ preventScroll: true });
+    return true;
+  }
+  function row(box, label, val) {
+    var d = el('div', 'trow'); d.appendChild(el('div', 'tl', label));
+    var v = el('div', 'tv'); if (typeof val === 'string') v.textContent = val; else v.appendChild(val);
+    d.appendChild(v); box.appendChild(d); return v;
+  }
+  function linkBtn(txt, fn) { var x = el('button', 'tlink', txt); x.type = 'button'; x.addEventListener('click', fn); return x; }
+  function openTradeInfo(v) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk ' + v.art, v.art === 'see' ? 'Seeweg' : 'Landweg'));
+      var h = el('h3', null, v.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Zeitraum', fmtRange(v.von, v.bis));
+      row(b, 'Sicherheit', badge(v.belegt));
+      if (v.seiten) {
+        var ul = el('ul', 'tparts');
+        [['rom', v.seiten.rom], ['mitte', null], ['han', v.seiten.han]].forEach(function (x) {
+          var p = PARTS[v.id][x[0]], li = el('li');
+          li.appendChild(el('b', null, TEIL_TXT[x[0]] + ': ')); li.appendChild(badge(p.belegt));
+          if (x[1]) li.appendChild(el('div', 'tsrc', 'ab ' + fmtYear(x[1].von) + ' · Quelle: ' + x[1].quelle));
+          ul.appendChild(li);
+        });
+        row(b, 'Abschnitte', ul);
+      }
+      var wc = el('div', 'wchips'); v.richtung_waren.forEach(function (w) { wc.appendChild(wareChip(w)); });
+      row(b, 'Waren', wc);
+      row(b, 'Vermittler', v.vermittler.join(', '));
+      var orte = HANDEL.orte.filter(function (o) { return o.an.some(function (a) { return a[0] === v.id; }); });
+      if (orte.length) {
+        var ob = el('div', 'tlinks');
+        orte.forEach(function (o) { ob.appendChild(linkBtn(o.name, function () { openPlaceInfo(o); })); });
+        row(b, 'Orte', ob);
+      }
+      row(b, 'Quelle', v.quelle);
+      row(b, 'Hinweis', v.hinweis).classList.add('twarn');
+      var wb = el('button', 'small tmore', 'Warenübersicht öffnen'); wb.type = 'button'; wb.addEventListener('click', openWaren); b.appendChild(wb);
+    });
+  }
+  function openPlaceInfo(o) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk', 'Handelsort'));
+      var h = el('h3', null, o.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Vermittler', o.vermittler);
+      row(b, 'Zeitraum', fmtRange(o.von, o.bis));
+      row(b, 'Sicherheit', badge(o.belegt));
+      row(b, 'Quelle', o.quelle);
+      var hw = row(b, 'Hinweis', o.hinweis); if (o.belegt === 'umstritten') hw.classList.add('twarn');
+      var lb = el('div', 'tlinks');
+      o.an.forEach(function (a) { var v = routeById(a[0]); if (v) lb.appendChild(linkBtn(v.name, function () { openTradeInfo(v); })); });
+      row(b, 'Route', lb);
+    });
+  }
+  function openKontaktInfo(k) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk kontakt', 'Gesandtschaft · ' + fmtYear(k.jahr)));
+      var h = el('h3', null, k.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Ort', k.ort);
+      row(b, 'Sicherheit', k.sicherheit);
+      row(b, 'Bericht', k.text);
+      row(b, 'Quelle', k.quelle);
+    });
+  }
+  function openWaren() {
+    var body = $('#wbody'); body.innerHTML = '';
+    var wrap = el('div', 'wtable-wrap'), tb = el('table', 'wtable'), thead = el('thead'), tr = el('tr');
+    tr.appendChild(el('th', null, '← Von Osten nach Westen')); tr.appendChild(el('th', null, 'Von Westen nach Osten →'));
+    thead.appendChild(tr); tb.appendChild(thead);
+    var ow = HANDEL.waren.filter(function (w) { return w.von_nach === 'ost->west'; }), wo = HANDEL.waren.filter(function (w) { return w.von_nach === 'west->ost'; });
+    var tbody = el('tbody');
+    for (var i = 0; i < Math.max(ow.length, wo.length); i++) {
+      var r = el('tr');
+      [ow[i], wo[i]].forEach(function (w) {
+        var td = el('td');
+        if (w) { td.appendChild(el('b', null, w.name)); td.appendChild(el('div', 'wmeta', w.weg + ' · ' + w.quelle)); }
+        r.appendChild(td);
+      });
+      tbody.appendChild(r);
+    }
+    tb.appendChild(tbody); wrap.appendChild(tb); body.appendChild(wrap);
+    var d = el('p', 'wnote'); d.appendChild(el('b', null, 'Handelsdefizit? '));
+    d.appendChild(document.createTextNode(HANDEL.defizit.text + ' (' + HANDEL.defizit.quelle + ')'));
+    body.appendChild(d);
+    body.appendChild(el('p', 'wnote', 'Routenverläufe sind schematisch. Zwischen Rom und Han gab es keinen belegten direkten Handel, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien.'));
+    body.appendChild(el('h3', 'wsub', 'Umstrittene Thesen (keine gesicherten Tatsachen)'));
+    var ul = el('ul', 'wum');
+    HANDEL.umstritten.forEach(function (u) {
+      var li = el('li'); li.appendChild(badge('umstritten')); li.appendChild(el('b', null, ' ' + u.titel));
+      li.appendChild(el('div', null, u.text)); li.appendChild(el('div', 'wmeta', 'Quelle: ' + u.quelle)); ul.appendChild(li);
+    });
+    body.appendChild(ul);
+    $('#wmodal').hidden = false; $('#wmodalClose').focus({ preventScroll: true });
+  }
+
+  /* Pergamentkarte: Routen, Orte, Waren, Gesandtschaften */
+  function keyAct(sel, fn) {
+    sel.on('click', fn).on('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); fn(); } });
+  }
+  function drawTrade(svg, proj, path, r) {
+    var tv = CUR_TV; if (!TRADE.on || !tv) return false;
+    var g = svg.append('g').attr('class', 'trade').attr('font-family', 'Georgia, serif');
+    function inside(xy) { return xy && xy[0] > 12 && xy[0] < W - 12 && xy[1] > 12 && xy[1] < H - 12; }
+    var any = false, info = [], labels = g.append('g');
+    var lines = g.insert('g', ':first-child');
+    tv.routes.forEach(function (rt) {
+      var v = rt.v, col = TRADE_MAP[v.art];
+      var grp = lines.append('g').attr('class', 'troute').attr('tabindex', 0).attr('role', 'button').attr('aria-label', v.name + ': Infokarte öffnen');
+      keyAct(grp, function () { openTradeInfo(v); });
+      rt.parts.forEach(function (p) {
+        var d = path({ type: 'LineString', coordinates: p.pts }); if (!d) return;
+        grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', 'rgba(245,236,210,.9)').attr('stroke-width', 8).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+        grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', col).attr('stroke-width', p.belegt === 'umstritten' ? 4.5 : 3.6)
+          .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('stroke-dasharray', DASH_MAP[p.belegt]);
+        grp.append('path').attr('d', d).attr('class', 'thit');
+      });
+      grp.append('title').text(v.name + ' – ' + BELEGT_TXT[v.belegt] + ' (Klick für Infos)');
+      // Vom eigenen Reich aus abtasten: wo verlässt die Route die Karte?
+      var pts = dense(joinPts(rt.parts)); if (r === 'han') pts.reverse();
+      var xy = pts.map(function (c) { return proj(c); }), first = -1, last = -1, exit = false;
+      for (var i = 0; i < xy.length; i++) {
+        if (inside(xy[i])) { if (first < 0) first = i; last = i; } else if (first >= 0) { exit = true; break; }
+      }
+      if (first < 0) return;
+      any = true;
+      var partial = v.seiten && !rt.teile.mitte;
+      info.push({ v: v, col: col, xy: xy, first: first, last: last, txt: exit ? '→ ' + v.rand[r] : (partial && last === xy.length - 1 ? '→ weiter nur über Vermittler' : null) });
+    });
+    // Belegte Flächen (Kopf, Legende, Leiste unten) – dort keine Beschriftungen
+    var busy = [[40, 15, 600, 200], [40, H - 150, 380, 150], [0, H - 70, W, 70], [W - 260, 10, 260, 110]].concat(mapCityBoxes);
+    function hits(bx) { return busy.some(function (o) { return bx[0] < o[0] + o[2] && bx[0] + bx[2] > o[0] && bx[1] < o[1] + o[3] && bx[1] + bx[3] > o[1]; }); }
+    function overlap(bx) {
+      var sum = 0;
+      busy.forEach(function (o) {
+        var w = Math.min(bx[0] + bx[2], o[0] + o[2]) - Math.max(bx[0], o[0]), h = Math.min(bx[1] + bx[3], o[1] + o[3]) - Math.max(bx[1], o[1]);
+        if (w > 0 && h > 0) sum += w * h;
+      });
+      return sum;
+    }
+    function best(cand) {
+      var f = cand.filter(fits); if (f.length) return f[0];
+      return cand.slice().sort(function (a, b) { return overlap(a) - overlap(b); })[0];
+    }
+    function fits(bx) { return bx[0] >= MX && bx[1] >= 8 && bx[0] + bx[2] <= W - MX && bx[1] + bx[3] <= H - 8 && !hits(bx); }
+    var MX = 44;
+    // Handelsorte
+    tv.places.forEach(function (o) {
+      var p = proj([o.lng, o.lat]); if (!inside(p)) return;
+      var col = TRADE_MAP[(routeById(o.an[0][0]) || {}).art] || '#3b2d14';
+      var og = labels.append('g').attr('class', 'tplace').attr('tabindex', 0).attr('role', 'button').attr('aria-label', o.name + ': Infokarte öffnen')
+        .attr('transform', 'translate(' + p[0] + ',' + p[1] + ')');
+      keyAct(og, function () { openPlaceInfo(o); });
+      og.append('rect').attr('x', -7).attr('y', -7).attr('width', 14).attr('height', 14).attr('transform', 'rotate(45)').attr('fill', col).attr('stroke', '#f5ecd2').attr('stroke-width', 2);
+      og.append('text').attr('x', 12).attr('y', -9).attr('font-size', 17).attr('font-weight', 700).attr('font-style', 'italic').attr('fill', col)
+        .attr('stroke', 'rgba(245,236,210,.95)').attr('stroke-width', 4.5).attr('paint-order', 'stroke').text(mapCityNames[o.name] ? '' : o.name);
+      busy.push([p[0] - 10, p[1] - 28, 24 + og.select('text').node().getComputedTextLength(), 38]);
+      og.append('title').text(o.name + ' – ' + o.vermittler);
+    });
+    // Gesandtschaften
+    tv.kontakte.forEach(function (k) {
+      if (k.pfad) {
+        var d = path({ type: 'LineString', coordinates: k.pfad });
+        if (d) lines.append('path').attr('d', d).attr('fill', 'none').attr('stroke', '#5a3d8a').attr('stroke-width', 3).attr('stroke-dasharray', '2 7').attr('stroke-linecap', 'round').attr('pointer-events', 'none');
+      }
+      var p = proj([k.lng, k.lat]); if (!inside(p)) return;
+      var kg = labels.append('g').attr('class', 'tplace').attr('tabindex', 0).attr('role', 'button').attr('aria-label', 'Gesandtschaft ' + k.name + ': Infokarte öffnen')
+        .attr('transform', 'translate(' + p[0] + ',' + p[1] + ')');
+      keyAct(kg, function () { openKontaktInfo(k); });
+      kg.append('circle').attr('r', 15).attr('fill', '#5a3d8a').attr('stroke', '#f5ecd2').attr('stroke-width', 2);
+      kg.append('g').attr('transform', 'translate(-10,-10) scale(0.84)').attr('color', '#fff').html(ENVOY.replace(/<svg[^>]*>|<\/svg>/g, ''));
+      kg.append('text').attr('x', 20).attr('y', 5).attr('font-size', 17).attr('font-weight', 700).attr('font-style', 'italic').attr('fill', '#3d2463')
+        .attr('stroke', 'rgba(245,236,210,.95)').attr('stroke-width', 4.5).attr('paint-order', 'stroke').text(k.name + ' ' + shortYear(k.jahr));
+      busy.push([p[0] - 17, p[1] - 17, 40 + kg.select('text').node().getComputedTextLength(), 34]);
+    });
+    // Randpfeile mit Textfeld
+    info.forEach(function (o) {
+      if (!o.txt) return;
+      var A = o.xy[o.last], B = o.xy[Math.max(o.first, o.last - 4)], ang = Math.atan2(A[1] - B[1], A[0] - B[0]) * 180 / Math.PI;
+      var ag = labels.append('g').attr('class', 'tarrow').attr('pointer-events', 'none');
+      ag.append('path').attr('d', 'M-2,-11 L20,0 L-2,11 Z').attr('fill', o.col).attr('stroke', '#f5ecd2').attr('stroke-width', 2)
+        .attr('transform', 'translate(' + A[0] + ',' + A[1] + ') rotate(' + ang + ')');
+      var rect = ag.append('rect').attr('rx', 8).attr('fill', 'rgba(245,236,210,.95)').attr('stroke', o.col).attr('stroke-width', 2);
+      var te = ag.append('text').attr('font-size', 18).attr('font-weight', 700).attr('font-style', 'italic').attr('fill', o.col).text(o.txt);
+      var tw = te.node().getComputedTextLength() + 20, th = 30;
+      // Kandidaten: innen neben der Pfeilspitze
+      var dx = Math.cos(ang * Math.PI / 180), cand = [];
+      var inward = dx > 0 ? [[-tw - 16, 14], [-tw - 16, -th - 14]] : [[16, 14], [16, -th - 14]];
+      inward.concat([[-tw / 2, 22], [-tw / 2, -th - 22], [-tw / 2, 60], [-tw / 2, -th - 60]]).forEach(function (c) {
+        cand.push([Math.max(MX, Math.min(W - tw - MX, A[0] + c[0])), Math.max(8, Math.min(H - th - 78, A[1] + c[1])), tw, th]);
+      });
+      var bx = best(cand);
+      rect.attr('x', bx[0]).attr('y', bx[1]).attr('width', tw).attr('height', th);
+      te.attr('x', bx[0] + 10).attr('y', bx[1] + 21);
+      busy.push(bx);
+    });
+    // Waren-Chips: kompakt in Zeilen, ohne Überlappung
+    if (TRADE.waren) info.forEach(function (o) {
+      var cg = labels.append('g').attr('class', 'wchips-map').attr('tabindex', 0).attr('role', 'button').attr('aria-label', 'Waren: ' + o.v.name);
+      keyAct(cg, function () { openTradeInfo(o.v); });
+      var maxW = 340, x = 0, yy = 0, rowH = 26, wmax = 0, all = o.v.richtung_waren, MAXC = 5;
+      var list = all.length > MAXC + 1 ? all.slice(0, MAXC).concat([{ name: '+' + (all.length - MAXC) + ' weitere', mehr: true }]) : all;
+      list.forEach(function (w) {
+        var ow = w.von_nach === 'ost->west', t = w.mehr ? w.name : ow ? '← ' + w.name : w.name + ' →';
+        var cgi = cg.append('g');
+        var rect = cgi.append('rect').attr('rx', 10).attr('height', 22).attr('fill', w.mehr ? o.col : ow ? '#3b2d14' : '#f5ecd2').attr('stroke', o.col).attr('stroke-width', 1.6);
+        var te = cgi.append('text').attr('x', 9).attr('y', 16).attr('font-size', 15).attr('font-weight', 600).attr('fill', w.mehr || ow ? '#f5ecd2' : '#3b2d14').text(t);
+        var cw = te.node().getComputedTextLength() + 18; rect.attr('width', cw);
+        if (x > 0 && x + cw > maxW) { x = 0; yy += rowH; }
+        cgi.attr('transform', 'translate(' + x + ',' + yy + ')');
+        cgi.append('title').text(w.mehr ? 'Alle Waren in der Infokarte (Klick)' : w.name + ': ' + (ow ? 'von Osten nach Westen' : 'von Westen nach Osten'));
+        x += cw + 5; wmax = Math.max(wmax, x);
+      });
+      var bw = wmax, bh = yy + 22, cand = [];
+      [0.35, 0.55, 0.2, 0.75, 0.1, 0.9].forEach(function (f) {
+        var P = o.xy[o.first + Math.floor((o.last - o.first) * f)];
+        [[16, 16], [16, -bh - 16], [-bw - 16, 16], [-bw - 16, -bh - 16], [-bw / 2, 40], [-bw / 2, -bh - 40], [40, -bh / 2], [-bw - 40, -bh / 2]].forEach(function (c) {
+          cand.push([Math.max(MX, Math.min(W - bw - MX, P[0] + c[0])), Math.max(8, Math.min(H - bh - 78, P[1] + c[1])), bw, bh]);
+        });
+      });
+      var bx = best(cand);
+      cg.attr('transform', 'translate(' + bx[0] + ',' + bx[1] + ')');
+      busy.push(bx);
+    });
+    return any;
   }
 
   /* ---------- Start: Linien von der Legende zum Reich ---------- */
@@ -604,6 +1045,26 @@
       state.schlachten = !state.schlachten; this.classList.toggle('on', state.schlachten); this.setAttribute('aria-pressed', state.schlachten);
       $('#lanes').classList.toggle('noschl', !state.schlachten); lastKey = ''; setYear(state.year);
     });
+    function setTrade(k, v) {
+      TRADE[k] = v;
+      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes' }[k]);
+      b.classList.toggle('on', v); b.setAttribute('aria-pressed', v);
+      if (k === 'on') {
+        $('#handelSub').classList.toggle('off', !v);
+        document.querySelectorAll('#handelSub button').forEach(function (x) { x.disabled = !v; });
+        if (!v) closeInfo();
+      }
+      lastKey = ''; setYear(state.year);
+    }
+    $('#tglHandel').addEventListener('click', function () { setTrade('on', !TRADE.on); });
+    $('#tglLand').addEventListener('click', function () { setTrade('land', !TRADE.land); });
+    $('#tglSee').addEventListener('click', function () { setTrade('see', !TRADE.see); });
+    $('#tglWaren').addEventListener('click', function () { setTrade('waren', !TRADE.waren); });
+    $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
+    $('#btnWaren').addEventListener('click', openWaren);
+    $('#tinfoClose').addEventListener('click', closeInfo);
+    $('#wmodalClose').addEventListener('click', function () { $('#wmodal').hidden = true; });
+    $('#wmodal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
     $('#tglRot').addEventListener('click', function () {
       state.rotate = !state.rotate; this.classList.toggle('on', state.rotate); this.setAttribute('aria-pressed', state.rotate); globe.controls().autoRotate = state.rotate && !mapOpen;
     });
@@ -620,8 +1081,13 @@
     $('#modalClose').addEventListener('click', function () { $('#modal').hidden = true; });
     $('#modal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { if (!$('#modal').hidden) $('#modal').hidden = true; else closeMap(); return; }
-      if (e.target && e.target.tagName === 'INPUT') return;
+      if (e.key === 'Escape') {
+        if (!$('#wmodal').hidden) { $('#wmodal').hidden = true; return; }
+        if (!$('#modal').hidden) { $('#modal').hidden = true; return; }
+        if (closeInfo()) return;
+        closeMap(); return;
+      }
+      if (e.target && (e.target.tagName === 'INPUT' || (e.target.closest && e.target.closest('.troute,.tplace,.wchips-map')))) return;
       if (e.key === 'ArrowLeft') setYear(state.year - (e.shiftKey ? 10 : 1));
       if (e.key === 'ArrowRight') setYear(state.year + (e.shiftKey ? 10 : 1));
       if (e.key === ' ' && !mapOpen && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); }
@@ -630,8 +1096,9 @@
 
   /* ---------- Start ---------- */
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
-  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json')]).then(function (res) {
-    DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3];
+  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json')]).then(function (res) {
+    DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4];
+    initTrade();
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
@@ -640,7 +1107,7 @@
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
     setTimeout(startIntro, 600);
-    window.__tafelbild = { state: state, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe };
+    window.__tafelbild = { state: state, trade: TRADE, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible };
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';
     m.textContent = 'Daten konnten nicht geladen werden. Bitte die Seite über einen Webserver öffnen (nicht per Doppelklick). ' + err.message;

@@ -1,0 +1,137 @@
+{
+  "_hinweis": "Routenverläufe schematisch und grob handgezeichnet ([lng,lat], jeweils von West nach Ost). Zwischen Rom und Han gab es keinen belegten direkten Handel, sondern Zwischenhandel. 'seiten' teilt eine Route in römische Seite (Punkt 0 bis bis_punkt), Mittelstück (Vermittler) und chinesische Seite (ab ab_punkt).",
+  "verbindungen": [
+    {
+      "id": "mittel",
+      "name": "Mittelroute (Landweg, später „Seidenstraße“ genannt)",
+      "art": "land",
+      "pfad": [[36.29,33.51],[38.27,34.55],[41.9,34.2],[44.55,33.1],[48.52,34.8],[54.3,36.2],[61.83,37.66],[66.9,36.76],[70.5,37.6],[73.6,39.2],[75.99,39.47],[82.96,41.72],[89.9,40.5],[94.66,40.14],[102.64,37.93],[108.95,34.27],[112.45,34.62]],
+      "von": -121,
+      "bis": 480,
+      "reiche": ["rom", "han"],
+      "seiten": {
+        "rom": { "bis_punkt": 3, "von": -64, "belegt": "belegt", "quelle": "Palmyrenische Karawaneninschriften (1.–3. Jh. n. Chr.); Isidor von Charax, Parthische Stationen" },
+        "han": { "ab_punkt": 7, "von": -121, "belegt": "belegt", "quelle": "Shiji 123 (Zhang Qian); Hanshu 96 (Bericht über die Westlichen Regionen)" }
+      },
+      "vermittler": ["Palmyrener", "Parther", "Kuschana", "Oasenstädte des Tarimbeckens"],
+      "richtung_waren": [
+        { "name": "Seide", "von_nach": "ost->west" },
+        { "name": "Glas", "von_nach": "west->ost" },
+        { "name": "Gold- und Silbergeschirr", "von_nach": "west->ost" },
+        { "name": "Bernstein", "von_nach": "west->ost" },
+        { "name": "Zinnober", "von_nach": "west->ost" },
+        { "name": "Asbesttuch", "von_nach": "west->ost" },
+        { "name": "Seeseide", "von_nach": "west->ost" },
+        { "name": "gestickte Teppiche", "von_nach": "west->ost" }
+      ],
+      "belegt": "vermittelt",
+      "quelle": "Shiji 123; Hanshu 96; Hou Hanshu 88; Isidor von Charax, Parthische Stationen; Plinius, Naturgeschichte 6,54",
+      "hinweis": "Verlauf schematisch, es gab viele Nebenwege (z. B. Nord- und Südrand des Tarimbeckens). Kein Händler legte die ganze Strecke zurück; die Waren wechselten mehrfach den Besitzer. Hou Hanshu 88 nennt die Westwaren als Erzeugnisse von Da Qin, über welchen Weg sie kamen, ist nicht überliefert. Den Namen „Seidenstraße“ prägte erst Ferdinand von Richthofen (1877).",
+      "rand": { "rom": "nach China (über Parther/Kuschana)", "han": "nach Rom (Da Qin), über Kuschana/Parther" }
+    },
+    {
+      "id": "sued",
+      "name": "Südroute (Seeweg über Indien)",
+      "art": "see",
+      "pfad": [[29.92,31.2],[31.25,30.05],[31.2,27.2],[32.81,26.0],[35.47,23.91],[37.6,19.6],[41.0,14.6],[43.4,12.6],[48.0,12.4],[57.0,15.0],[66.0,19.0],[72.98,21.7],[72.3,18.5],[73.8,13.5],[75.5,9.5],[77.4,7.4],[80.4,5.4],[82.6,6.6],[88.0,8.5],[95.0,7.5],[98.3,5.6],[100.4,3.2],[103.6,1.1],[104.6,4.5],[104.4,8.8],[105.13,10.25],[104.6,8.3],[106.6,8.4],[109.4,11.6],[109.4,14.0],[108.4,16.2],[107.2,16.8],[107.4,18.6],[108.5,20.8],[109.2,21.48],[109.55,20.6],[110.3,20.15],[111.6,21.2],[113.0,22.0],[113.27,23.13]],
+      "von": -111,
+      "bis": 480,
+      "reiche": ["rom", "han"],
+      "seiten": {
+        "rom": { "bis_punkt": 11, "von": -30, "belegt": "belegt", "quelle": "Periplus Maris Erythraei (1. Jh. n. Chr.); Strabon 2,5,12" },
+        "han": { "ab_punkt": 31, "von": -111, "belegt": "belegt", "quelle": "Hanshu 28B (Geographie-Abhandlung: Seereisen ab Rinan, Xuwen und Hepu)" }
+      },
+      "vermittler": ["Nabatäer", "indische Händler", "südostasiatische Seefahrer"],
+      "richtung_waren": [
+        { "name": "Seide", "von_nach": "ost->west" },
+        { "name": "Gewürze/Pfeffer", "von_nach": "ost->west" },
+        { "name": "Perlen", "von_nach": "ost->west" },
+        { "name": "Korallen", "von_nach": "west->ost" },
+        { "name": "Glas", "von_nach": "west->ost" }
+      ],
+      "belegt": "vermittelt",
+      "quelle": "Periplus Maris Erythraei 19, 49, 56, 64; Strabon 2,5,12; Ptolemaios, Geographie 1,14 und 7,3; Hanshu 28B; Hou Hanshu 88",
+      "hinweis": "Abschnitt Alexandria–Koptos–Berenike teils über Land (Nil, Wüstenstraße). Römische Kaufleute fuhren bis Indien; weiter östlich waren indische und südostasiatische Seefahrer tätig. Die Lage von Kattigara ist umstritten (Óc Eo im Mekongdelta ist nur ein Vorschlag). Ob Schiffe die Straße von Malakka oder Landwege über die Halbinsel nutzten, ist unsicher.",
+      "rand": { "rom": "nach China (über Indien)", "han": "nach Rom (Da Qin), über Indien" }
+    },
+    {
+      "id": "nord",
+      "name": "Nordroute (Kaukasus – Kaspisches Meer – Oxus)",
+      "art": "land",
+      "pfad": [[41.67,42.15],[43.6,42.0],[45.5,41.4],[49.3,39.6],[51.6,40.3],[53.0,40.0],[56.5,39.6],[60.3,41.4],[63.5,39.1],[65.6,37.9],[67.28,37.22],[66.9,36.76]],
+      "von": -65,
+      "bis": 25,
+      "reiche": ["rom"],
+      "vermittler": ["Völker des Kaukasus (Iberer, Albaner)", "Baktrien"],
+      "richtung_waren": [
+        { "name": "indische Waren (allgemein)", "von_nach": "ost->west" }
+      ],
+      "belegt": "umstritten",
+      "quelle": "Plinius, Naturgeschichte 6,52 (nach Varro, Feldzug des Pompeius 65 v. Chr.); Strabon 11,7,3",
+      "hinweis": "Die antiken Autoren berichten, indische Waren seien den Oxus hinab, über das Kaspische Meer und den Kaukasus bis ans Schwarze Meer gebracht worden. Ob und wie lange dieser Weg wirklich genutzt wurde, ist umstritten. Der Zeitraum entspricht nur der Zeit der Berichte (65 v. Chr. bis Strabon, um 20 n. Chr.).",
+      "rand": { "rom": "nach Baktrien (Oxus)", "han": "zum Kaukasus und Schwarzen Meer" }
+    }
+  ],
+  "orte": [
+    { "id": "palmyra", "name": "Palmyra", "lng": 38.27, "lat": 34.55, "an": [["mittel", "rom"]], "vermittler": "Palmyrener", "von": -41, "bis": 273, "belegt": "belegt",
+      "quelle": "Palmyrenische Karawaneninschriften; Appian, Bürgerkriege 5,9", "hinweis": "Karawanenstadt zwischen Syrien und dem Euphrat. 273 n. Chr. von Kaiser Aurelian zerstört." },
+    { "id": "seleukia", "name": "Seleukia/Ktesiphon", "lng": 44.55, "lat": 33.1, "an": [["mittel", "rom"]], "vermittler": "Parther", "von": -141, "bis": 224, "belegt": "belegt",
+      "quelle": "Isidor von Charax, Parthische Stationen; Hanshu 96 (Anxi = Partherreich)", "hinweis": "Parthische Residenz am Tigris. Hier endet die römische Seite: Weiter nach Osten handelten die Parther." },
+    { "id": "merv", "name": "Merv", "lng": 61.83, "lat": 37.66, "an": [["mittel", "mitte"]], "vermittler": "Parther", "von": -141, "bis": 224, "belegt": "belegt",
+      "quelle": "Isidor von Charax, Parthische Stationen (Antiochia in Margiane)", "hinweis": "Oasenstadt im Osten des Partherreichs." },
+    { "id": "baktra", "name": "Baktra (Balch)", "lng": 66.9, "lat": 36.76, "an": [["mittel", "han"], ["nord", "ganz"]], "vermittler": "Kuschana (davor Yuezhi)", "von": -128, "bis": 375, "belegt": "belegt",
+      "quelle": "Shiji 123 (Zhang Qian bei den Yuezhi); Periplus Maris Erythraei 64 (Seide aus Thinai über Baktrien)", "hinweis": "Knotenpunkt zwischen Iran, Indien und dem Tarimbecken. Hier treffen chinesische Gesandte auf die Vermittler im Westen." },
+    { "id": "kaschgar", "name": "Kaschgar", "lng": 75.99, "lat": 39.47, "an": [["mittel", "han"]], "vermittler": "Oasenstädte des Tarimbeckens", "von": -60, "bis": 220, "belegt": "belegt",
+      "quelle": "Hanshu 96; Hou Hanshu 88 (Shule)", "hinweis": "Oase am Westrand des Tarimbeckens; zeitweise unter Han-Einfluss." },
+    { "id": "dunhuang", "name": "Dunhuang", "lng": 94.66, "lat": 40.14, "an": [["mittel", "han"]], "vermittler": "Han-Grenzkommandantur", "von": -111, "bis": 220, "belegt": "belegt",
+      "quelle": "Hanshu 28 (Geographie-Abhandlung); Holztäfelchen der Poststation Xuanquan", "hinweis": "Tor der Han nach Westen am Ende des Hexi-Korridors." },
+    { "id": "petra", "name": "Petra", "lng": 35.44, "lat": 30.33, "an": [["sued", "rom"]], "vermittler": "Nabatäer", "von": -300, "bis": 106, "belegt": "belegt",
+      "quelle": "Periplus Maris Erythraei 19 (Leuke Kome, Weg nach Petra); Strabon 16,4,21–24", "hinweis": "Hauptstadt der Nabatäer; sie brachten Waren aus Arabien und vom Roten Meer ans Mittelmeer. Liegt abseits des eingezeichneten Seewegs. 106 n. Chr. wird ihr Reich römische Provinz." },
+    { "id": "berenike", "name": "Berenike", "lng": 35.47, "lat": 23.91, "an": [["sued", "rom"]], "vermittler": "Kaufleute aus dem römischen Ägypten", "von": -30, "bis": 480, "belegt": "belegt",
+      "quelle": "Periplus Maris Erythraei 1; Strabon 17,1,45", "hinweis": "Hafen am Roten Meer; Waren kamen über die Wüstenstraße von Koptos am Nil." },
+    { "id": "barygaza", "name": "Barygaza", "lng": 72.98, "lat": 21.7, "an": [["sued", "rom"]], "vermittler": "indische Händler", "von": -30, "bis": 480, "belegt": "belegt",
+      "quelle": "Periplus Maris Erythraei 43–49", "hinweis": "Großer Hafen in Westindien (heute Bharuch). Hier endet die römische Seite: Weiter östlich übernahmen indische Händler." },
+    { "id": "malaya", "name": "Malaiische Halbinsel", "lng": 100.3, "lat": 6.5, "an": [["sued", "mitte"]], "vermittler": "indische und südostasiatische Seefahrer", "von": -111, "bis": 480, "belegt": "vermittelt",
+      "quelle": "Hanshu 28B (Seereise von Rinan nach Huangzhi)", "hinweis": "Ob die Schiffe um die Halbinsel fuhren oder Waren über Land quer über die Halbinsel gebracht wurden, ist unsicher." },
+    { "id": "kattigara", "name": "Kattigara / Óc Eo (?)", "lng": 105.13, "lat": 10.25, "an": [["sued", "mitte"]], "vermittler": "Funan, indische Händler", "von": 100, "bis": 480, "belegt": "umstritten",
+      "quelle": "Ptolemaios, Geographie 1,14 und 7,3", "hinweis": "Lage umstritten: Kattigara wird oft mit Óc Eo im Mekongdelta gleichgesetzt; andere Vorschläge reichen bis Nordvietnam oder Südchina." },
+    { "id": "rinan", "name": "Rinan", "lng": 107.2, "lat": 16.8, "an": [["sued", "han"]], "vermittler": "Han-Grenzkommandantur", "von": -111, "bis": 220, "belegt": "belegt",
+      "quelle": "Hanshu 28B; Hou Hanshu 88 (Gesandtschaft 166 n. Chr.)", "hinweis": "Südlichste Kommandantur der Han (im heutigen Vietnam). Hier endet die chinesische Seite des Seewegs." },
+    { "id": "phasis", "name": "Phasis", "lng": 41.67, "lat": 42.15, "an": [["nord", "ganz"]], "vermittler": "Völker des Kaukasus", "von": -65, "bis": 25, "belegt": "umstritten",
+      "quelle": "Plinius, Naturgeschichte 6,52; Strabon 11,7,3", "hinweis": "Hafen am Schwarzen Meer, Endpunkt der in den Quellen beschriebenen Nordroute." }
+  ],
+  "kontakte": [
+    { "id": "ganying", "jahr": 97, "name": "Gan Ying", "ort": "Tiaozhi am „großen Meer“ (meist als Persischer Golf gedeutet)", "lng": 47.9, "lat": 30.5,
+      "reiche": ["han"], "quelle": "Hou Hanshu 88 (Bericht über die Westlichen Regionen)", "sicherheit": "belegt (Lage von Tiaozhi umstritten)",
+      "text": "Der General Ban Chao schickt Gan Ying nach Da Qin (Rom). Gan Ying erreicht Tiaozhi am Meer. Parthische Seeleute schildern ihm die Überfahrt als lang und gefährlich; er kehrt um.",
+      "pfad": [[82.96,41.72],[75.99,39.47],[73.6,39.2],[70.5,37.6],[66.9,36.76],[61.83,37.66],[54.3,36.2],[48.52,34.8],[47.9,30.5]] },
+    { "id": "gaukler", "jahr": 120, "name": "Gaukler aus Da Qin", "ort": "Han-Hof in Luoyang, über das Reich Shan (heutiges Myanmar)", "lng": 112.45, "lat": 34.62,
+      "reiche": ["han"], "quelle": "Hou Hanshu 86", "sicherheit": "unsicher (Herkunft der Gaukler)",
+      "text": "Der König von Shan schickt Musiker und Gaukler an den Han-Hof. Sie sagen, sie kämen aus Da Qin. Ob sie wirklich aus dem Römischen Reich stammten, ist unsicher." },
+    { "id": "andun", "jahr": 166, "name": "Gesandtschaft des „Andun“", "ort": "über Rinan (Grenze der Han im heutigen Vietnam)", "lng": 107.2, "lat": 16.8,
+      "reiche": ["han", "rom"], "quelle": "Hou Hanshu 88", "sicherheit": "belegt (Charakter als Gesandtschaft umstritten)",
+      "text": "Leute des Königs „Andun“ von Da Qin (meist mit Kaiser Marcus Aurelius Antoninus gleichgesetzt) kommen über Rinan und bringen Elfenbein, Nashornhorn und Schildpatt. Vermutlich waren es Kaufleute, keine offizielle Gesandtschaft." }
+  ],
+  "waren": [
+    { "name": "Seide", "von_nach": "ost->west", "weg": "Land- und Seeweg", "quelle": "Plinius, Naturgeschichte 6,54; Periplus 49, 64" },
+    { "name": "Gewürze/Pfeffer", "von_nach": "ost->west", "weg": "über Indien", "quelle": "Periplus 56; Plinius, Naturgeschichte 12,26–29" },
+    { "name": "Perlen", "von_nach": "ost->west", "weg": "über Indien", "quelle": "Periplus 56" },
+    { "name": "Glas", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88 (Erzeugnisse von Da Qin)" },
+    { "name": "Gold- und Silbergeschirr", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "Bernstein", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "Zinnober", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "Asbesttuch", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "Seeseide", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "gestickte Teppiche", "von_nach": "west->ost", "weg": "Weg nicht überliefert", "quelle": "Hou Hanshu 88" },
+    { "name": "Korallen", "von_nach": "west->ost", "weg": "über Indien", "quelle": "Periplus 28, 39, 49, 56" }
+  ],
+  "defizit": {
+    "text": "Plinius klagt, Indien, die Serer (China) und Arabien entzögen dem Reich jährlich mindestens 100 Millionen Sesterzen. Wie groß Handelsvolumen und Handelsdefizit wirklich waren, wird in der Forschung diskutiert.",
+    "quelle": "Plinius, Naturgeschichte 12,84"
+  },
+  "umstritten": [
+    { "titel": "Liqian: römische Soldaten in China?", "text": "These, Gefangene aus der Niederlage des Crassus bei Carrhae (53 v. Chr.) hätten sich in Liqian (Gansu) angesiedelt. Es gibt dafür keine Belege; genetische Untersuchungen stützen die These nicht.", "quelle": "H. H. Dubs, A Roman City in Ancient China (1957)" },
+    { "titel": "„Chinesische“ Skelette in Southwark und Vagnari", "text": "Untersuchungen an Gräbern in Southwark (London) und Vagnari (Apulien) wurden als Hinweis auf eine Herkunft aus Ostasien gedeutet. Diese Deutung ist umstritten.", "quelle": "Redfern u. a. 2016 (Southwark); Prowse u. a. 2010 (Vagnari)" },
+    { "titel": "Römische Münzen in Xi’an", "text": "Es gibt Berichte über römische Münzen aus der Gegend von Xi’an (Chang’an). Fundumstände, Echtheit und Datierung sind ungeklärt.", "quelle": "Fundberichte; keine gesicherte Veröffentlichung" }
+  ]
+}
