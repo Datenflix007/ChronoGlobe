@@ -9,3 +9,5 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
   Inhalte gestützt auf antike Quellen (u. a. Periplus Maris Erythraei, Plinius d. Ä., Strabon, Ptolemaios, Isidor von Charax,
   Shiji, Hanshu, Hou Hanshu); die Quellenangaben stehen bei jedem Eintrag. Keine Atlas- oder Kartendaten Dritter.
 - Symbole (Schwerter, Gesandtschaft): eigene SVG-Zeichnungen.
+- Schematische Globus-Textur img/earth-schematic.png: aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
+  land-50m.json, gezeichnet mit d3 (build_schema_textur.py).

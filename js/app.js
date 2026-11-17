@@ -48,11 +48,10 @@
   }
 
   /* ---------- Globus ---------- */
-  var SEA_URL = (function () {
-    var c = document.createElement('canvas'); c.width = c.height = 4;
-    var x = c.getContext('2d'); x.fillStyle = '#8fb8d0'; x.fillRect(0, 0, 4, 4); return c.toDataURL();
-  })();
-  var LANDF = null;
+  /* Schematische Ansicht: fertige Textur (img/earth-schematic.png, erzeugt mit build_schema_textur.py aus Natural Earth).
+     Früher wurde das ganze Festland als ein riesiges 3D-Polygon gezeichnet; das ergab Risse und Flackern. */
+  var SCHEM_URL = 'img/earth-schematic.png', LANDF = null;
+  function schemTexture() { return SCHEM_URL; }
 
   function capColor(f) {
     var p = f.properties || {};
@@ -63,7 +62,6 @@
   }
   function visiblePolys() {
     var a = [];
-    if (state.mode === 'schem') a.push(LANDF);
     DATA.reihen.forEach(function (r) { if (state.on[r]) a.push.apply(a, regionsAt(r, state.year)); });
     return a;
   }
@@ -98,7 +96,7 @@
   }
   function applyMode() {
     var sat = state.mode === 'sat';
-    globe.globeImageUrl(sat ? 'img/earth-blue-marble.jpg' : SEA_URL);
+    globe.globeImageUrl(sat ? 'img/earth-blue-marble.jpg' : schemTexture());
     globe.bumpImageUrl(sat ? 'img/earth-topology.png' : '');
     globe.backgroundImageUrl(sat ? 'img/night-sky.png' : '');
     globe.backgroundColor(sat ? '#000010' : '#14202e');
