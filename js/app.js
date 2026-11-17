@@ -76,12 +76,12 @@
   }
   function battleEl(d) {
     if (d.__el) return d.__el;
-    var el = document.createElement('div'); el.className = 'battle';
-    el.innerHTML = SWORDS + '<span></span>';
-    el.querySelector('span').textContent = d.name + ' ' + shortYear(d.jahr);
-    el.title = d.name + ' (' + fmtYear(d.jahr) + '): ' + d.note;
-    el.addEventListener('click', function (e) { e.stopPropagation(); toast('⚔ ' + d.name + ', ' + fmtYear(d.jahr) + ': ' + d.note); });
-    d.__el = el; return el;
+    var bel = document.createElement('div'); bel.className = 'battle';
+    bel.innerHTML = SWORDS + '<span></span>';
+    bel.querySelector('span').textContent = d.name + ' ' + shortYear(d.jahr);
+    bel.title = d.name + ' (' + fmtYear(d.jahr) + '): ' + d.note;
+    bel.addEventListener('click', function (e) { e.stopPropagation(); toast('⚔ ' + d.name + ', ' + fmtYear(d.jahr) + ': ' + d.note); });
+    d.__el = bel; return bel;
   }
   function refreshGlobe() {
     var polys = visiblePolys(), now = Date.now();
@@ -152,14 +152,14 @@
     window.addEventListener('resize', function () { globe.width(window.innerWidth).height(window.innerHeight); });
 
     // Hineinzoomen => Karte entrollen
-    var el = globe.renderer().domElement;
-    el.addEventListener('wheel', function (e) {
+    var cvs = globe.renderer().domElement;
+    cvs.addEventListener('wheel', function (e) {
       if (mapOpen || e.deltaY >= 0) return;
       if (globe.pointOfView().altitude <= 0.42) tryOpenMap();
     }, { passive: true });
     var pinchBase = null;
-    el.addEventListener('touchstart', function () { pinchBase = globe.pointOfView().altitude; }, { passive: true });
-    el.addEventListener('touchend', function () {
+    cvs.addEventListener('touchstart', function () { pinchBase = globe.pointOfView().altitude; }, { passive: true });
+    cvs.addEventListener('touchend', function () {
       var a = globe.pointOfView().altitude;
       if (!mapOpen && pinchBase !== null && a < pinchBase - 0.02 && a <= 0.42) tryOpenMap();
       pinchBase = null;
@@ -432,12 +432,12 @@
     var layer = svg.append('g').attr('stroke-linejoin', 'round');
     feats.forEach(function (ft) {
       var p = ft.properties, c = regionColor(ft, y), mine = p.reich === r;
-      var el = layer.append('path').attr('d', path(ft)).attr('fill', fillOf(ft))
+      var rp = layer.append('path').attr('d', path(ft)).attr('fill', fillOf(ft))
         .attr('stroke', mix(c, '#000000', 0.45)).attr('stroke-width', mine ? 1.3 : 0.9)
         .attr('stroke-dasharray', p.art === 'einfluss' || !mine ? '4 3' : null);
-      el.append('title').text(p.name + ' (' + (M(p.reich).name) + ', seit ' + fmtYear(p.von) + ')');
+      rp.append('title').text(p.name + ' (' + (M(p.reich).name) + ', seit ' + fmtYear(p.von) + ')');
       if (soft && mapPrev && !mapPrev[p.id]) {
-        el.attr('opacity', 0).attr('stroke', '#fff').attr('stroke-width', 3)
+        rp.attr('opacity', 0).attr('stroke', '#fff').attr('stroke-width', 3)
           .transition().duration(900).attr('opacity', 1)
           .transition().duration(700).attr('stroke', mix(c, '#000000', 0.45)).attr('stroke-width', mine ? 1.3 : 0.9);
       }
@@ -981,7 +981,9 @@
       ['rom', 'han'].forEach(function (r) {
         var e = intro.els[r], chip = $(r === 'rom' ? '#tglRom' : '#tglHan');
         var z = M(r).zentrum, ang = d3.geoDistance([pov.lng, pov.lat], z);
-        var vis = !collapsed && !mapOpen && state.on[r] && regionsAt(r, state.year).length && ang < 1.35;
+        var rc0 = chip.getBoundingClientRect(), pb = $('#panelBody').getBoundingClientRect();
+        var inPanel = rc0.top >= pb.top - 2 && rc0.bottom <= pb.bottom + 2;
+        var vis = !collapsed && inPanel && !mapOpen && state.on[r] && regionsAt(r, state.year).length && ang < 1.35;
         var op = vis ? Math.min(1, (1.35 - ang) / 0.25) : 0;
         ['path', 'start', 'ring', 'dot'].forEach(function (k) { e[k].setAttribute('visibility', op ? 'visible' : 'hidden'); });
         if (!op) return;
@@ -996,9 +998,9 @@
       intro.raf = requestAnimationFrame(frame);
     })();
     intro.timer = setTimeout(stopIntro, 14000);
-    var el = globe.renderer().domElement;
-    function first() { el.removeEventListener('pointerdown', first); el.removeEventListener('wheel', first); setTimeout(stopIntro, 1200); }
-    el.addEventListener('pointerdown', first); el.addEventListener('wheel', first, { passive: true });
+    var cvs = globe.renderer().domElement;
+    function first() { cvs.removeEventListener('pointerdown', first); cvs.removeEventListener('wheel', first); setTimeout(stopIntro, 1200); }
+    cvs.addEventListener('pointerdown', first); cvs.addEventListener('wheel', first, { passive: true });
   }
   function stopIntro() {
     if (!intro.on) return;
@@ -1016,8 +1018,19 @@
     try { localStorage.setItem('tafelbild.panel', collapsed ? '0' : '1'); } catch (e) {}
   }
 
+  /* ---------- Infoband rechts einklappen ---------- */
+  function setSide(collapsed) {
+    var p = $('#side'), b = $('#sideToggle');
+    p.classList.toggle('collapsed', collapsed);
+    b.setAttribute('aria-expanded', !collapsed);
+    b.title = collapsed ? 'Infoband ausklappen' : 'Infoband einklappen';
+    try { localStorage.setItem('tafelbild.side', collapsed ? '0' : '1'); } catch (e) {}
+  }
+
   /* ---------- Bedienung ---------- */
   function bind() {
+    $('#sideToggle').addEventListener('click', function () { setSide(!$('#side').classList.contains('collapsed')); });
+    try { if (localStorage.getItem('tafelbild.side') === '0') setSide(true); } catch (e) {}
     $('#panelToggle').addEventListener('click', function () { setPanel(!$('#panel').classList.contains('collapsed')); });
     try { if (localStorage.getItem('tafelbild.panel') === '0') setPanel(true); } catch (e) {}
     $('#modeSat').addEventListener('click', function () { state.mode = 'sat'; applyMode(); });
@@ -1063,6 +1076,7 @@
     $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
     $('#btnWaren').addEventListener('click', openWaren);
     $('#tinfoClose').addEventListener('click', closeInfo);
+    $('#tinfo').addEventListener('click', function (e) { if (e.target === this) closeInfo(); });
     $('#wmodalClose').addEventListener('click', function () { $('#wmodal').hidden = true; });
     $('#wmodal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
     $('#tglRot').addEventListener('click', function () {
