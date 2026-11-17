@@ -1,6 +1,7 @@
 # Digitales Tafelbild: Rom und China
 
-Statische Unterseite (kein Build nötig, keine externen Dienste, alle Pfade relativ).
+<img width="946" height="631" alt="image" src="https://github.com/user-attachments/assets/62332721-ca48-4a0d-b88d-0c5059ea40fb" />
+
 
 ## Einbinden
 1. Ordner `tafelbild/` in dein Repo `datenflix007.github.io` legen und pushen.
