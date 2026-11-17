@@ -313,3 +313,17 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .wanchor.links .wstem,.wanchor.rechts .wstem{top:-1px;height:2px;width:64px}
 .wanchor.links .wstem{right:0} .wanchor.rechts .wstem{left:0}
 .wanchor::after{content:"";position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+
+/* ----- Dezente Scrollbereiche (Menü links, Infoband rechts, Infokarte) ----- */
+.panel-body,.cards,.tinfo-box,.wbox{overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;scrollbar-color:transparent transparent;overscroll-behavior:contain}
+.panel-body:hover,.cards:hover,.tinfo-box,.wbox,.panel-body:focus-within{scrollbar-color:rgba(255,255,255,.22) transparent}
+.panel-body::-webkit-scrollbar,.cards::-webkit-scrollbar,.tinfo-box::-webkit-scrollbar,.wbox::-webkit-scrollbar{width:6px;height:0}
+.panel-body::-webkit-scrollbar-track,.cards::-webkit-scrollbar-track,.tinfo-box::-webkit-scrollbar-track,.wbox::-webkit-scrollbar-track{background:transparent}
+.panel-body::-webkit-scrollbar-thumb,.cards::-webkit-scrollbar-thumb,.tinfo-box::-webkit-scrollbar-thumb,.wbox::-webkit-scrollbar-thumb{background:transparent;border-radius:6px}
+.panel-body:hover::-webkit-scrollbar-thumb,.cards:hover::-webkit-scrollbar-thumb,.tinfo-box::-webkit-scrollbar-thumb,.wbox::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22)}
+.panel-body::-webkit-scrollbar-button,.cards::-webkit-scrollbar-button{display:none;height:0}
+/* nichts darf breiter als die Spalte werden */
+.panel-body *{min-width:0}
+.chip.hs{line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+.hsub-grid .chip.hs{word-break:normal;overflow-wrap:break-word;hyphens:auto}
+.chip.hs span{min-width:0;flex:1;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
