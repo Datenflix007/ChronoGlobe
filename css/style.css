@@ -192,21 +192,8 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .modal-box .small{flex:none;padding:10px 20px}
 code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 
-@media (max-width:900px){
-  .panel{width:210px;padding:10px;top:58px}
-  .side{width:min(300px,46vw);top:58px}
-  .year{font-size:22px;min-width:130px}
+@media (max-width:1180px){
   .top h1 span{display:none}
-  .hint{display:none}
-}
-@media (max-width:640px){
-  .panel{top:auto;bottom:190px;left:8px;width:auto;right:8px}
-  .panel.collapsed{right:auto}
-  .panel-body{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
-  .panel .hint{display:none}
-  .side{display:none}
-  .era .nm{display:none}
-  .tl-credit{left:12px;right:auto}
 }
 @media (prefers-reduced-motion:reduce){
   .paper,.roller{transition-duration:.01s !important}.paper-in{transition:none}
@@ -327,3 +314,117 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .chip.hs{line-height:1.2;white-space:normal;overflow-wrap:anywhere}
 .hsub-grid .chip.hs{word-break:normal;overflow-wrap:break-word;hyphens:auto}
 .chip.hs span{min-width:0;flex:1;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+
+/* ===================== Smartphone & Tablet ===================== */
+.credit-m{display:none}
+.rotate-hint{display:none}
+.tick .tk-s{display:none}
+@media (pointer:coarse){
+  #year::-webkit-slider-thumb{width:30px;height:30px;margin-top:-12px}
+  #year::-moz-range-thumb{width:20px;height:20px}
+  .mk{width:12px;height:12px;top:5px}
+  .ptoggle{width:40px;height:40px}
+}
+/* Kompakter Modus: gleiche Bedingung wie COMPACT_MQ in app.js */
+@media (max-width:760px),(max-height:560px),(max-width:1024px) and (orientation:portrait){
+  .top{padding:calc(10px + env(safe-area-inset-top,0px)) calc(12px + env(safe-area-inset-right,0px)) 10px calc(12px + env(safe-area-inset-left,0px))}
+  .top h1{font-size:18px}
+  .ghost{padding:8px 12px}
+  /* Globus nur im freien Bereich über der Zeitleiste */
+  #globe{bottom:calc(var(--tlh,160px) + 14px + env(safe-area-inset-bottom,0px))}
+
+  /* Schubladen links (Menü) und rechts (Infos) */
+  .panel,.side{top:calc(58px + env(safe-area-inset-top,0px));bottom:auto;max-height:calc(100vh - 58px - var(--tlh,160px) - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    width:min(360px,calc(100vw - 24px));display:flex;flex-direction:column;z-index:30;padding:12px;
+    background:rgba(14,23,35,.94);box-shadow:0 14px 40px rgba(0,0,0,.55);transition:transform .22s ease,opacity .22s ease}
+  .panel{left:calc(10px + env(safe-area-inset-left,0px))}
+  .side{right:calc(10px + env(safe-area-inset-right,0px))}
+  .panel-body{max-height:none;flex:1;min-height:0}
+  .cards{flex:1;min-height:0}
+  .panel:not(.collapsed) ~ .side{visibility:hidden}
+  .panel.collapsed,.side.collapsed{bottom:auto;width:auto;background:var(--panel);box-shadow:none;padding:6px 6px 6px 12px}
+  .side.collapsed{padding:6px 12px 6px 6px}
+  .panel.collapsed .panel-head span,.side.collapsed .side-head span{font-size:14px}
+  .panel .hint{display:block}
+  .credit-m{display:block;margin:14px 0 4px;font-size:13px;color:var(--mut);text-decoration:none}
+  .credit-m b{color:var(--txt)}
+  .tl-credit{display:none}
+
+  /* Zeitleiste kompakt */
+  .timeline{left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));padding:8px 12px 4px;border-radius:16px}
+  .tl-head{gap:10px;margin-bottom:6px}
+  .play{width:40px;height:40px;font-size:15px;flex:none}
+  .year{font-size:22px;min-width:0;white-space:nowrap}
+  .lanes-toggle{margin-left:auto;padding:6px 10px 6px 8px;font-size:12px}
+  .tl-tools{margin-left:6px}
+  .tl-tools .small{min-width:46px;padding:8px 6px}
+  .track{padding:0 8px}
+  #year{width:calc(100% + 16px);margin:2px -8px 0}
+  .era .nm{display:none}
+  .lane{height:20px}
+  .lane.thin{height:12px}
+  .lane.thin .bt,.lane.thin .mk:not(.on){display:none}
+  .tick .tk-l{display:none}
+  .tick .tk-s{display:inline}
+
+  /* Globus-Elemente kleiner */
+  .wtag{max-width:180px;padding:4px}
+  .wtag .wchip{font-size:10.5px;padding:1px 6px}
+  .battle{width:22px;height:22px}.battle svg{width:13px;height:13px}.battle span{font-size:11px}
+  .envoy{width:24px;height:24px}.envoy span{font-size:11.5px}
+  .toast{max-width:calc(100vw - 32px);font-size:14px;text-align:center}
+
+  /* Infokarte als Blatt von unten */
+  .tinfo{place-items:end center;padding:0}
+  .tinfo-box{width:100%;max-width:640px;max-height:88vh;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));font-size:15.5px}
+  .tinfo h3{font-size:20px}
+  .modal-box{padding:18px;max-height:88vh;overflow:auto}
+
+  /* Kartenrolle */
+  .scroll{height:min(86vh,58vw);max-width:98vw}
+  .cartouche{left:42px;top:10px;padding:6px 10px;max-width:52%}
+  .cartouche p{display:none}
+  .close{right:42px;top:8px;padding:8px 10px;font-size:13px}
+  .legend{left:42px;bottom:46px;padding:5px 8px;font-size:11px;line-height:1.45}
+  .credit{display:none}
+  .stagebar{bottom:6px;left:32px;right:32px}
+  .stagebar button{padding:3px 8px;font-size:12px}
+  .roller{width:24px;border-radius:12px}
+}
+/* Smartphone hochkant */
+@media (max-width:520px){
+  .top h1{font-size:16px}
+  .tl-tools{display:none}
+  .tick.odd{display:none}
+  .year{font-size:20px}
+  .close span{display:none}
+  .cartouche .ct{font-size:15px}.cartouche .cs{font-size:11.5px}
+  .legend{display:none}
+  .trow{grid-template-columns:1fr;gap:2px}
+}
+/* Hochkant: Hinweis zum Drehen bei der Karte */
+@media (max-width:760px) and (orientation:portrait){
+  .rotate-hint{display:block;position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);margin:0;
+    background:rgba(15,25,38,.95);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--txt);white-space:nowrap}
+}
+/* Smartphone quer: sehr wenig Höhe */
+@media (max-height:560px){
+  .top{padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:6px}
+  .top h1{font-size:15px}
+  .ghost{padding:6px 10px;font-size:13px}
+  .panel,.side{top:calc(44px + env(safe-area-inset-top,0px));max-height:calc(100vh - 44px - var(--tlh,120px) - 20px)}
+  .side-head span{font-size:0}.side-head span::after{content:"Infos";font-size:13px}
+  .side.collapsed .side-head span{font-size:0}
+  #globe{top:36px}
+  .timeline{padding:5px 12px 2px}
+  .tl-head{margin-bottom:3px}
+  .play{width:32px;height:32px;font-size:13px}
+  .year{font-size:18px}
+  .lane{height:16px}.lanes{gap:3px}
+  .mk{top:3px}.mk.on{top:-1px}
+  .bt{top:1px}
+  .ticks{height:18px}
+  .tick{top:6px;font-size:10px}
+  #year{height:22px}
+  .tinfo-box{max-height:94vh}
+}

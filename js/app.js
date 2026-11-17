@@ -148,9 +148,11 @@
     var c = globe.controls();
     c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
     c.minDistance = 118; c.maxDistance = 520; c.zoomSpeed = 0.9; c.enablePan = false;
-    globe.pointOfView({ lat: 36, lng: 62, altitude: 2.7 }, 0);
+    globe.pointOfView({ lat: 36, lng: 62, altitude: homeAlt() }, 0);
     applyMode();
-    window.addEventListener('resize', function () { globe.width(window.innerWidth).height(window.innerHeight); });
+    function sizeGlobe() { var g = $('#globe'); globe.width(g.clientWidth || window.innerWidth).height(g.clientHeight || window.innerHeight); }
+    window.addEventListener('resize', sizeGlobe);
+    if (window.ResizeObserver) new ResizeObserver(sizeGlobe).observe($('#globe'));
 
     // Hineinzoomen => Karte entrollen
     var cvs = globe.renderer().domElement;
@@ -259,7 +261,11 @@
     for (var y = -300; y <= 480; y += 50) {
       var t = document.createElement('div'); t.style.left = pct(y) + '%';
       if (y % 100) { t.className = 'tick minor'; }
-      else { t.className = 'tick'; t.textContent = y === 0 ? 'Chr. Geb.' : fmtYear(y); }
+      else {
+        t.className = 'tick' + (y % 200 ? ' odd' : '');
+        var l = el('span', 'tk-l', y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', y === 0 ? '0' : shortYear(y));
+        t.appendChild(l); t.appendChild(sh);
+      }
       ticks.appendChild(t);
     }
   }
@@ -684,6 +690,10 @@
       });
     });
     var placed = [];
+    ['#panel', '#side'].forEach(function (id) {   // offene Menüs wie belegte Flächen behandeln
+      var e = $(id); if (!e || e.classList.contains('collapsed') || getComputedStyle(e).visibility === 'hidden') return;
+      var r = e.getBoundingClientRect(); placed.push([r.left, r.top, r.width, r.height]);
+    });
     tags.forEach(function (t) {
       var sc = globe.getScreenCoords(t.lat, t.lng, 0.009), box = t.__el.querySelector('.wtag'), w = box.offsetWidth, h = box.offsetHeight;
       var cand = {
@@ -1053,30 +1063,64 @@
     setTimeout(function () { intro.on = false; cancelAnimationFrame(intro.raf); svg.innerHTML = ''; }, 900);
   }
 
+  /* ---------- Kompakte Ansicht (Smartphone, Tablet hochkant) ----------
+     Menü und Infoband werden zu Schubladen: anfangs zu, immer nur eine offen, Tipp auf den Globus schließt sie. */
+  var COMPACT_MQ = window.matchMedia('(max-width: 760px), (max-height: 560px), (max-width: 1024px) and (orientation: portrait)');
+  function compact() { return COMPACT_MQ.matches; }
+  function homeAlt() {
+    var g = $('#globe'), asp = (g.clientWidth || innerWidth) / (g.clientHeight || innerHeight);
+    var h = g.clientHeight || innerHeight;
+    if (asp < 1) return Math.min(4.2, 2.7 * 0.72 / asp);
+    return h < 420 ? 1.75 : h < 600 ? 2.2 : 2.7;     // flache Querformate: näher heran
+  }
+
   /* ---------- Menü einklappen ---------- */
-  function setPanel(collapsed) {
+  function setPanel(collapsed, nosave) {
     var p = $('#panel'), b = $('#panelToggle');
     p.classList.toggle('collapsed', collapsed);
     b.setAttribute('aria-expanded', !collapsed);
     b.title = collapsed ? 'Menü ausklappen' : 'Menü einklappen';
-    try { localStorage.setItem('tafelbild.panel', collapsed ? '0' : '1'); } catch (e) {}
+    if (globe) setTimeout(scheduleTagSides, 30);
+    if (!collapsed && compact() && !$('#side').classList.contains('collapsed')) setSide(true, true);
+    if (!nosave && !compact()) try { localStorage.setItem('tafelbild.panel', collapsed ? '0' : '1'); } catch (e) {}
   }
 
   /* ---------- Infoband rechts einklappen ---------- */
-  function setSide(collapsed) {
+  function setSide(collapsed, nosave) {
     var p = $('#side'), b = $('#sideToggle');
     p.classList.toggle('collapsed', collapsed);
     b.setAttribute('aria-expanded', !collapsed);
     b.title = collapsed ? 'Infoband ausklappen' : 'Infoband einklappen';
-    try { localStorage.setItem('tafelbild.side', collapsed ? '0' : '1'); } catch (e) {}
+    if (globe) setTimeout(scheduleTagSides, 30);
+    if (!collapsed && compact() && !$('#panel').classList.contains('collapsed')) setPanel(true, true);
+    if (!nosave && !compact()) try { localStorage.setItem('tafelbild.side', collapsed ? '0' : '1'); } catch (e) {}
+  }
+  function applyCompact() {
+    document.documentElement.classList.toggle('compact', compact());
+    if (compact()) { setPanel(true, true); setSide(true, true); }
+    if (globe && !mapOpen) setTimeout(function () { var pv = globe.pointOfView(); globe.pointOfView({ lat: pv.lat, lng: pv.lng, altitude: homeAlt() }, 600); }, 250);
+    else {
+      var lp = null, ls = null;
+      try { lp = localStorage.getItem('tafelbild.panel'); ls = localStorage.getItem('tafelbild.side'); } catch (e) {}
+      setPanel(lp === '0', true); setSide(ls === '0', true);
+    }
   }
 
   /* ---------- Bedienung ---------- */
   function bind() {
     $('#sideToggle').addEventListener('click', function () { setSide(!$('#side').classList.contains('collapsed')); });
-    try { if (localStorage.getItem('tafelbild.side') === '0') setSide(true); } catch (e) {}
     $('#panelToggle').addEventListener('click', function () { setPanel(!$('#panel').classList.contains('collapsed')); });
-    try { if (localStorage.getItem('tafelbild.panel') === '0') setPanel(true); } catch (e) {}
+    applyCompact();
+    if (COMPACT_MQ.addEventListener) COMPACT_MQ.addEventListener('change', applyCompact); else COMPACT_MQ.addListener(applyCompact);
+    // Kompakt: Tipp auf den Globus schließt offene Schubladen
+    globe.renderer().domElement.addEventListener('pointerdown', function () {
+      if (!compact()) return;
+      setPanel(true, true); setSide(true, true);
+    });
+    // Kompakt: nach Auswahl einer Route/Karte die Schublade schließen, damit man das Ergebnis sieht
+    $('#routeList').addEventListener('click', function () { if (compact()) setPanel(true, true); });
+    $('#cards').addEventListener('click', function (e) { if (compact() && e.target.closest('button')) setSide(true, true); });
+    ['#goRom', '#goHan', '#goAll'].forEach(function (id) { $(id).addEventListener('click', function () { if (compact()) setPanel(true, true); }); });
     $('#modeSat').addEventListener('click', function () { state.mode = 'sat'; applyMode(); });
     $('#modeSchem').addEventListener('click', function () { state.mode = 'schem'; applyMode(); });
     function setAll(v) {
@@ -1128,7 +1172,7 @@
     });
     $('#goRom').addEventListener('click', function () { fly(41.5, 14, 1.0); });
     $('#goHan').addEventListener('click', function () { fly(34, 108, 1.1); });
-    $('#goAll').addEventListener('click', function () { fly(36, 62, 2.7); });
+    $('#goAll').addEventListener('click', function () { fly(36, 62, homeAlt()); });
     $('#year').addEventListener('input', function (e) { setYear(+e.target.value, true); });
     $('#play').addEventListener('click', togglePlay);
     $('#yMinus').addEventListener('click', function () { setYear(state.year - 10); });

@@ -2,7 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101a27">
 <title>Digitales Tafelbild: Rom und China</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="data:,">
@@ -78,6 +79,7 @@
     </div>
   </section>
   <p class="hint">Tipp: Auf ein Reich <b>hineinzoomen</b> (Mausrad / Pinch), dann <b>rollt sich die Karte</b> aus.</p>
+  <a class="credit-m" href="https://datenflix007.github.io" target="_blank" rel="noopener">Ein Projekt von <b>Felix Staacke</b> · datenflix007.github.io ↗</a>
   </div>
 </aside>
 
@@ -118,7 +120,7 @@
       <div class="paper-in">
         <svg id="flat" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Reichskarte"></svg>
         <div class="cartouche" id="cartouche"></div>
-        <button class="close" id="mapClose" title="Zurück zum Globus (Esc)">⟲ Zurück zum Globus</button>
+        <button class="close" id="mapClose" title="Zurück zum Globus (Esc)">⟲ <span>Zurück zum Globus</span></button>
         <div class="stagebar" id="stagebar"></div>
         <div class="legend" id="legend"></div>
         <div class="credit">Schematische Darstellung (Entwurf), Grenzen ungefähr</div>
@@ -126,6 +128,7 @@
     </div>
     <div class="roller right"></div>
   </div>
+  <p class="rotate-hint">Tipp: Gerät quer halten, dann wird die Karte größer.</p>
 </div>
 
 <!-- Handel: Infokarte -->
