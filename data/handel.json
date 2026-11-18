@@ -133,5 +133,44 @@
     { "titel": "Liqian: römische Soldaten in China?", "text": "These, Gefangene aus der Niederlage des Crassus bei Carrhae (53 v. Chr.) hätten sich in Liqian (Gansu) angesiedelt. Es gibt dafür keine Belege; genetische Untersuchungen stützen die These nicht.", "quelle": "H. H. Dubs, A Roman City in Ancient China (1957)" },
     { "titel": "„Chinesische“ Skelette in Southwark und Vagnari", "text": "Untersuchungen an Gräbern in Southwark (London) und Vagnari (Apulien) wurden als Hinweis auf eine Herkunft aus Ostasien gedeutet. Diese Deutung ist umstritten.", "quelle": "Redfern u. a. 2016 (Southwark); Prowse u. a. 2010 (Vagnari)" },
     { "titel": "Römische Münzen in Xi’an", "text": "Es gibt Berichte über römische Münzen aus der Gegend von Xi’an (Chang’an). Fundumstände, Echtheit und Datierung sind ungeklärt.", "quelle": "Fundberichte; keine gesicherte Veröffentlichung" }
-  ]
+  ],
+  "karawanen": {
+    "_hinweis": "Kamel-Karawanen auf kurzen Etappen. 'ab' = Wendepunkt (konfigurierbar): danach wird die durchgehende Mittelroute blass, Karawanen ziehen regional. haupt=true: Etappe liegt auf der Mittelroute (auch vor dem Wendepunkt).",
+    "route": "mittel",
+    "ab": 220,
+    "von": -121,
+    "bis": 480,
+    "max_vorher": 10,
+    "max_nachher": 12,
+    "legende": "Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)",
+    "titel": "Ab 220 n. Chr.: Etappenhandel in kleineren Abschnitten",
+    "hinweis": "Ab etwa 220 n. Chr. (Ende der Han-Dynastie, danach Zerfall Chinas; im Römischen Reich die Krise des 3. Jahrhunderts) wird der Fernhandel auf dem Landweg schwächer und kleinteiliger. Karawanen ziehen vor allem auf kurzen Strecken zwischen benachbarten Handelsorten. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler (Parther, Kuschan, später Sogder), nicht als direkte Fahrt von Rom nach China. Die Änderung zeigt also eine Verschiebung in der Intensität und Organisation, keinen Wechsel von „direkt“ zu „indirekt“. Der Begriff „Seidenstraße“ stammt von Ferdinand von Richthofen (1877).",
+    "quelle": "V. Hansen, The Silk Road (2012); É. de la Vaissière, Sogdian Traders (2005); Sogdische „Alte Briefe“ (um 313 n. Chr.)",
+    "knoten": [
+      { "id": "palmyra", "name": "Palmyra", "lng": 38.27, "lat": 34.55, "von": -41, "bis": 273, "hinweis": "Karawanenstadt; 273 n. Chr. von Aurelian zerstört." },
+      { "id": "dura", "name": "Dura-Europos", "lng": 40.73, "lat": 34.75, "von": -300, "bis": 256, "hinweis": "Stadt am Euphrat; um 256 n. Chr. von den Sasaniden erobert und aufgegeben." },
+      { "id": "ktesiphon", "name": "Ktesiphon", "lng": 44.55, "lat": 33.1, "von": -141, "bis": 480, "hinweis": "Hauptstadt der Parther, ab 224 n. Chr. der Sasaniden." },
+      { "id": "merw", "name": "Merw", "lng": 61.83, "lat": 37.66, "von": -300, "bis": 480, "hinweis": "Oasenstadt, wichtiger Knoten zwischen Iran und Zentralasien." },
+      { "id": "baktra", "name": "Baktra (Balch)", "lng": 66.9, "lat": 36.76, "von": -300, "bis": 480, "hinweis": "Zentrum Baktriens, unter den Kuschan wichtig für den Handel nach Indien." },
+      { "id": "buchara", "name": "Buchara", "lng": 64.42, "lat": 39.77, "von": -300, "bis": 480, "hinweis": "Oasenstadt in Sogdien." },
+      { "id": "samarkand", "name": "Samarkand", "lng": 66.96, "lat": 39.65, "von": -300, "bis": 480, "hinweis": "Hauptort Sogdiens; sogdische Händler prägen ab dem 4. Jh. den Landhandel." },
+      { "id": "kaschgar", "name": "Kaschgar", "lng": 75.99, "lat": 39.47, "von": -300, "bis": 480, "hinweis": "Oase am Westrand des Tarimbeckens." },
+      { "id": "turfan", "name": "Turfan", "lng": 89.19, "lat": 42.95, "von": -300, "bis": 480, "hinweis": "Oase am Nordweg um das Tarimbecken." },
+      { "id": "dunhuang", "name": "Dunhuang", "lng": 94.66, "lat": 40.14, "von": -111, "bis": 480, "hinweis": "Tor nach China am Ende des Gansu-Korridors." }
+    ],
+    "etappen": [
+      { "von": "palmyra", "nach": "dura", "haupt": true, "pfad": [[38.27, 34.55], [40.73, 34.75]] },
+      { "von": "dura", "nach": "ktesiphon", "haupt": true, "pfad": [[40.73, 34.75], [41.9, 34.2], [44.55, 33.1]] },
+      { "von": "palmyra", "nach": "ktesiphon", "haupt": true, "ab_jahr": 256, "pfad": [[38.27, 34.55], [41.9, 34.2], [44.55, 33.1]] },
+      { "von": "ktesiphon", "nach": "merw", "haupt": true, "pfad": [[44.55, 33.1], [48.52, 34.8], [54.3, 36.2], [61.83, 37.66]] },
+      { "von": "merw", "nach": "baktra", "haupt": true, "pfad": [[61.83, 37.66], [66.9, 36.76]] },
+      { "von": "baktra", "nach": "kaschgar", "haupt": true, "pfad": [[66.9, 36.76], [70.5, 37.6], [73.6, 39.2], [75.99, 39.47]] },
+      { "von": "kaschgar", "nach": "turfan", "haupt": true, "pfad": [[75.99, 39.47], [82.96, 41.72], [89.19, 42.95]] },
+      { "von": "turfan", "nach": "dunhuang", "haupt": true, "pfad": [[89.19, 42.95], [94.66, 40.14]] },
+      { "von": "merw", "nach": "buchara", "haupt": false, "pfad": [[61.83, 37.66], [64.42, 39.77]] },
+      { "von": "buchara", "nach": "samarkand", "haupt": false, "pfad": [[64.42, 39.77], [66.96, 39.65]] },
+      { "von": "baktra", "nach": "samarkand", "haupt": false, "pfad": [[66.9, 36.76], [67.3, 38.2], [66.96, 39.65]] },
+      { "von": "samarkand", "nach": "kaschgar", "haupt": false, "pfad": [[66.96, 39.65], [69.6, 40.28], [71.8, 40.4], [72.8, 40.5], [73.9, 39.7], [75.99, 39.47]] }
+    ]
+  }
 }

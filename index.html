@@ -11,9 +11,10 @@
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
+<div id="karLayer" class="kar-layer"></div>
 
 <header class="top">
-  <h1>Digitales Tafelbild <span>Rom und China</span></h1>
+  <h1>Digitales Tafelbild <span id="h1sub">Rom und China</span></h1>
   <button id="btnInfo" class="ghost" title="Hinweise und Lizenzen">Hinweise</button>
 </header>
 
@@ -54,6 +55,7 @@
         <button id="tglSee" class="chip plain hs on" aria-pressed="true" disabled><span>Seewege</span></button>
         <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren anzeigen</span></button>
         <button id="tglGes" class="chip plain hs on" aria-pressed="true" disabled><span>Gesandt&shy;schaften</span></button>
+        <button id="tglKar" class="chip plain hs on kar" aria-pressed="true" disabled><span>Karawanen&shy;handel</span></button>
       </div>
       <div class="tlegend" aria-label="Legende Handelswege">
         <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
@@ -61,10 +63,28 @@
         <div><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
         <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
         <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
+        <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
       </div>
       <div id="routeList" class="route-list" aria-live="polite"></div>
       <button id="btnWaren" class="small wbtn" disabled>Warenübersicht</button>
       <p class="hint">Routen sind <b>schematisch</b>. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien.</p>
+      <div class="zh-block" aria-label="Entdeckungsfahrten des Zheng He">
+        <h3 class="hsub-h">Entdeckungsfahrten des Zheng He <small>1405–1433</small></h3>
+        <button id="tglZh" class="chip plain hs on" aria-pressed="true" disabled><span>Alle Fahrten anzeigen</span></button>
+        <div class="zh-grid" id="zhChips"></div>
+        <div class="tlegend" aria-label="Legende Fahrten des Zheng He">
+          <div><svg viewBox="0 0 40 8"><line class="zh" x1="2" y1="4" x2="38" y2="4"/></svg>laufende Fahrt</div>
+          <div><svg viewBox="0 0 40 8"><line class="zh old" x1="2" y1="4" x2="38" y2="4"/></svg>frühere Fahrt</div>
+          <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="2" y1="4" x2="38" y2="4"/></svg>Teilflotte</div>
+          <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
+        </div>
+        <div class="row zh-row">
+          <button id="btnZhGo" class="small" disabled title="Zur Ming-Zeit springen (1405) bzw. zum Indischen Ozean drehen">→ 1405</button>
+          <button id="btnZhInfo" class="small" disabled>Hintergrund</button>
+          <button id="btnZhWaren" class="small" disabled>Waren</button>
+        </div>
+        <p class="hint">Zu sehen im Abschnitt <b>Spätmittelalter</b> der Zeitleiste (rechts). Gezeigt ist der Hinweg; zurück fuhr die Flotte meist auf demselben Weg.</p>
+      </div>
     </div>
   </section>
   <section>
@@ -91,7 +111,7 @@
     <button id="sideToggle" class="ptoggle" aria-expanded="true" aria-controls="cards" title="Infoband einklappen">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <span>Infos zu den Reichen</span>
+    <span id="sideTitle">Infos zu den Reichen</span>
   </div>
   <div class="cards" id="cards" aria-live="polite"></div>
 </aside>
@@ -105,8 +125,9 @@
     <div class="tl-tools"><button id="yMinus" class="small" title="10 Jahre zurück">−10</button><button id="yPlus" class="small" title="10 Jahre vor">+10</button></div>
   </div>
   <div class="track" id="track">
+    <div class="epbar" id="epbar" aria-label="Epochen"></div>
     <div class="lanes" id="lanes"></div>
-    <input id="year" type="range" min="-300" max="480" step="1" value="117" aria-label="Jahr">
+    <input id="year" type="range" min="0" max="1000" step="1" value="0" aria-label="Jahr (Zeitleiste mit Zeitsprung zwischen Antike und Spätmittelalter)">
     <div class="ticks" id="ticks"></div>
   </div>
 </footer>
@@ -155,6 +176,9 @@
     <h2 id="mt">Hinweise</h2>
     <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> (grob nach Provinzen bzw. Regionen mit Erwerbs- und Verlustjahr) und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen und Jahreszahlen nur ungefähr wieder. Schlachtsymbole erscheinen für etwa 25 Jahre ab dem Schlachtjahr. Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
     <p><b>Handel &amp; Austausch:</b> Die Routen sind <b>schematisch</b> und grob von Hand gezeichnet. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien. Linien: durchgezogen = belegt, gestrichelt = vermittelt, gepunktet = umstritten. Quellen stehen in jeder Infokarte.</p>
+    <p><b>Karawanenhandel:</b> Die Kamel-Symbole zeigen regionalen Zwischenhandel auf kurzen Etappen. Ab 220 n. Chr. (Ende der Han-Dynastie) wird die durchgehende Mittelroute blass dargestellt. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler; gezeigt wird eine Verschiebung in Intensität und Organisation.</p>
+    <p><b>Zeitleiste:</b> Sie hat zwei Abschnitte, „Europäische Antike“ (300 v. Chr. bis 480 n. Chr.) und „Europäisches Spätmittelalter“ (1400 bis 1440). Der Zeitsprung dazwischen (≈) ist nicht dargestellt; die Abschnitte haben verschiedene Maßstäbe.</p>
+    <p><b>Entdeckungsfahrten des Zheng He</b> (unter „Handel &amp; Austausch“): die sieben Flottenfahrten der Ming-Zeit (1405–1433), zu sehen im Abschnitt Spätmittelalter. Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble“ (NASA, gemeinfrei, über das Paket three-globe), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
     <button id="modalClose" class="small">Schließen</button>
