@@ -431,3 +431,46 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
   #year{height:22px}
   .tinfo-box{max-height:94vh}
 }
+
+/* ---------- Epochen (Antike / Ming-Zeit) ---------- */
+:root{--zh:#5fdc8a}
+html.ming .ep-antike{display:none!important}
+html:not(.ming) .ep-ming{display:none!important}
+.ep-seg button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 6px;line-height:1.15}
+.ep-seg button b{font-size:14.5px;font-weight:650}
+.ep-seg button small{font-size:11.5px;opacity:.8}
+.zh-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 8px}
+.zh-grid .chip{margin:0;padding:7px 8px;gap:7px;font-size:12.5px;border-radius:10px;line-height:1.15;min-width:0}
+.zh-grid .chip i{width:12px;height:12px;border-radius:4px;color:var(--c)}
+.zh-grid .chip.on{background:var(--cbg);border-color:var(--c)}
+.zh-grid .chip.on i{background:var(--c);opacity:1}
+.zh-grid .chip:disabled{opacity:.45}
+.tlegend line.zh{stroke:var(--zh);stroke-width:4}
+.tlegend line.zh.old{stroke-opacity:.45}
+.tlegend line.zh.thin{stroke-width:2}
+.rl-item.zh i{background:var(--zh)}
+.tinfo .tk.zh{color:var(--zh)}
+.tinfo .tparts .tsrc{font-size:12.5px;color:var(--mut)}
+/* Zeitleiste Ming: Fahrten als Balken */
+.lane.zhlane{height:24px}
+.zhbar{position:absolute;top:2px;bottom:2px;border-radius:7px;border:1px solid var(--c);background:var(--cbg);color:var(--txt);font:700 11px var(--ui);display:grid;place-items:center;padding:0;cursor:pointer;min-width:16px;transform:none;transition:background .2s,box-shadow .2s}
+.zhbar:hover{background:var(--c);color:#06210f}
+.zhbar.on{background:var(--c);color:#06210f;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 12px var(--c)}
+.zhbar.off{opacity:.35}
+.lane.zhev{height:14px}
+.lane.zhev .mk{top:2px}
+.lane.zhev .mk.on{top:-2px}
+/* Fahrt-Fähnchen auf dem Globus */
+.zhflag{position:relative;pointer-events:auto;cursor:pointer;transform:translateY(var(--dy,-14px));white-space:nowrap;padding:2px 8px;border-radius:999px;font:700 12px var(--ui);color:#06210f;background:var(--c);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.55)}
+/* Karawanen (Overlay über dem Globus) */
+.kar-layer{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.kar-layer[hidden]{display:none}
+.camel{position:absolute;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:rgba(122,74,18,.92);border:2px solid #ffe2a8;display:grid;place-items:center;pointer-events:auto;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.55);transition:opacity .4s;will-change:transform}
+.camel svg{width:18px;height:18px;color:#fff3d6}
+.camel.flip svg{transform:scaleX(-1)}
+.camel.hide{opacity:0;pointer-events:none}
+.camel.off{display:none}
+.tlegend .kleg{grid-column:1 / -1;align-items:flex-start;line-height:1.3;margin-top:3px}
+.camel-ico{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(122,74,18,.92);border:1.5px solid #ffe2a8;flex:none}
+.camel-ico svg{width:15px;height:15px;color:#fff3d6}
+.chip.hs.kar{grid-column:1 / -1}

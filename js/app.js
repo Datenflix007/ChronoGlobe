@@ -4,8 +4,14 @@
   'use strict';
 
   var YMIN = -300, YMAX = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117 };
-  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true };
+  // Epochen: eigene Zeitleiste je Epoche (die antike Achse wird nicht gestreckt)
+  var EPOCHEN = {
+    antike: { min: -300, max: 480, start: 117, tick: 50, major: 100, alt: 200, takt: 70, titel: 'Rom und China', side: 'Infos zu den Reichen' },
+    ming: { min: 1400, max: 1440, start: 1405, tick: 5, major: 10, alt: 20, takt: 450, titel: 'Zheng He (Ming-Zeit)', side: 'Infos zu den Fahrten' }
+  };
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117, epoche: 'antike', jahrJe: {} };
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true };
+  var ZH = { on: true, waren: true, fahrt: {} }, ZHD = null;
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null;
 
@@ -82,14 +88,16 @@
     d.__el = bel; return bel;
   }
   function refreshGlobe() {
+    if (state.epoche === 'ming') { refreshGlobeMing(); return; }
     var polys = visiblePolys(), now = Date.now();
     if (prevVis) polys.forEach(function (f) { if (f.properties.id !== undefined && !prevVis.has(f)) f.__flash = now; });
     prevVis = new Set(polys);
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
-    globe.labelsData(visibleCities().concat(tv.places));
+    globe.labelsData(visibleCities().concat(tv.places, karNodeLabels(tv)));
     globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv), [STANDORT || JENA]));
     globe.pathsData(tradeGlobePaths(tv));
+    karUpdate();
     setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
     flashTimer = setTimeout(function () { globe.polygonCapColor(capColor); }, 1350);
@@ -119,8 +127,11 @@
   }
   function labelColor(d) {
     if (d.kind === 'handel') return tradeCol((routeById(d.an[0][0]) || { art: 'land' }).art);
+    if (d.kind === 'zhhafen') return state.mode === 'schem' ? '#0d5a35' : '#9af5bd';
+    if (d.kind === 'karawane') return state.mode === 'schem' ? '#5a2c06' : '#ffe2a8';
     return mix(M(d.reich).farbe, '#ffffff', 0.7);
   }
+  function labelIsTrade(d) { return d.kind === 'handel' || d.kind === 'zhhafen' || d.kind === 'karawane'; }
   function initGlobe() {
     LANDF = { type: 'Feature', properties: { kind: 'land' }, geometry: LAND.geometry };
     globe = Globe()($('#globe'))
@@ -136,16 +147,17 @@
       .labelLat('lat').labelLng('lng').labelText(function (d) { return d.kind === 'handel' ? d.name.replace(/Ó/g, 'O') : d.name; })
       .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.006).labelResolution(2)
       .labelColor(labelColor)
-      .labelSize(function (d) { return d.kind === 'handel' ? 1.0 : 0.85; })
-      .labelDotRadius(function (d) { return d.kind === 'handel' ? 0.42 : 0.28; })
+      .labelSize(function (d) { return d.kind === 'karawane' ? 0.75 : labelIsTrade(d) ? 1.0 : 0.85; })
+      .labelDotRadius(function (d) { return d.kind === 'karawane' ? 0.3 : labelIsTrade(d) ? 0.42 : 0.28; })
       .labelLabel(function (d) {
-        if (d.kind !== 'handel') return '';
+        if (!labelIsTrade(d)) return '';
         var t = el('div', 'gtip'); t.appendChild(el('b', null, d.name)); t.appendChild(el('br'));
-        t.appendChild(document.createTextNode(d.vermittler + ' · Klick für Infos')); return t.outerHTML;
+        t.appendChild(document.createTextNode((d.kind === 'karawane' ? d.hinweis : d.vermittler) + ' · Klick für Infos')); return t.outerHTML;
       })
       .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.009 : 0.01; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
     globe.controls().addEventListener('change', scheduleTagSides);
+    globe.controls().addEventListener('change', karDrawSoon);
     window.addEventListener('resize', scheduleTagSides);
     var c = globe.controls();
     c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
@@ -186,6 +198,7 @@
     return bestD <= 38 ? best : null;
   }
   function tryOpenMap(force) {
+    if (state.epoche !== 'antike') return;   // Reichskarten gibt es nur für die Antike
     var r = force || pickReich();
     if (!r) {
       var any = ['rom', 'han'].some(function (k) { return state.on[k] && regionsAt(k, state.year).length; });
@@ -197,6 +210,7 @@
 
   /* ---------- Infokarten ---------- */
   function renderCards() {
+    if (state.epoche === 'ming') { renderCardsMing(); return; }
     var box = $('#cards'); box.innerHTML = '';
     DATA.reihen.forEach(function (r) {
       if (!state.on[r]) return;
@@ -259,19 +273,21 @@
   /* ---------- Zeitleiste ---------- */
   function pct(y) { return ((y - YMIN) / (YMAX - YMIN) * 100); }
   function buildTicks() {
-    var ticks = $('#ticks');
-    for (var y = -300; y <= 480; y += 50) {
+    var ticks = $('#ticks'), E = EPOCHEN[state.epoche], ming = state.epoche === 'ming';
+    ticks.innerHTML = '';
+    for (var y = YMIN; y <= YMAX; y += E.tick) {
       var t = document.createElement('div'); t.style.left = pct(y) + '%';
-      if (y % 100) { t.className = 'tick minor'; }
+      if (y % E.major) { t.className = 'tick minor'; }
       else {
-        t.className = 'tick' + (y % 200 ? ' odd' : '');
-        var l = el('span', 'tk-l', y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', y === 0 ? '0' : shortYear(y));
+        t.className = 'tick' + (y % E.alt ? ' odd' : '');
+        var l = el('span', 'tk-l', ming ? String(y) : y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', ming ? String(y) : y === 0 ? '0' : shortYear(y));
         t.appendChild(l); t.appendChild(sh);
       }
       ticks.appendChild(t);
     }
   }
   function buildLanes() {
+    if (state.epoche === 'ming') { buildLanesMing(); return; }
     var lanes = $('#lanes'); lanes.innerHTML = '';
     var zero = document.createElement('div'); zero.className = 'zero'; zero.style.left = pct(0) + '%'; lanes.appendChild(zero);
     var cur = document.createElement('div'); cur.className = 'cursor'; lanes.appendChild(cur);
@@ -320,6 +336,7 @@
     updateMarkers();
   }
   function updateMarkers() {
+    if (state.epoche === 'ming') { updateMarkersMing(); return; }
     document.querySelectorAll('.lane').forEach(function (lane) {
       var e = activeEvent(lane.dataset.r, state.year);
       lane.querySelectorAll('.mk').forEach(function (b) { b.classList.toggle('on', !!e && e.jahr === +b.dataset.y); });
@@ -329,6 +346,7 @@
     });
   }
   function stateKey(y) {
+    if (state.epoche === 'ming') { stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y); return 'ming|' + stateKey.zv.key; }
     var ids = [];
     DATA.reihen.forEach(function (r) { if (state.on[r]) regionsAt(r, y).forEach(function (f) { ids.push(f.properties.id); }); });
     var ev = DATA.reihen.map(function (r) { var e = activeEvent(r, y); return e ? e.jahr : 'x'; }).join(',');
@@ -339,13 +357,14 @@
   }
   function setYear(y, fromSlider) {
     y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
+    karYearJump(y);
     state.year = y;
     if (!fromSlider) $('#year').value = y;
     $('#yearOut').textContent = fmtYear(y);
     $('#track').style.setProperty('--pf', (y - YMIN) / (YMAX - YMIN));
     var key = stateKey(y);
     if (key !== lastKey) {
-      lastKey = key; CUR_TV = stateKey.tv; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
+      lastKey = key; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
       if (mapOpen) drawMap(mapReich, true);
     }
     visibleBattles(y).forEach(function (b) { if (b.__el) b.__el.classList.toggle('fresh', y - b.jahr <= 4); });
@@ -357,7 +376,7 @@
     playTimer = setInterval(function () {
       if (state.year >= YMAX) { togglePlay(); return; }
       setYear(state.year + 1);
-    }, 70);
+    }, EPOCHEN[state.epoche].takt);
   }
 
   /* ---------- Flache Reichskarte ---------- */
@@ -564,7 +583,8 @@
   var DASH_GLOBE = { belegt: [1, 0], vermittelt: [0.035, 0.018], umstritten: [0.006, 0.012] };
   var DASH_MAP = { belegt: null, vermittelt: '12 7', umstritten: '1 7' };
   var BELEGT_TXT = { belegt: 'belegt', vermittelt: 'vermittelt (Zwischenhandel)', umstritten: 'umstritten' };
-  var TEIL_TXT = { rom: 'Römische Seite', mitte: 'Mittelstück (Vermittler)', han: 'Chinesische Seite', ganz: 'Gesamte Strecke' };
+  var TEIL_TXT = { rom: 'Römische Seite', mitte: 'Mittelstück (Vermittler)', han: 'Chinesische Seite', ganz: 'Gesamte Strecke', spaet: 'Gesamte Strecke, schwächer (Etappenhandel)' };
+  var EMPTY_TV = { routes: [], parts: [], places: [], kontakte: [], kar: { list: [], key: '' }, key: '' }, CUR_ZV = null;
   var KONTAKT_JAHRE = 20;
   var ENVOY = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M6 4h10a2 2 0 0 1 2 2v13a2 2 0 0 0 2-2V8"/><path d="M6 4a2 2 0 0 0-2 2v1h4V6a2 2 0 0 0-2-2z"/><path d="M8 7v12a2 2 0 0 0 2 2h10"/><path d="M11 10h4M11 14h4"/></g></svg>';
@@ -581,7 +601,10 @@
       PARTS[v.id] = s
         ? { rom: mk('rom', 0, s.rom.bis_punkt, s.rom.belegt, s.rom.quelle), mitte: mk('mitte', s.rom.bis_punkt, s.han.ab_punkt), han: mk('han', s.han.ab_punkt, n - 1, s.han.belegt, s.han.quelle) }
         : { ganz: mk('ganz', 0, n - 1) };
+      // Ab dem Wendepunkt: durchgehende Strecke, aber schwächer (vermittelt)
+      if (HANDEL.karawanen && HANDEL.karawanen.route === v.id) PARTS[v.id].spaet = mk('spaet', 0, n - 1, 'vermittelt', HANDEL.karawanen.quelle);
     });
+    if (HANDEL.karawanen) initKarawanen();
     HANDEL.orte.forEach(function (o) { o.kind = 'handel'; });
     HANDEL.kontakte.forEach(function (k) {
       k.kind = 'kontakt';
@@ -597,18 +620,20 @@
   /* Sichtbare Teilstrecken, Orte, Gesandtschaften. Regel: Reich eingeblendet UND existiert im Jahr.
      Nur ein Reich aktiv -> nur dessen Seite (bis zu den Vermittlern); beide aktiv -> durchgehende Verbindung. */
   function tradeVisible(y) {
-    var res = { routes: [], parts: [], places: [], kontakte: [], key: 'aus' };
+    var res = { routes: [], parts: [], places: [], kontakte: [], kar: { list: [], key: 'aus' }, key: 'aus' };
     if (!TRADE.on) return res;
+    var K = HANDEL.karawanen;
     HANDEL.verbindungen.forEach(function (v) {
       if (y < v.von || y > v.bis) return;
       if (v.art === 'land' ? !TRADE.land : !TRADE.see) return;
       var P = PARTS[v.id], t = {};
       if (P.ganz) { if (v.reiche.some(function (r) { return reichAktiv(r, y); })) t.ganz = 1; }
+      else if (P.spaet && y >= K.ab) { if (v.reiche.some(function (r) { return reichAktiv(r, y); })) t.spaet = 1; }
       else {
         var a = seiteAktiv(v, 'rom', y), b = seiteAktiv(v, 'han', y);
         if (a) t.rom = 1; if (b) t.han = 1; if (a && b) t.mitte = 1;
       }
-      var teile = ['rom', 'mitte', 'han', 'ganz'].filter(function (k) { return t[k]; });
+      var teile = ['rom', 'mitte', 'han', 'ganz', 'spaet'].filter(function (k) { return t[k]; });
       if (!teile.length) return;
       var parts = teile.map(function (k) { return P[k]; });
       res.routes.push({ v: v, teile: t, parts: parts });
@@ -617,15 +642,16 @@
     var seen = {};
     HANDEL.orte.forEach(function (o) {
       if (y < o.von || y > o.bis || seen[o.id]) return;
-      var ok = o.an.some(function (a) { return res.routes.some(function (rt) { return rt.v.id === a[0] && rt.teile[a[1]]; }); });
+      var ok = o.an.some(function (a) { return res.routes.some(function (rt) { return rt.v.id === a[0] && (rt.teile[a[1]] || rt.teile.spaet); }); });
       if (ok) { seen[o.id] = 1; res.places.push(o); }
     });
     if (TRADE.gesandt) HANDEL.kontakte.forEach(function (k) {
       if (y >= k.jahr && y <= k.jahr + KONTAKT_JAHRE && k.reiche.some(function (r) { return reichAktiv(r, y); })) res.kontakte.push(k);
     });
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt].join('') + '|' +
+    res.kar = karPlan(y, res);
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen].join('') + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
-      res.kontakte.map(function (k) { return k.id; }).join(',');
+      res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
   }
   function joinPts(parts) { return parts.reduce(function (a, p) { return a.concat(a.length ? p.pts.slice(1) : p.pts); }, []); }
@@ -673,7 +699,7 @@
     var e = el('div', 'wtag');
     t.route.richtung_waren.forEach(function (w) { e.appendChild(wareChip(w)); });
     e.title = 'Waren: ' + t.route.name + ' (Klick für Infos)';
-    e.addEventListener('click', function (ev) { ev.stopPropagation(); openTradeInfo(t.route); });
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); if (t.route.nr) openZhInfo(t.route); else openTradeInfo(t.route); });
     anchor.appendChild(el('i', 'wstem')); anchor.appendChild(e);
     t.__el = anchor; return anchor;
   }
@@ -720,7 +746,7 @@
     });
   }
   function scheduleTagSides() { if (!tagSideRaf) tagSideRaf = requestAnimationFrame(updateTagSides); }
-  function htmlEl(d) { return d.kind === 'standort' ? standortEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
 
   /* ---------- Eigener Standort (Pin) ---------- */
   // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
@@ -761,35 +787,56 @@
     return a;
   }
   function pathColor(d) {
+    if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
     if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
-    if (d.flow) return 'rgba(255,255,255,0.9)';
+    if (d.flow) return d.teil === 'spaet' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.9)';
+    if (d.teil === 'spaet') return rgba(tradeCol(d.route.art), 0.58);   // ab 220: schwächer
     return tradeCol(d.route.art);
   }
   function pathDash(d, i) {
+    if (d.zh) {
+      if (d.flow) return [0.008, 0.05][i];
+      if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
+      return [1, 0][i];
+    }
     if (d.kontakt) return [0.01, 0.02][i];
     if (d.flow) return [0.012, 0.09][i];
     return DASH_GLOBE[d.belegt][i];
+  }
+  function pathStroke(d) {
+    if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
+    if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
+    return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2;
   }
   function initTradeGlobe() {
     globe.pathsData([])
       .pathPoints('pts').pathPointLat(function (p) { return p[1]; }).pathPointLng(function (p) { return p[0]; })
       .pathPointAlt(0.008)
       .pathColor(pathColor)
-      .pathStroke(function (d) { return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2; })
+      .pathStroke(pathStroke)
       .pathDashLength(function (d) { return pathDash(d, 0); })
       .pathDashGap(function (d) { return pathDash(d, 1); })
-      .pathDashAnimateTime(function (d) { return d.flow ? 14000 : d.kontakt ? 30000 : 0; })
+      .pathDashAnimateTime(function (d) { return d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
       .pathResolution(1)
       .pathTransitionDuration(600)
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.zh) {
+          t.appendChild(el('b', null, d.ab ? d.zh.name + ': ' + d.ab.name : d.zh.name)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode((d.ab ? BELEGT_TXT[d.ab.belegt] : d.zh.stationen) + ' · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.kontakt) { t.appendChild(el('b', null, d.kontakt.name + ' (' + fmtYear(d.kontakt.jahr) + ')')); return t.outerHTML; }
         t.appendChild(el('b', null, d.route.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(TEIL_TXT[d.teil] + ': ' + BELEGT_TXT[PARTS[d.route.id][d.teil].belegt] + ' · Klick für Infos'));
         return t.outerHTML;
       })
-      .onPathClick(function (d) { if (d.kontakt) openKontaktInfo(d.kontakt); else openTradeInfo(d.route); })
-      .onLabelClick(function (d) { if (d.kind === 'handel') openPlaceInfo(d); });
+      .onPathClick(function (d) { if (d.zh) openZhInfo(d.zh); else if (d.kontakt) openKontaktInfo(d.kontakt); else openTradeInfo(d.route); })
+      .onLabelClick(function (d) {
+        if (d.kind === 'handel') openPlaceInfo(d);
+        else if (d.kind === 'zhhafen') openZhHafen(d);
+        else if (d.kind === 'karawane') toast('🐪 ' + d.name + ': ' + d.hinweis);
+      });
   }
 
   /* Liste im Menü (Zugang per Tastatur) */
@@ -850,7 +897,17 @@
           if (x[1]) li.appendChild(el('div', 'tsrc', 'ab ' + fmtYear(x[1].von) + ' · Quelle: ' + x[1].quelle));
           ul.appendChild(li);
         });
+        var K = HANDEL.karawanen;
+        if (PARTS[v.id].spaet) {
+          var li2 = el('li'); li2.appendChild(el('b', null, 'Ab ' + fmtYear(K.ab) + ': ')); li2.appendChild(badge('vermittelt'));
+          li2.appendChild(el('div', 'tsrc', 'Ganze Strecke blass dargestellt; Kamel-Karawanen zeigen den Etappenhandel.'));
+          ul.appendChild(li2);
+        }
         row(b, 'Abschnitte', ul);
+        if (PARTS[v.id].spaet) {
+          row(b, K.titel, K.hinweis);
+          row(b, 'Quelle (Etappenhandel)', K.quelle);
+        }
       }
       var wc = el('div', 'wchips'); v.richtung_waren.forEach(function (w) { wc.appendChild(wareChip(w)); });
       row(b, 'Waren', wc);
@@ -890,12 +947,15 @@
       row(b, 'Quelle', k.quelle);
     });
   }
-  function openWaren() {
+  function openWaren(src) {
+    var D = src && src.waren ? src : HANDEL, ming = D === ZHD;
     var body = $('#wbody'); body.innerHTML = '';
+    $('#wmt').textContent = ming ? 'Warenübersicht: Fahrten des Zheng He' : 'Warenübersicht';
     var wrap = el('div', 'wtable-wrap'), tb = el('table', 'wtable'), thead = el('thead'), tr = el('tr');
-    tr.appendChild(el('th', null, '← Von Osten nach Westen')); tr.appendChild(el('th', null, 'Von Westen nach Osten →'));
+    tr.appendChild(el('th', null, ming ? '← Ausfuhr Chinas (nach Westen)' : '← Von Osten nach Westen'));
+    tr.appendChild(el('th', null, ming ? 'Einfuhr nach China (nach Osten) →' : 'Von Westen nach Osten →'));
     thead.appendChild(tr); tb.appendChild(thead);
-    var ow = HANDEL.waren.filter(function (w) { return w.von_nach === 'ost->west'; }), wo = HANDEL.waren.filter(function (w) { return w.von_nach === 'west->ost'; });
+    var ow = D.waren.filter(function (w) { return w.von_nach === 'ost->west'; }), wo = D.waren.filter(function (w) { return w.von_nach === 'west->ost'; });
     var tbody = el('tbody');
     for (var i = 0; i < Math.max(ow.length, wo.length); i++) {
       var r = el('tr');
@@ -907,6 +967,11 @@
       tbody.appendChild(r);
     }
     tb.appendChild(tbody); wrap.appendChild(tb); body.appendChild(wrap);
+    if (ming) {
+      body.appendChild(el('p', 'wnote', 'Vieles waren Geschenke im Rahmen der Tributdiplomatie: China gab Seide und Porzellan, fremde Herrscher schickten Gesandte mit Gaben. Daneben wurde an den Häfen auch gehandelt.'));
+      $('#wmodal').hidden = false; $('#wmodalClose').focus({ preventScroll: true });
+      return;
+    }
     var d = el('p', 'wnote'); d.appendChild(el('b', null, 'Handelsdefizit? '));
     d.appendChild(document.createTextNode(HANDEL.defizit.text + ' (' + HANDEL.defizit.quelle + ')'));
     body.appendChild(d);
@@ -938,8 +1003,9 @@
       rt.parts.forEach(function (p) {
         var d = path({ type: 'LineString', coordinates: p.pts }); if (!d) return;
         grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', 'rgba(245,236,210,.9)').attr('stroke-width', 8).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
-        grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', col).attr('stroke-width', p.belegt === 'umstritten' ? 4.5 : 3.6)
-          .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('stroke-dasharray', DASH_MAP[p.belegt]);
+        grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', col).attr('stroke-width', p.belegt === 'umstritten' ? 4.5 : p.teil === 'spaet' ? 2.6 : 3.6)
+          .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('stroke-dasharray', DASH_MAP[p.belegt])
+          .attr('stroke-opacity', p.teil === 'spaet' ? 0.5 : 1);
         grp.append('path').attr('d', d).attr('class', 'thit');
       });
       grp.append('title').text(v.name + ' – ' + BELEGT_TXT[v.belegt] + ' (Klick für Infos)');
@@ -951,7 +1017,7 @@
       }
       if (first < 0) return;
       any = true;
-      var partial = v.seiten && !rt.teile.mitte;
+      var partial = v.seiten && !rt.teile.mitte && !rt.teile.spaet;
       info.push({ v: v, col: col, xy: xy, first: first, last: last, txt: exit ? '→ ' + v.rand[r] : (partial && last === xy.length - 1 ? '→ weiter nur über Vermittler' : null) });
     });
     // Belegte Flächen (Kopf, Legende, Leiste unten) – dort keine Beschriftungen
@@ -1050,6 +1116,297 @@
       busy.push(bx);
     });
     return any;
+  }
+
+  /* ---------- Ming-Zeit: Flottenfahrten des Zheng He (data/zhenghe.json) ---------- */
+  var ZH_COL = ['#c3f27a', '#93e86f', '#62dc73', '#3dcf86', '#25c497', '#6fe0a8', '#a6efc0'];          // Satellit (dunkler Hintergrund)
+  var ZH_COL_SCHEM = ['#3d6b00', '#2f6a12', '#1d6b2a', '#0f6a3e', '#0b6650', '#1f7a52', '#2e5f3c'];  // schematisch (helle Textur)
+  function zhBase(v) { return (state.mode === 'schem' ? ZH_COL_SCHEM : ZH_COL)[(v.nr - 1) % 7]; }
+  function zhCol(v, a) { return a >= 1 ? zhBase(v) : rgba(zhBase(v), a); }
+  function zhAktiv(v, y) { return y >= v.von && y <= v.bis; }
+  function zhById(id) { return ZHD.verbindungen.filter(function (v) { return v.id === id; })[0]; }
+  function initZh() {
+    ZHD.verbindungen.forEach(function (v) {
+      ZH.fahrt[v.nr] = true;
+      v.__p = { id: v.id, zh: v, pts: v.pfad };
+      v.__flow = { id: v.id + ':flow', zh: v, flow: true, pts: v.pfad };
+      v.__ab = (v.abzweige || []).map(function (a, i) { return { id: v.id + ':ab' + i, zh: v, ab: a, pts: a.pfad }; });
+      var dp = dense(v.pfad), mid = dp[Math.floor(dp.length * 0.62)], end = v.pfad[v.pfad.length - 1];
+      v.__tag = { kind: 'waren', route: v, lng: mid[0], lat: mid[1], seite: 'unten', pts: dp.filter(function (x, j) { return j % 2 === 0; }) };
+      WTAGS['zh:' + v.id] = v.__tag;
+      v.__flag = { kind: 'zhflag', zh: v, lng: end[0], lat: end[1] };
+    });
+    ZHD.orte.forEach(function (o) { o.kind = 'zhhafen'; o.__fahrten = o.an.map(function (a) { return zhById(a[0]); }).filter(Boolean); });
+  }
+  /* Sichtbar: Fahrt eingeschaltet und Startjahr erreicht. Laufende Fahrt hell mit wanderndem Strich, frühere blass. */
+  function zhVisible(y) {
+    var res = { paths: [], places: [], tags: [], aktiv: [], key: 'aus' };
+    if (!ZHD || !ZH.on) return res;
+    var ids = [];
+    ZHD.verbindungen.forEach(function (v) {
+      if (!ZH.fahrt[v.nr] || y < v.von) return;
+      var akt = zhAktiv(v, y);
+      ids.push(v.id + (akt ? '*' : ''));
+      res.paths.push(v.__p); res.paths.push.apply(res.paths, v.__ab);
+      if (akt) { res.paths.push(v.__flow); res.aktiv.push(v); res.tags.push(v.__flag); if (ZH.waren) res.tags.push(v.__tag); }
+    });
+    ZHD.orte.forEach(function (o) {
+      if (o.__fahrten.some(function (v) { return ZH.fahrt[v.nr] && y >= v.von; })) res.places.push(o);
+    });
+    res.key = ids.join(',') + '|' + ZH.waren + '|' + res.places.length;
+    return res;
+  }
+  function refreshGlobeMing() {
+    var zv = CUR_ZV || zhVisible(state.year);
+    CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
+    globe.polygonsData([]);
+    globe.labelsData(zv.places);
+    globe.htmlElementsData(zv.tags.concat([STANDORT || JENA]));
+    globe.pathColor(pathColor).pathStroke(pathStroke);
+    globe.pathsData(zv.paths);
+    zv.aktiv.forEach(function (v, i) { if (v.__flag.__el) v.__flag.__el.style.setProperty('--dy', (-14 - i * 28) + 'px'); });
+    karUpdate();
+    setTimeout(scheduleTagSides, 50);
+  }
+  function zhFlagEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('div', 'zhflag', d.zh.nr + '. Fahrt'); e.style.setProperty('--c', ZH_COL[d.zh.nr - 1]);
+    e.title = d.zh.name + ' (Klick für Infos)';
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openZhInfo(d.zh); });
+    d.__el = e; return e;
+  }
+  function openZhInfo(v) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk zh', 'Seeweg · Flotte der Ming'));
+      var h = el('h3', null, 'Zheng He: ' + v.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Zeitraum', v.von + ' bis ' + v.bis);
+      row(b, 'Sicherheit', badge(v.belegt));
+      row(b, 'Stationen', v.stationen);
+      if (v.abzweige && v.abzweige.length) {
+        var ul = el('ul', 'tparts');
+        v.abzweige.forEach(function (a) { var li = el('li'); li.appendChild(el('b', null, a.name + ': ')); li.appendChild(badge(a.belegt)); ul.appendChild(li); });
+        row(b, 'Teilflotten', ul);
+      }
+      var wc = el('div', 'wchips'); v.richtung_waren.forEach(function (w) { wc.appendChild(wareChip(w)); });
+      row(b, 'Waren', wc);
+      var hb = el('div', 'tlinks');
+      ZHD.orte.filter(function (o) { return o.__fahrten.indexOf(v) >= 0; }).forEach(function (o) { hb.appendChild(linkBtn(o.name, function () { openZhHafen(o); })); });
+      row(b, 'Häfen', hb);
+      row(b, 'Quelle', v.quelle);
+      row(b, 'Hinweis', v.hinweis).classList.add('twarn');
+      var wb = el('button', 'small tmore', 'Warenübersicht öffnen'); wb.type = 'button'; wb.addEventListener('click', function () { openWaren(ZHD); }); b.appendChild(wb);
+    });
+  }
+  function openZhHafen(o) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk zh', 'Hafen · Fahrten des Zheng He'));
+      var h = el('h3', null, o.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Funktion', o.funktion);
+      var lb = el('div', 'tlinks');
+      o.__fahrten.forEach(function (v) { lb.appendChild(linkBtn(v.name, function () { openZhInfo(v); })); });
+      row(b, 'Angelaufen', lb);
+      row(b, 'Sicherheit', badge(o.belegt));
+      row(b, 'Quelle', o.quelle);
+      if (o.hinweis) { var hw = row(b, 'Hinweis', o.hinweis); if (o.belegt === 'umstritten') hw.classList.add('twarn'); }
+    });
+  }
+  function openZhBackground() {
+    var I = ZHD.info;
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk zh', 'Hintergrund'));
+      var h = el('h3', null, I.titel); h.id = 'tinfoTitle'; b.appendChild(h);
+      I.absaetze.forEach(function (t) { b.appendChild(el('p', 'tpara', t)); });
+      row(b, 'Quelle', I.quelle);
+    });
+  }
+  function zhCard(box, c, k, t, p, btn, fn, cls) {
+    var d = el('div', 'card' + (cls ? ' ' + cls : '')); d.style.setProperty('--c', c);
+    d.appendChild(el('div', 'k', k)); d.appendChild(el('div', 't', t));
+    (Array.isArray(p) ? p : [p]).forEach(function (x) { if (x) d.appendChild(el('p', null, x)); });
+    if (btn) { var b = el('button', null, btn); b.type = 'button'; b.addEventListener('click', fn); d.appendChild(b); }
+    box.appendChild(d);
+  }
+  function renderCardsMing() {
+    var box = $('#cards'), y = state.year; box.innerHTML = '';
+    var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); });
+    akt.forEach(function (v) {
+      zhCard(box, ZH_COL[v.nr - 1], 'Gerade unterwegs', v.name, [v.stationen, v.hinweis], 'Infokarte zur Fahrt', function () { openZhInfo(v); });
+    });
+    if (!akt.length) {
+      var next = ZHD.verbindungen.filter(function (v) { return v.von > y; })[0];
+      var t = y < ZHD.verbindungen[0].von ? 'Die Fahrten beginnen 1405.' : next ? 'Zwischen den Fahrten. Nächste: ' + next.name + '.' : 'Nach 1433 gab es keine solchen Flottenfahrten mehr.';
+      zhCard(box, '#566a80', 'Keine Fahrt in diesem Jahr', t, null, null, null, 'none');
+    }
+    var ev = null; ZHD.ereignisse.forEach(function (e) { if (e.jahr <= y) ev = e; });
+    if (ev) zhCard(box, '#5fdc8a', 'Ereignis · ' + ev.jahr + (ev.belegt === 'umstritten' ? ' · teils umstritten' : ''), ev.titel, ev.text);
+    zhCard(box, '#5fdc8a', 'Hintergrund', ZHD.info.titel, ZHD.info.absaetze.slice(0, 2), 'Weiterlesen', openZhBackground);
+  }
+  function buildLanesMing() {
+    var lanes = $('#lanes'); lanes.innerHTML = '';
+    lanes.appendChild(el('div', 'cursor'));
+    var lane = el('div', 'lane zhlane'); lane.dataset.r = 'zhenghe';
+    ZHD.verbindungen.forEach(function (v) {
+      var b = el('button', 'zhbar', String(v.nr)); b.type = 'button'; b.dataset.nr = v.nr;
+      b.style.left = pct(v.von) + '%'; b.style.width = 'calc(' + (pct(v.bis) - pct(v.von)) + '% - 2px)';
+      b.style.setProperty('--c', ZH_COL[v.nr - 1]); b.style.setProperty('--cbg', rgba(ZH_COL[v.nr - 1], 0.22));
+      b.title = v.name + ': ' + v.stationen;
+      b.addEventListener('click', function () { setYear(v.von); });
+      lane.appendChild(b);
+    });
+    lanes.appendChild(lane);
+    var evl = el('div', 'lane zhev'); evl.dataset.r = 'zhev'; evl.style.setProperty('--c', '#5fdc8a');
+    ZHD.ereignisse.forEach(function (e) {
+      var k = el('button', 'mk', String(e.jahr)); k.type = 'button'; k.dataset.y = e.jahr; k.style.left = pct(e.jahr) + '%';
+      k.title = e.jahr + ': ' + e.titel;
+      k.addEventListener('click', function () { setYear(e.jahr); toast(e.jahr + ': ' + e.titel + '. ' + e.text); });
+      evl.appendChild(k);
+    });
+    lanes.appendChild(evl);
+    $('#lanesToggle').hidden = true;
+    updateMarkersMing();
+  }
+  function updateMarkersMing() {
+    var y = state.year, cur = null;
+    document.querySelectorAll('.zhbar').forEach(function (b) {
+      var v = zhById('zh' + b.dataset.nr);
+      b.classList.toggle('on', zhAktiv(v, y)); b.classList.toggle('off', !ZH.on || !ZH.fahrt[v.nr]);
+    });
+    ZHD.ereignisse.forEach(function (e) { if (e.jahr <= y) cur = e; });
+    document.querySelectorAll('.lane.zhev .mk').forEach(function (k) { k.classList.toggle('on', !!cur && +k.dataset.y === cur.jahr); });
+  }
+  function buildZhChips() {
+    var box = $('#zhChips');
+    ZHD.verbindungen.forEach(function (v) {
+      var b = el('button', 'chip zc on'); b.type = 'button'; b.dataset.nr = v.nr; b.setAttribute('aria-pressed', 'true');
+      b.style.setProperty('--c', ZH_COL[v.nr - 1]); b.style.setProperty('--cbg', rgba(ZH_COL[v.nr - 1], 0.25));
+      b.appendChild(el('i')); b.appendChild(el('span', null, v.nr + '. Fahrt ' + v.von + '–' + String(v.bis).slice(2)));
+      b.title = v.name + ': ' + v.stationen;
+      b.addEventListener('click', function () {
+        ZH.fahrt[v.nr] = !ZH.fahrt[v.nr]; b.classList.toggle('on', ZH.fahrt[v.nr]); b.setAttribute('aria-pressed', ZH.fahrt[v.nr]);
+        lastKey = ''; setYear(state.year);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- Karawanenhandel: Kamel-Karawanen auf kurzen Etappen (handel.json → karawanen) ----------
+     Vor dem Wendepunkt (Standard 220) ziehen sie auf den Etappen der Mittelroute, danach regional verteilt über Eurasien.
+     Pause: langsames Ziehen. Play: schneller. Sprung (±10, Schieber): Karawanen rücken entsprechend weiter. */
+  var CAMEL = '<svg viewBox="0 0 32 24" aria-hidden="true"><path fill="currentColor" d="M2 6.5L4.2 4h2.6l.8 1.6.8 4.9 2.1.7C11.5 6.8 13.4 5 15 5c1.8 0 2.6 2 3.2 3.6.6-2 2-3.2 3.6-3.2 2.8 0 4.4 3.2 5.2 6.2l2.5 1.8-.5 1-1.8-1c-.2 1.8-.8 3-1.6 3.6l.2 5.5h-1.6l-.4-4.9h-1.4l-.4 4.9h-1.6v-5.1h-5.8l-.4 5.1h-1.6l-.2-5.3-1.2-.2-.4 5.5H9.2l.2-6.5c-1-1-2-2.4-2.6-4L5.6 7.4l-2 .2z"/></svg>';
+  var KAR = { nodes: {}, etappen: [], els: [], clock: 0, last: 0, raf: 0, plan: null, prevY: null };
+  var KAR_SPRUNG = 0.035, KAR_PLAY = 0.25, KAR_RUHE = 0.025;   // Zyklen je Jahr bzw. je Sekunde
+  function initKarawanen() {
+    var K = HANDEL.karawanen;
+    K.knoten.forEach(function (n) { n.kind = 'karawane'; KAR.nodes[n.id] = n; });
+    KAR.etappen = K.etappen.map(function (e, i) {
+      var a = KAR.nodes[e.von], b = KAR.nodes[e.nach], pts = dense(e.pfad), cum = [0];
+      for (var j = 1; j < pts.length; j++) cum.push(cum[j - 1] + d3.geoDistance(pts[j - 1], pts[j]));
+      return { i: i, a: a, b: b, haupt: !!e.haupt, von: Math.max(a.von, b.von, e.ab_jahr != null ? e.ab_jahr : -9999), bis: Math.min(a.bis, b.bis), pts: pts, cum: cum, len: cum[cum.length - 1] };
+    });
+  }
+  function karPlan(y, tv) {
+    var K = HANDEL.karawanen, res = { list: [], key: 'aus' };
+    if (!K || state.epoche !== 'antike' || !TRADE.on || !TRADE.land || !TRADE.karawanen || y < K.von || y > K.bis) return res;
+    var mrt = tv.routes.filter(function (rt) { return rt.v.id === K.route; })[0];
+    if (!mrt) return res;                                   // nur wenn die Mittelroute zu sehen ist
+    var nach = y >= K.ab, vis = [];
+    mrt.parts.forEach(function (p) { vis.push.apply(vis, dense(p.pts)); });
+    function near(n) { return vis.some(function (c) { return d3.geoDistance(c, [n.lng, n.lat]) < 0.055; }); }
+    var avail = KAR.etappen.filter(function (e) { return y >= e.von && y <= e.bis && (nach || (e.haupt && near(e.a) && near(e.b))); });
+    if (!avail.length) return res;
+    var n = Math.min(nach ? K.max_nachher : K.max_vorher, 15);
+    var bucket = nach ? Math.floor((y - K.ab) / 12) : 0;   // danach alle 12 Jahre neu verteilt: „ziehen durch Eurasien“
+    for (var i = 0; i < n; i++) {
+      var e = avail[(i * 5 + bucket * 3) % avail.length];
+      res.list.push({ e: e, rev: (i + bucket) % 2 === 1, phase: (i * 0.618 + bucket * 0.27) % 1 });
+    }
+    res.key = (nach ? 'n' : 'v') + bucket + ':' + avail.map(function (e) { return e.i; }).join('.');
+    return res;
+  }
+  function karNodeLabels(tv) {
+    if (!tv.kar || !tv.kar.list.length) return [];
+    var seen = {}, out = [];
+    tv.kar.list.forEach(function (c) {
+      [c.e.a, c.e.b].forEach(function (n) {
+        if (seen[n.id]) return; seen[n.id] = 1;
+        if (tv.places.some(function (o) { return d3.geoDistance([o.lng, o.lat], [n.lng, n.lat]) < 0.02; })) return;
+        out.push(n);
+      });
+    });
+    return out;
+  }
+  function karUpdate() {
+    var plan = state.epoche === 'antike' && CUR_TV && CUR_TV.kar ? CUR_TV.kar : { list: [] }, L = $('#karLayer');
+    KAR.plan = plan;
+    while (KAR.els.length < plan.list.length) {
+      var e = el('div', 'camel'); e.innerHTML = CAMEL;
+      e.addEventListener('click', function () {
+        var c = this.__c; if (c) toast('🐪 Karawane zwischen ' + c.e.a.name + ' und ' + c.e.b.name + ': regionaler Zwischenhandel (Etappenhandel)');
+      });
+      L.appendChild(e); KAR.els.push(e);
+    }
+    KAR.els.forEach(function (e, i) { e.__c = plan.list[i] || null; e.classList.toggle('off', !e.__c); });
+    if (plan.list.length && !KAR.raf) { KAR.last = performance.now(); KAR.raf = requestAnimationFrame(karFrame); }
+    if (!plan.list.length && KAR.raf) { cancelAnimationFrame(KAR.raf); KAR.raf = 0; }
+  }
+  function karYearJump(y) {
+    if (KAR.prevY != null && !playTimer) KAR.clock += (y - KAR.prevY) * KAR_SPRUNG;
+    KAR.prevY = y;
+  }
+  function karFrame(now) {
+    KAR.raf = requestAnimationFrame(karFrame);
+    var dt = Math.min(0.1, Math.max(0, (now - KAR.last) / 1000)); KAR.last = now;
+    KAR.clock += dt * (playTimer ? KAR_PLAY : KAR_RUHE);
+    karDraw();
+  }
+  function karDrawSoon() { if (KAR.plan && KAR.plan.list.length && !KAR.raf) karDraw(); }
+  function karPoint(e, s) {
+    var d = s * e.len, c = e.cum, j = 1;
+    while (j < c.length - 1 && c[j] < d) j++;
+    var seg = c[j] - c[j - 1], t = seg ? (d - c[j - 1]) / seg : 0;
+    return d3.geoInterpolate(e.pts[j - 1], e.pts[j])(Math.max(0, Math.min(1, t)));
+  }
+  function karDraw() {
+    var plan = KAR.plan, L = $('#karLayer'); if (!plan) return;
+    L.hidden = mapOpen || state.epoche !== 'antike';
+    if (L.hidden) return;
+    var pov = globe.pointOfView(), gr = $('#globe').getBoundingClientRect();
+    plan.list.forEach(function (c, i) {
+      var e = KAR.els[i]; if (!e) return;
+      var rate = 1 / Math.max(0.6, Math.min(2.2, c.e.len * 180 / Math.PI / 10));
+      var u = ((KAR.clock * rate + c.phase) % 1 + 1) % 1, s, dir;
+      if (u < 0.44) { s = u / 0.44; dir = 1; } else if (u < 0.5) { s = 1; dir = 0; } else if (u < 0.94) { s = 1 - (u - 0.5) / 0.44; dir = -1; } else { s = 0; dir = 0; }
+      if (c.rev) { s = 1 - s; dir = -dir; }
+      var p = karPoint(c.e, s);
+      var sc = globe.getScreenCoords(p[1], p[0], 0.012), x = sc.x + gr.left, yy = sc.y + gr.top;
+      if (d3.geoDistance([pov.lng, pov.lat], p) > 1.35 || x < -20 || yy < -20 || x > innerWidth + 20 || yy > innerHeight + 20) { e.classList.add('hide'); return; }
+      e.classList.remove('hide');
+      e.style.transform = 'translate(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px)';
+      if (dir) {
+        var q = karPoint(c.e, Math.max(0, Math.min(1, s + dir * 0.03))), sq = globe.getScreenCoords(q[1], q[0], 0.012);
+        if (Math.abs(sq.x - sc.x) > 0.5) e.classList.toggle('flip', sq.x > sc.x);
+      }
+    });
+  }
+
+  /* ---------- Epoche umschalten ---------- */
+  function setEpoche(ep) {
+    if (state.epoche === ep || !EPOCHEN[ep]) return;
+    if (playTimer) togglePlay();
+    if (mapOpen) finishClose();
+    closeInfo(); stopIntro();
+    state.jahrJe[state.epoche] = state.year;
+    state.epoche = ep;
+    var E = EPOCHEN[ep]; YMIN = E.min; YMAX = E.max;
+    document.documentElement.classList.toggle('ming', ep === 'ming');
+    [['#epAntike', 'antike'], ['#epMing', 'ming']].forEach(function (x) { var on = x[1] === ep; $(x[0]).classList.toggle('on', on); $(x[0]).setAttribute('aria-pressed', on); });
+    $('#h1sub').textContent = E.titel; $('#sideTitle').textContent = E.side;
+    var yi = $('#year'); yi.min = YMIN; yi.max = YMAX;
+    globe.pathTransitionDuration(ep === 'ming' ? 2600 : 600);   // Ming: neue Fahrten zeichnen sich sichtbar ein
+    KAR.prevY = null;
+    buildTicks(); buildLanes(); lastKey = '';
+    setYear(state.jahrJe[ep] != null ? state.jahrJe[ep] : E.start);
+    if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
   }
 
   /* ---------- Start: Linien von der Legende zum Reich ---------- */
@@ -1185,7 +1542,7 @@
     });
     function setTrade(k, v) {
       TRADE[k] = v;
-      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes' }[k]);
+      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar' }[k]);
       b.classList.toggle('on', v); b.setAttribute('aria-pressed', v);
       if (k === 'on') {
         $('#handelSub').classList.toggle('off', !v);
@@ -1199,6 +1556,21 @@
     $('#tglSee').addEventListener('click', function () { setTrade('see', !TRADE.see); });
     $('#tglWaren').addEventListener('click', function () { setTrade('waren', !TRADE.waren); });
     $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
+    $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
+    // Epochen und Zheng He
+    $('#epAntike').addEventListener('click', function () { setEpoche('antike'); });
+    $('#epMing').addEventListener('click', function () { setEpoche('ming'); });
+    $('#tglZh').addEventListener('click', function () {
+      ZH.on = !ZH.on; this.classList.toggle('on', ZH.on); this.setAttribute('aria-pressed', ZH.on);
+      document.querySelectorAll('#zhChips .chip, #tglZhWaren').forEach(function (x) { x.disabled = !ZH.on; });
+      lastKey = ''; setYear(state.year);
+    });
+    $('#tglZhWaren').addEventListener('click', function () {
+      ZH.waren = !ZH.waren; this.classList.toggle('on', ZH.waren); this.setAttribute('aria-pressed', ZH.waren); lastKey = ''; setYear(state.year);
+    });
+    $('#btnZhInfo').addEventListener('click', openZhBackground);
+    $('#btnZhWaren').addEventListener('click', function () { openWaren(ZHD); });
+    $('#goIndik').addEventListener('click', function () { fly(8, 82, homeAlt() * 0.85); });
     $('#btnWaren').addEventListener('click', openWaren);
     $('#tinfoClose').addEventListener('click', closeInfo);
     $('#tinfo').addEventListener('click', function (e) { if (e.target === this) closeInfo(); });
@@ -1236,9 +1608,10 @@
 
   /* ---------- Start ---------- */
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
-  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json')]).then(function (res) {
-    DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4];
-    initTrade();
+  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json')]).then(function (res) {
+    DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
+    initTrade(); initZh(); buildZhChips();
+    document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
@@ -1247,7 +1620,7 @@
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
     setTimeout(startIntro, 600);
-    window.__tafelbild = { state: state, trade: TRADE, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible };
+    window.__tafelbild = { state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, setEpoche: setEpoche, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';
     m.textContent = 'Daten konnten nicht geladen werden. Bitte die Seite über einen Webserver öffnen (nicht per Doppelklick). ' + err.message;

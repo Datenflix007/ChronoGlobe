@@ -11,9 +11,10 @@
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
+<div id="karLayer" class="kar-layer"></div>
 
 <header class="top">
-  <h1>Digitales Tafelbild <span>Rom und China</span></h1>
+  <h1>Digitales Tafelbild <span id="h1sub">Rom und China</span></h1>
   <button id="btnInfo" class="ghost" title="Hinweise und Lizenzen">Hinweise</button>
 </header>
 
@@ -26,18 +27,42 @@
   </div>
   <div class="panel-body" id="panelBody">
   <section>
+    <h2>Epoche</h2>
+    <div class="seg ep-seg">
+      <button id="epAntike" class="on" aria-pressed="true"><b>Antike</b><small>Rom und China</small></button>
+      <button id="epMing" aria-pressed="false"><b>Ming-Zeit</b><small>Zheng He</small></button>
+    </div>
+  </section>
+  <section>
     <h2>Ansicht</h2>
     <div class="seg">
       <button id="modeSat" class="on" aria-pressed="true">Satellit</button>
       <button id="modeSchem" aria-pressed="false">Schematisch</button>
     </div>
   </section>
-  <section>
+  <section id="zhSec" class="ep-ming">
+    <h2>Zheng He (1405–1433)</h2>
+    <button id="tglZh" class="chip plain on" aria-pressed="true">Alle Fahrten anzeigen</button>
+    <div class="zh-grid" id="zhChips"></div>
+    <button id="tglZhWaren" class="chip plain on" aria-pressed="true">Waren anzeigen</button>
+    <div class="tlegend" aria-label="Legende Fahrten des Zheng He">
+      <div><svg viewBox="0 0 40 8"><line class="zh" x1="2" y1="4" x2="38" y2="4"/></svg>aktuelle Fahrt</div>
+      <div><svg viewBox="0 0 40 8"><line class="zh old" x1="2" y1="4" x2="38" y2="4"/></svg>frühere Fahrt</div>
+      <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="2" y1="4" x2="38" y2="4"/></svg>Teilflotte</div>
+      <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
+    </div>
+    <div class="row">
+      <button id="btnZhInfo" class="small">Hintergrund</button>
+      <button id="btnZhWaren" class="small">Warenübersicht</button>
+    </div>
+    <p class="hint">Routen sind <b>schematisch</b>. Gezeigt ist der Hinweg; zurück fuhr die Flotte meist auf demselben Weg. Klick auf Route oder Hafen öffnet eine Infokarte.</p>
+  </section>
+  <section class="ep-antike">
     <h2>Reiche einblenden</h2>
     <button id="tglRom" class="chip rom on" aria-pressed="true"><i></i>Römisches Reich</button>
     <button id="tglHan" class="chip han on" aria-pressed="true"><i></i>Han-Reich</button>
   </section>
-  <section>
+  <section class="ep-antike">
     <h2>Nachbarreiche</h2>
     <div class="nb-grid" id="nbChips"></div>
     <div class="row allrow">
@@ -45,7 +70,7 @@
       <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
     </div>
   </section>
-  <section id="handelSec">
+  <section id="handelSec" class="ep-antike">
     <h2>Handel &amp; Austausch</h2>
     <button id="tglHandel" class="chip plain" aria-pressed="false">Handelsverbindungen anzeigen</button>
     <div class="hsub off" id="handelSub">
@@ -54,6 +79,7 @@
         <button id="tglSee" class="chip plain hs on" aria-pressed="true" disabled><span>Seewege</span></button>
         <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren anzeigen</span></button>
         <button id="tglGes" class="chip plain hs on" aria-pressed="true" disabled><span>Gesandt&shy;schaften</span></button>
+        <button id="tglKar" class="chip plain hs on kar" aria-pressed="true" disabled><span>Karawanen&shy;handel</span></button>
       </div>
       <div class="tlegend" aria-label="Legende Handelswege">
         <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
@@ -61,6 +87,7 @@
         <div><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
         <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
         <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
+        <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
       </div>
       <div id="routeList" class="route-list" aria-live="polite"></div>
       <button id="btnWaren" class="small wbtn" disabled>Warenübersicht</button>
@@ -69,17 +96,18 @@
   </section>
   <section>
     <h2>Globus</h2>
-    <button id="tglOrte" class="chip plain" aria-pressed="false">Orte anzeigen</button>
-    <button id="tglSchl" class="chip plain on" aria-pressed="true">Schlachten anzeigen</button>
+    <button id="tglOrte" class="chip plain ep-antike" aria-pressed="false">Orte anzeigen</button>
+    <button id="tglSchl" class="chip plain on ep-antike" aria-pressed="true">Schlachten anzeigen</button>
     <button id="tglRot" class="chip plain on" aria-pressed="true">Automatisch drehen</button>
     <button id="tglStandort" class="chip plain" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen">Mein Standort</button>
     <div class="row">
-      <button id="goRom" class="small">→ Rom</button>
-      <button id="goHan" class="small">→ China</button>
+      <button id="goRom" class="small ep-antike">→ Rom</button>
+      <button id="goHan" class="small ep-antike">→ China</button>
+      <button id="goIndik" class="small ep-ming">Indischer Ozean</button>
       <button id="goAll" class="small">Eurasien</button>
     </div>
   </section>
-  <p class="hint">Tipp: Auf ein Reich <b>hineinzoomen</b> (Mausrad / Pinch), dann <b>rollt sich die Karte</b> aus.</p>
+  <p class="hint ep-antike">Tipp: Auf ein Reich <b>hineinzoomen</b> (Mausrad / Pinch), dann <b>rollt sich die Karte</b> aus.</p>
   <a class="credit-m" href="https://datenflix007.github.io" target="_blank" rel="noopener">Ein Projekt von <b>Felix Staacke</b> · datenflix007.github.io ↗</a>
   </div>
 </aside>
@@ -91,7 +119,7 @@
     <button id="sideToggle" class="ptoggle" aria-expanded="true" aria-controls="cards" title="Infoband einklappen">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <span>Infos zu den Reichen</span>
+    <span id="sideTitle">Infos zu den Reichen</span>
   </div>
   <div class="cards" id="cards" aria-live="polite"></div>
 </aside>
@@ -155,6 +183,8 @@
     <h2 id="mt">Hinweise</h2>
     <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> (grob nach Provinzen bzw. Regionen mit Erwerbs- und Verlustjahr) und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen und Jahreszahlen nur ungefähr wieder. Schlachtsymbole erscheinen für etwa 25 Jahre ab dem Schlachtjahr. Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
     <p><b>Handel &amp; Austausch:</b> Die Routen sind <b>schematisch</b> und grob von Hand gezeichnet. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien. Linien: durchgezogen = belegt, gestrichelt = vermittelt, gepunktet = umstritten. Quellen stehen in jeder Infokarte.</p>
+    <p><b>Karawanenhandel:</b> Die Kamel-Symbole zeigen regionalen Zwischenhandel auf kurzen Etappen. Ab 220 n. Chr. (Ende der Han-Dynastie) wird die durchgehende Mittelroute blass dargestellt. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler; gezeigt wird eine Verschiebung in Intensität und Organisation.</p>
+    <p><b>Ming-Zeit (Epoche umschalten):</b> Die sieben Flottenfahrten des Zheng He (1405–1433) mit eigener Zeitleiste. Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble“ (NASA, gemeinfrei, über das Paket three-globe), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
     <button id="modalClose" class="small">Schließen</button>
