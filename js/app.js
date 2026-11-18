@@ -3,15 +3,18 @@
 (function () {
   'use strict';
 
-  var YMIN = -300, YMAX = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
-  // Epochen: eigene Zeitleiste je Epoche (die antike Achse wird nicht gestreckt)
-  var EPOCHEN = {
-    antike: { min: -300, max: 480, start: 117, tick: 50, major: 100, alt: 200, takt: 70, titel: 'Rom und China', side: 'Infos zu den Reichen' },
-    ming: { min: 1400, max: 1440, start: 1405, tick: 5, major: 10, alt: 20, takt: 450, titel: 'Zheng He (Ming-Zeit)', side: 'Infos zu den Fahrten' }
-  };
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117, epoche: 'antike', jahrJe: {} };
+  var YMIN = -300, YMAX = 1440, ANTIKE_ENDE = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
+  /* Zeitleiste in Epochen-Abschnitten, getrennt durch einen Zeitsprung (die Achse wird nicht gestreckt).
+     a/b = Anteil der Leistenbreite; takt = ms pro Jahr beim Abspielen. */
+  var SEGS = [
+    { ep: 'antike', von: -300, bis: 480, a: 0, b: 0.76, takt: 70, tick: 50, major: 100, alt: 200, start: 117,
+      name: 'Europäische Antike', sub: 'China: Qin, Han und Zeit der Teilung' },
+    { ep: 'ming', von: 1400, bis: 1440, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
+      name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He)' }
+  ];
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true };
-  var ZH = { on: true, waren: true, fahrt: {} }, ZHD = null;
+  var ZH = { on: true, fahrt: {} }, ZHD = null;
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null;
 
@@ -32,8 +35,10 @@
 
   /* ---------- Daten ---------- */
   function M(r) { return DATA.meta[r]; }
-  function exists(r, y) { return y >= M(r).von && y < M(r).bis; }
+  // Reichsdaten gelten nur für den antiken Abschnitt (Rom hat in den Daten bis 1453, gezeichnet ist aber nur bis 480)
+  function exists(r, y) { return y <= ANTIKE_ENDE && y >= M(r).von && y < M(r).bis; }
   function regionsAt(r, y) {
+    if (y > ANTIKE_ENDE) return [];
     return DATA.regionen.filter(function (f) { var p = f.properties; return p.reich === r && p.von <= y && y < p.bis; });
   }
   function activeEvent(r, y) {
@@ -270,26 +275,65 @@
     document.querySelectorAll('.chip.nb').forEach(function (b) { b.classList.toggle('absent', !exists(b.dataset.r, state.year)); });
   }
 
-  /* ---------- Zeitleiste ---------- */
-  function pct(y) { return ((y - YMIN) / (YMAX - YMIN) * 100); }
-  function buildTicks() {
-    var ticks = $('#ticks'), E = EPOCHEN[state.epoche], ming = state.epoche === 'ming';
-    ticks.innerHTML = '';
-    for (var y = YMIN; y <= YMAX; y += E.tick) {
-      var t = document.createElement('div'); t.style.left = pct(y) + '%';
-      if (y % E.major) { t.className = 'tick minor'; }
-      else {
-        t.className = 'tick' + (y % E.alt ? ' odd' : '');
-        var l = el('span', 'tk-l', ming ? String(y) : y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', ming ? String(y) : y === 0 ? '0' : shortYear(y));
-        t.appendChild(l); t.appendChild(sh);
-      }
-      ticks.appendChild(t);
+  /* ---------- Zeitleiste (Abschnitte je Epoche, dazwischen Zeitsprung) ---------- */
+  function segOf(y) { return y >= SEGS[1].von ? SEGS[1] : SEGS[0]; }
+  function pct(y) {
+    var s = SEGS[0], t = SEGS[1];
+    if (y <= s.bis) return (s.a + (y - s.von) / (s.bis - s.von) * (s.b - s.a)) * 100;
+    if (y >= t.von) return (t.a + (y - t.von) / (t.bis - t.von) * (t.b - t.a)) * 100;
+    return (s.b + (y - s.bis) / (t.von - s.bis) * (t.a - s.b)) * 100;
+  }
+  /* Anteil 0..1 auf der Leiste -> Jahr; im Zeitsprung rastet es am näheren Rand ein */
+  function yearAt(f) {
+    var s = SEGS[0], t = SEGS[1];
+    if (f <= s.b) return Math.round(s.von + Math.max(0, f - s.a) / (s.b - s.a) * (s.bis - s.von));
+    if (f >= t.a) return Math.round(t.von + Math.min(1, (f - t.a) / (t.b - t.a)) * (t.bis - t.von));
+    return f - s.b < t.a - f ? s.bis : t.von;
+  }
+  /* Jahre im Zeitsprung gibt es nicht: vorwärts -> Anfang des nächsten Abschnitts, rückwärts -> Ende des vorigen */
+  function normYear(y, prev) {
+    y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
+    if (y > ANTIKE_ENDE && y < SEGS[1].von) {
+      if (prev != null && y !== prev) y = y > prev ? SEGS[1].von : ANTIKE_ENDE;
+      else y = y - ANTIKE_ENDE < SEGS[1].von - y ? ANTIKE_ENDE : SEGS[1].von;
     }
+    return y;
+  }
+  function buildTicks() {
+    var ticks = $('#ticks'); ticks.innerHTML = '';
+    SEGS.forEach(function (S, si) {
+      for (var y = S.von; y <= S.bis; y += S.tick) {
+        var t = document.createElement('div'); t.style.left = pct(y) + '%';
+        if (y % S.major) { t.className = 'tick minor'; }
+        else {
+          t.className = 'tick' + (y % S.alt ? ' odd' : '');
+          var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
+          t.appendChild(l); t.appendChild(sh);
+        }
+        ticks.appendChild(t);
+      }
+    });
+    buildEpochs();
+  }
+  /* Epochen-Übersicht über der Zeitleiste: Name je Abschnitt, Zeitsprung dazwischen. Klick springt in den Abschnitt. */
+  function buildEpochs() {
+    var bar = $('#epbar'); bar.innerHTML = '';
+    SEGS.forEach(function (S) {
+      var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S.ep;
+      d.style.left = S.a * 100 + '%'; d.style.width = (S.b - S.a) * 100 + '%';
+      d.appendChild(el('b', null, S.name)); d.appendChild(el('span', null, S.sub));
+      d.title = S.name + ' (' + fmtYear(S.von) + ' bis ' + fmtYear(S.bis) + '), ' + S.sub;
+      d.addEventListener('click', function () { if (segOf(state.year) !== S) setYear(S.start); });
+      bar.appendChild(d);
+    });
+    var g = el('div', 'epgap', '≈'); g.style.left = SEGS[0].b * 100 + '%'; g.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%';
+    g.title = 'Zeitsprung: ' + fmtYear(SEGS[0].bis) + ' bis ' + fmtYear(SEGS[1].von) + ' ist nicht dargestellt';
+    bar.appendChild(g);
   }
   function buildLanes() {
-    if (state.epoche === 'ming') { buildLanesMing(); return; }
     var lanes = $('#lanes'); lanes.innerHTML = '';
     var zero = document.createElement('div'); zero.className = 'zero'; zero.style.left = pct(0) + '%'; lanes.appendChild(zero);
+    var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap);
     var cur = document.createElement('div'); cur.className = 'cursor'; lanes.appendChild(cur);
     var shown = DATA.reihen.filter(function (r) { return M(r).haupt || state.on[r]; });
     shown.forEach(function (r) {
@@ -297,7 +341,7 @@
       lane.className = 'lane' + (m.haupt ? '' : ' thin'); lane.dataset.r = r;
       lane.style.setProperty('--c', m.farbe); lane.style.setProperty('--cs', rgba(m.farbe, 0.2));
       lane.style.setProperty('--cb', rgba(m.farbe, 0.6)); lane.style.setProperty('--ct', mix(m.farbe, '#ffffff', 0.55));
-      var a = Math.max(YMIN, m.von), b = Math.min(YMAX, m.bis);
+      var a = Math.max(YMIN, m.von), b = Math.min(ANTIKE_ENDE, m.bis);
       var era = document.createElement('div'); era.className = 'era';
       era.style.left = pct(a) + '%'; era.style.width = (pct(b) - pct(a)) + '%';
       var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = m.name; era.appendChild(nm);
@@ -305,14 +349,14 @@
       lane.appendChild(era);
       if (r === 'rom') {   // ab 395: Ostrom
         var ost = document.createElement('div'); ost.className = 'era-ost';
-        ost.style.left = pct(TEILUNG) + '%'; ost.style.width = (pct(YMAX) - pct(TEILUNG)) + '%';
+        ost.style.left = pct(TEILUNG) + '%'; ost.style.width = (pct(ANTIKE_ENDE) - pct(TEILUNG)) + '%';
         ost.style.setProperty('--co', rgba(OSTROM, 0.55)); ost.title = 'Ab 395 n. Chr.: Westrom (oben) und Ostrom (unten)';
         lane.appendChild(ost);
       }
       // Schlachten: in der ersten angezeigten Spur eines beteiligten Reichs
       DATA.schlachten.forEach(function (s) {
         var home = s.reiche.filter(function (x) { return shown.indexOf(x) >= 0; })[0];
-        if (home !== r || s.jahr < YMIN || s.jahr > YMAX) return;
+        if (home !== r || s.jahr < YMIN || s.jahr > ANTIKE_ENDE) return;
         var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'bt'; bt.dataset.y = s.jahr;
         bt.style.left = pct(s.jahr) + '%'; bt.innerHTML = SWORDS;
         bt.title = 'Schlacht: ' + s.name + ' (' + fmtYear(s.jahr) + ')';
@@ -328,6 +372,7 @@
       });
       lanes.appendChild(lane);
     });
+    addMingLanes(lanes);
     lanes.classList.toggle('noschl', !state.schlachten);
     var nThin = shown.length - shown.filter(function (r) { return M(r).haupt; }).length;
     var lt = $('#lanesToggle');
@@ -336,17 +381,26 @@
     updateMarkers();
   }
   function updateMarkers() {
-    if (state.epoche === 'ming') { updateMarkersMing(); return; }
     document.querySelectorAll('.lane').forEach(function (lane) {
+      if (!DATA.meta[lane.dataset.r]) return;
       var e = activeEvent(lane.dataset.r, state.year);
-      lane.querySelectorAll('.mk').forEach(function (b) { b.classList.toggle('on', !!e && e.jahr === +b.dataset.y); });
+      lane.querySelectorAll('.mk:not(.zhmk)').forEach(function (b) { b.classList.toggle('on', !!e && e.jahr === +b.dataset.y); });
     });
     document.querySelectorAll('.bt').forEach(function (b) {
       var d = state.year - b.dataset.y; b.classList.toggle('on', d >= 0 && d <= SCHLACHT_JAHRE);
     });
+    updateMarkersMing();
+    document.querySelectorAll('#epbar .ep').forEach(function (b) { b.classList.toggle('on', b.dataset.ep === state.epoche); });
   }
   function stateKey(y) {
-    if (state.epoche === 'ming') { stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y); return 'ming|' + stateKey.zv.key; }
+    if (state.epoche === 'ming') {
+      // auch bei ausgeblendeten Fahrten ändern sich Infokarten und Zeitleisten-Marker mit dem Jahr
+      var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
+      var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
+      stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
+      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key;
+    }
+    stateKey.zv = null;
     var ids = [];
     DATA.reihen.forEach(function (r) { if (state.on[r]) regionsAt(r, y).forEach(function (f) { ids.push(f.properties.id); }); });
     var ev = DATA.reihen.map(function (r) { var e = activeEvent(r, y); return e ? e.jahr : 'x'; }).join(',');
@@ -355,13 +409,16 @@
     var tv = tradeVisible(y); stateKey.tv = tv;
     return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key;
   }
+  function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
-    y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
+    y = normYear(y, state.year);
+    var ep = segOf(y).ep;
+    if (ep !== state.epoche) epochWechsel(ep);
     karYearJump(y);
     state.year = y;
-    if (!fromSlider) $('#year').value = y;
+    if (!fromSlider) $('#year').value = sliderPos(y);
     $('#yearOut').textContent = fmtYear(y);
-    $('#track').style.setProperty('--pf', (y - YMIN) / (YMAX - YMIN));
+    $('#track').style.setProperty('--pf', pct(y) / 100);
     var key = stateKey(y);
     if (key !== lastKey) {
       lastKey = key; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
@@ -369,14 +426,27 @@
     }
     visibleBattles(y).forEach(function (b) { if (b.__el) b.__el.classList.toggle('fresh', y - b.jahr <= 4); });
   }
+  /* Wechsel zwischen den Abschnitten (über Zeitleiste, Play, ±10, Tastatur) */
+  function epochWechsel(ep) {
+    state.epoche = ep;
+    $('#sideTitle').textContent = ep === 'ming' ? 'Infos zu den Fahrten' : 'Infos zu den Reichen';
+    globe.pathTransitionDuration(ep === 'ming' ? 2600 : 600);   // Ming: neue Fahrten zeichnen sich sichtbar ein
+    if (mapOpen) finishClose();
+    KAR.prevY = null;
+    if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
+  }
   function togglePlay() {
-    if (playTimer) { clearInterval(playTimer); playTimer = null; $('#play').textContent = '▶'; return; }
+    if (playTimer) { clearTimeout(playTimer); playTimer = null; $('#play').textContent = '▶'; return; }
     if (state.year >= YMAX) setYear(YMIN);
     $('#play').textContent = '❚❚';
-    playTimer = setInterval(function () {
-      if (state.year >= YMAX) { togglePlay(); return; }
-      setYear(state.year + 1);
-    }, EPOCHEN[state.epoche].takt);
+    (function step() {
+      // am Ende der Antike kurz anhalten, dann über den Zeitsprung
+      var t = state.year === ANTIKE_ENDE ? 1500 : segOf(state.year).takt;
+      playTimer = setTimeout(function () {
+        if (state.year >= YMAX) { togglePlay(); return; }
+        setYear(state.year + 1); step();
+      }, t);
+    })();
   }
 
   /* ---------- Flache Reichskarte ---------- */
@@ -675,7 +745,7 @@
     }
     return out;
   }
-  function fmtRange(a, b) { return b >= YMAX ? 'ab ' + fmtYear(a) : fmtYear(a) + ' bis ' + fmtYear(b); }
+  function fmtRange(a, b) { return b >= ANTIKE_ENDE && a < ANTIKE_ENDE ? 'ab ' + fmtYear(a) : fmtYear(a) + ' bis ' + fmtYear(b); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function wareChip(w) {
     var ow = w.von_nach === 'ost->west', c = el('span', 'wchip ' + (ow ? 'ow' : 'wo'), ow ? '← ' + w.name : w.name + ' →');
@@ -843,10 +913,18 @@
   function renderTradeList(tv) {
     var box = $('#routeList'); box.innerHTML = '';
     if (!TRADE.on) return;
-    if (!tv.routes.length && !tv.kontakte.length) {
-      box.appendChild(el('p', 'rl-none', 'Keine Verbindung für die eingeblendeten Reiche in diesem Jahr.'));
+    var zl = CUR_ZV ? CUR_ZV.sichtbar : [];
+    if (!tv.routes.length && !tv.kontakte.length && !zl.length) {
+      box.appendChild(el('p', 'rl-none', state.epoche === 'ming' ? 'Keine Fahrt des Zheng He in diesem Jahr (oder ausgeblendet).' : 'Keine Verbindung für die eingeblendeten Reiche in diesem Jahr.'));
       return;
     }
+    zl.forEach(function (v) {
+      var b = el('button', 'rl-item zh'); b.type = 'button'; b.style.setProperty('--zh', ZH_COL[v.nr - 1]);
+      b.appendChild(el('i')); b.appendChild(el('span', null, 'Zheng He: ' + v.name));
+      if (zhAktiv(v, state.year)) b.appendChild(el('small', null, 'gerade unterwegs'));
+      b.addEventListener('click', function () { openZhInfo(v); });
+      box.appendChild(b);
+    });
     tv.routes.forEach(function (rt) {
       var b = el('button', 'rl-item ' + rt.v.art); b.type = 'button';
       b.appendChild(el('i')); b.appendChild(el('span', null, rt.v.name));
@@ -1140,20 +1218,21 @@
   }
   /* Sichtbar: Fahrt eingeschaltet und Startjahr erreicht. Laufende Fahrt hell mit wanderndem Strich, frühere blass. */
   function zhVisible(y) {
-    var res = { paths: [], places: [], tags: [], aktiv: [], key: 'aus' };
-    if (!ZHD || !ZH.on) return res;
+    var res = { paths: [], places: [], tags: [], aktiv: [], sichtbar: [], key: 'aus' };
+    if (!ZHD || !TRADE.on || !ZH.on) return res;   // Teil von „Handel & Austausch“
     var ids = [];
     ZHD.verbindungen.forEach(function (v) {
       if (!ZH.fahrt[v.nr] || y < v.von) return;
       var akt = zhAktiv(v, y);
       ids.push(v.id + (akt ? '*' : ''));
+      res.sichtbar.push(v);
       res.paths.push(v.__p); res.paths.push.apply(res.paths, v.__ab);
-      if (akt) { res.paths.push(v.__flow); res.aktiv.push(v); res.tags.push(v.__flag); if (ZH.waren) res.tags.push(v.__tag); }
+      if (akt) { res.paths.push(v.__flow); res.aktiv.push(v); res.tags.push(v.__flag); if (TRADE.waren) res.tags.push(v.__tag); }
     });
     ZHD.orte.forEach(function (o) {
       if (o.__fahrten.some(function (v) { return ZH.fahrt[v.nr] && y >= v.von; })) res.places.push(o);
     });
-    res.key = ids.join(',') + '|' + ZH.waren + '|' + res.places.length;
+    res.key = ids.join(',') + '|' + TRADE.waren + '|' + res.places.length;
     return res;
   }
   function refreshGlobeMing() {
@@ -1228,6 +1307,10 @@
   }
   function renderCardsMing() {
     var box = $('#cards'), y = state.year; box.innerHTML = '';
+    if (!TRADE.on || !ZH.on) {
+      zhCard(box, '#5fdc8a', 'Fahrten ausgeblendet', 'Die Fahrten des Zheng He stehen unter „Handel & Austausch“.', null,
+        'Fahrten einblenden', function () { if (!TRADE.on) $('#tglHandel').click(); if (!ZH.on) $('#tglZh').click(); });
+    }
     var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); });
     akt.forEach(function (v) {
       zhCard(box, ZH_COL[v.nr - 1], 'Gerade unterwegs', v.name, [v.stationen, v.hinweis], 'Infokarte zur Fahrt', function () { openZhInfo(v); });
@@ -1241,9 +1324,8 @@
     if (ev) zhCard(box, '#5fdc8a', 'Ereignis · ' + ev.jahr + (ev.belegt === 'umstritten' ? ' · teils umstritten' : ''), ev.titel, ev.text);
     zhCard(box, '#5fdc8a', 'Hintergrund', ZHD.info.titel, ZHD.info.absaetze.slice(0, 2), 'Weiterlesen', openZhBackground);
   }
-  function buildLanesMing() {
-    var lanes = $('#lanes'); lanes.innerHTML = '';
-    lanes.appendChild(el('div', 'cursor'));
+  /* Spätmittelalter-Abschnitt der Zeitleiste: Fahrt-Balken in eigener Spur, Ereignisse in der China-Spur (Han) */
+  function addMingLanes(lanes) {
     var lane = el('div', 'lane zhlane'); lane.dataset.r = 'zhenghe';
     ZHD.verbindungen.forEach(function (v) {
       var b = el('button', 'zhbar', String(v.nr)); b.type = 'button'; b.dataset.nr = v.nr;
@@ -1253,17 +1335,18 @@
       b.addEventListener('click', function () { setYear(v.von); });
       lane.appendChild(b);
     });
-    lanes.appendChild(lane);
-    var evl = el('div', 'lane zhev'); evl.dataset.r = 'zhev'; evl.style.setProperty('--c', '#5fdc8a');
+    var nm = el('span', 'zhnm', 'Zheng He'); nm.style.left = 'calc(' + SEGS[1].a * 100 + '% - 6px)'; lane.appendChild(nm);
+    var china = lanes.querySelector('.lane[data-r="han"]');
+    var evl = china || lane;
     ZHD.ereignisse.forEach(function (e) {
-      var k = el('button', 'mk', String(e.jahr)); k.type = 'button'; k.dataset.y = e.jahr; k.style.left = pct(e.jahr) + '%';
-      k.title = e.jahr + ': ' + e.titel;
+      var k = el('button', 'mk zhmk', String(e.jahr)); k.type = 'button'; k.dataset.y = e.jahr; k.style.left = pct(e.jahr) + '%';
+      k.style.setProperty('--c', '#5fdc8a');
+      k.title = 'China (Ming), ' + e.jahr + ': ' + e.titel;
       k.addEventListener('click', function () { setYear(e.jahr); toast(e.jahr + ': ' + e.titel + '. ' + e.text); });
       evl.appendChild(k);
     });
-    lanes.appendChild(evl);
-    $('#lanesToggle').hidden = true;
-    updateMarkersMing();
+    var rom = lanes.querySelector('.lane[data-r="rom"]');
+    lanes.insertBefore(lane, rom && rom.nextSibling && rom.nextSibling.nextSibling ? rom.nextSibling.nextSibling : null);
   }
   function updateMarkersMing() {
     var y = state.year, cur = null;
@@ -1272,12 +1355,12 @@
       b.classList.toggle('on', zhAktiv(v, y)); b.classList.toggle('off', !ZH.on || !ZH.fahrt[v.nr]);
     });
     ZHD.ereignisse.forEach(function (e) { if (e.jahr <= y) cur = e; });
-    document.querySelectorAll('.lane.zhev .mk').forEach(function (k) { k.classList.toggle('on', !!cur && +k.dataset.y === cur.jahr); });
+    document.querySelectorAll('.mk.zhmk').forEach(function (k) { k.classList.toggle('on', !!cur && +k.dataset.y === cur.jahr); });
   }
   function buildZhChips() {
     var box = $('#zhChips');
     ZHD.verbindungen.forEach(function (v) {
-      var b = el('button', 'chip zc on'); b.type = 'button'; b.dataset.nr = v.nr; b.setAttribute('aria-pressed', 'true');
+      var b = el('button', 'chip zc on'); b.type = 'button'; b.dataset.nr = v.nr; b.setAttribute('aria-pressed', 'true'); b.disabled = !TRADE.on;
       b.style.setProperty('--c', ZH_COL[v.nr - 1]); b.style.setProperty('--cbg', rgba(ZH_COL[v.nr - 1], 0.25));
       b.appendChild(el('i')); b.appendChild(el('span', null, v.nr + '. Fahrt ' + v.von + '–' + String(v.bis).slice(2)));
       b.title = v.name + ': ' + v.stationen;
@@ -1387,26 +1470,6 @@
         if (Math.abs(sq.x - sc.x) > 0.5) e.classList.toggle('flip', sq.x > sc.x);
       }
     });
-  }
-
-  /* ---------- Epoche umschalten ---------- */
-  function setEpoche(ep) {
-    if (state.epoche === ep || !EPOCHEN[ep]) return;
-    if (playTimer) togglePlay();
-    if (mapOpen) finishClose();
-    closeInfo(); stopIntro();
-    state.jahrJe[state.epoche] = state.year;
-    state.epoche = ep;
-    var E = EPOCHEN[ep]; YMIN = E.min; YMAX = E.max;
-    document.documentElement.classList.toggle('ming', ep === 'ming');
-    [['#epAntike', 'antike'], ['#epMing', 'ming']].forEach(function (x) { var on = x[1] === ep; $(x[0]).classList.toggle('on', on); $(x[0]).setAttribute('aria-pressed', on); });
-    $('#h1sub').textContent = E.titel; $('#sideTitle').textContent = E.side;
-    var yi = $('#year'); yi.min = YMIN; yi.max = YMAX;
-    globe.pathTransitionDuration(ep === 'ming' ? 2600 : 600);   // Ming: neue Fahrten zeichnen sich sichtbar ein
-    KAR.prevY = null;
-    buildTicks(); buildLanes(); lastKey = '';
-    setYear(state.jahrJe[ep] != null ? state.jahrJe[ep] : E.start);
-    if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
   }
 
   /* ---------- Start: Linien von der Legende zum Reich ---------- */
@@ -1547,6 +1610,7 @@
       if (k === 'on') {
         $('#handelSub').classList.toggle('off', !v);
         document.querySelectorAll('#handelSub button').forEach(function (x) { x.disabled = !v; });
+        if (v && !ZH.on) document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = true; });
         if (!v) closeInfo();
       }
       lastKey = ''; setYear(state.year);
@@ -1557,20 +1621,16 @@
     $('#tglWaren').addEventListener('click', function () { setTrade('waren', !TRADE.waren); });
     $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
     $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
-    // Epochen und Zheng He
-    $('#epAntike').addEventListener('click', function () { setEpoche('antike'); });
-    $('#epMing').addEventListener('click', function () { setEpoche('ming'); });
+    // Entdeckungsfahrten des Zheng He (unter Handel & Austausch)
     $('#tglZh').addEventListener('click', function () {
       ZH.on = !ZH.on; this.classList.toggle('on', ZH.on); this.setAttribute('aria-pressed', ZH.on);
-      document.querySelectorAll('#zhChips .chip, #tglZhWaren').forEach(function (x) { x.disabled = !ZH.on; });
+      document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = !ZH.on || !TRADE.on; });
       lastKey = ''; setYear(state.year);
-    });
-    $('#tglZhWaren').addEventListener('click', function () {
-      ZH.waren = !ZH.waren; this.classList.toggle('on', ZH.waren); this.setAttribute('aria-pressed', ZH.waren); lastKey = ''; setYear(state.year);
     });
     $('#btnZhInfo').addEventListener('click', openZhBackground);
     $('#btnZhWaren').addEventListener('click', function () { openWaren(ZHD); });
-    $('#goIndik').addEventListener('click', function () { fly(8, 82, homeAlt() * 0.85); });
+    $('#btnZhGo').addEventListener('click', function () { if (state.epoche !== 'ming') setYear(SEGS[1].start); else fly(8, 82, homeAlt()); });
+    $('#year').addEventListener('change', function () { this.value = sliderPos(state.year); });   // Schieber im Zeitsprung einrasten
     $('#btnWaren').addEventListener('click', openWaren);
     $('#tinfoClose').addEventListener('click', closeInfo);
     $('#tinfo').addEventListener('click', function (e) { if (e.target === this) closeInfo(); });
@@ -1583,7 +1643,7 @@
     $('#goHan').addEventListener('click', function () { fly(34, 108, 1.1); });
     $('#goAll').addEventListener('click', function () { fly(36, 62, homeAlt()); });
     $('#tglStandort').addEventListener('click', toggleStandort);
-    $('#year').addEventListener('input', function (e) { setYear(+e.target.value, true); });
+    $('#year').addEventListener('input', function (e) { setYear(yearAt(+e.target.value / 1000), true); });
     $('#play').addEventListener('click', togglePlay);
     $('#yMinus').addEventListener('click', function () { setYear(state.year - 10); });
     $('#yPlus').addEventListener('click', function () { setYear(state.year + 10); });
@@ -1620,7 +1680,7 @@
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
     setTimeout(startIntro, 600);
-    window.__tafelbild = { state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, setEpoche: setEpoche, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
+    window.__tafelbild = { state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';
     m.textContent = 'Daten konnten nicht geladen werden. Bitte die Seite über einen Webserver öffnen (nicht per Doppelklick). ' + err.message;

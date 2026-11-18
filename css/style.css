@@ -432,13 +432,27 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
   .tinfo-box{max-height:94vh}
 }
 
-/* ---------- Epochen (Antike / Ming-Zeit) ---------- */
+/* ---------- Zeitleiste: Epochen-Abschnitte mit Zeitsprung ---------- */
 :root{--zh:#5fdc8a}
-html.ming .ep-antike{display:none!important}
-html:not(.ming) .ep-ming{display:none!important}
-.ep-seg button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 6px;line-height:1.15}
-.ep-seg button b{font-size:14.5px;font-weight:650}
-.ep-seg button small{font-size:11.5px;opacity:.8}
+.epbar{position:relative;height:30px;margin-bottom:5px}
+.epbar .ep{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;padding:0 8px;overflow:hidden;
+  border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.04);color:var(--mut);line-height:1.1;text-align:center;white-space:nowrap}
+.epbar .ep b{font-size:12px;font-weight:650;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.epbar .ep span{font-size:10.5px;opacity:.85;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.epbar .ep:hover{background:rgba(255,255,255,.1);color:var(--txt)}
+.epbar .ep.on{color:var(--txt);border-color:rgba(92,194,255,.6);background:rgba(92,194,255,.12)}
+.epgap{position:absolute;top:0;bottom:0;display:grid;place-items:center;font-size:15px;font-weight:700;color:var(--mut)}
+.lgap{position:absolute;top:-4px;bottom:-17px;z-index:2;pointer-events:none;
+  border-left:2px solid rgba(255,255,255,.45);border-right:2px solid rgba(255,255,255,.45);
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.1) 0 3px,transparent 3px 7px)}
+.zhnm{position:absolute;top:50%;transform:translate(-100%,-50%);font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--zh);opacity:.85;white-space:nowrap;pointer-events:none}
+.zh-block{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.hsub-h{margin:0 0 8px;font-size:13px;font-weight:650;color:var(--zh)}
+.hsub-h small{font-weight:500;color:var(--mut);margin-left:4px}
+.zh-block .chip.hs{width:100%;margin-bottom:6px}
+.zh-row{display:flex;gap:6px}
+.zh-row .small{flex:1;font-size:12.5px;padding:7px 4px}
+@media (max-width:760px),(max-height:560px){ .epbar{height:20px} .epbar .ep span{display:none} .zhnm{display:none} }
 .zh-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 8px}
 .zh-grid .chip{margin:0;padding:7px 8px;gap:7px;font-size:12.5px;border-radius:10px;line-height:1.15;min-width:0}
 .zh-grid .chip i{width:12px;height:12px;border-radius:4px;color:var(--c)}
@@ -457,9 +471,6 @@ html:not(.ming) .ep-ming{display:none!important}
 .zhbar:hover{background:var(--c);color:#06210f}
 .zhbar.on{background:var(--c);color:#06210f;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 12px var(--c)}
 .zhbar.off{opacity:.35}
-.lane.zhev{height:14px}
-.lane.zhev .mk{top:2px}
-.lane.zhev .mk.on{top:-2px}
 /* Fahrt-Fähnchen auf dem Globus */
 .zhflag{position:relative;pointer-events:auto;cursor:pointer;transform:translateY(var(--dy,-14px));white-space:nowrap;padding:2px 8px;border-radius:999px;font:700 12px var(--ui);color:#06210f;background:var(--c);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.55)}
 /* Karawanen (Overlay über dem Globus) */

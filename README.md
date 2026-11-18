@@ -12,6 +12,9 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 ## Bedienung
 - Ansicht Satellit/Schematisch, Rom, Han und 11 Nachbarreiche ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
 - Zeitstrahl ziehen (Punkte = Ereignisse, Schwerter = Schlachten), ←/→ Jahr, Shift = 10 Jahre, Leertaste = Abspielen.
+  Die Zeitleiste hat Epochen-Abschnitte („Europäische Antike“ −300 bis 480, „Europäisches Spätmittelalter“ 1400 bis 1440),
+  getrennt durch einen schraffierten Zeitsprung (≈). Play, ±10 und Pfeiltasten springen über die Lücke; Klick auf ein
+  Epochenfeld springt in den Abschnitt. Die Abschnitte haben verschiedene Maßstäbe; Reichsflächen gibt es nur in der Antike.
   Die Spuren der Nachbarreiche lassen sich über „Nachbarreiche (n)“ einklappen.
 - Auf Rom/China hineinzoomen (Mausrad/Pinch) oder „Karte entrollen“ → Reichskarte; Esc schließt.
 - Standardmäßig markiert ein Pin Jena. „Mein Standort“ (Menü → Globus) ersetzt ihn nach Freigabe im Browser durch den eigenen Standort (nur lokal, keine Übertragung; benötigt HTTPS oder localhost).
@@ -25,9 +28,9 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - **Karawanenhandel** (Schalter im Handelsmenü): Kamel-Symbole ziehen auf kurzen Etappen zwischen Nachbarorten hin und her,
     keine Karawane läuft durch. Bis 220 n. Chr. auf den Etappen der Mittelroute, danach regional verteilt (alle 12 Jahre neu);
     die durchgehende Mittelroute wird ab 220 blass und gestrichelt. Pause: langsames Ziehen, Play: schneller, ±10/Schieber: Sprung.
-- **Epoche** (oben im Menü): „Antike: Rom und China“ oder „Ming-Zeit: Zheng He“, jeweils mit eigener Zeitleiste
-  (−300 bis 480 bzw. 1400 bis 1440; die Achse wird nicht gestreckt). In der Ming-Zeit:
-  - Sieben Flottenfahrten (1405–1433) in Grüntönen, Bereich „Zheng He“ mit Schalter für alle und jede einzelne Fahrt.
+  - **Entdeckungsfahrten des Zheng He** (im Handelsmenü, Schalter für alle und jede einzelne Fahrt; Waren über den
+    gemeinsamen Schalter „Waren anzeigen“):
+  - Sieben Flottenfahrten (1405–1433) in Grüntönen, zu sehen im Zeitleisten-Abschnitt „Europäisches Spätmittelalter“.
   - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist; laufende Fahrt hell mit wanderndem Strich, frühere blass.
     Teilflotten dünn, Unsicheres gepunktet („umstritten“).
   - Häfen mit Infokarte (wann angelaufen, Funktion, Quelle), Waren-Labels mit Richtungspfeil, Ereignisse auf der Zeitleiste,
