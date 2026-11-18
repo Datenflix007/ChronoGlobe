@@ -88,7 +88,7 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     globe.labelsData(visibleCities().concat(tv.places));
-    globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv)));
+    globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv), [STANDORT || JENA]));
     globe.pathsData(tradeGlobePaths(tv));
     setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
@@ -105,6 +105,7 @@
     globe.atmosphereAltitude(sat ? 0.17 : 0.09);
     $('#modeSat').classList.toggle('on', sat); $('#modeSat').setAttribute('aria-pressed', sat);
     $('#modeSchem').classList.toggle('on', !sat); $('#modeSchem').setAttribute('aria-pressed', !sat);
+    globe.pathColor(pathColor).labelColor(labelColor);   // Handelsfarben an Hintergrund anpassen
     refreshGlobe();
   }
   function polyLabel(f) {
@@ -115,6 +116,10 @@
     d.appendChild(document.createElement('br'));
     d.appendChild(document.createTextNode(reich + (p.art === 'einfluss' ? ' (Einfluss)' : '') + ' · ' + fmtYear(p.von) + (p.bis < M(p.reich).bis ? ' bis ' + fmtYear(p.bis) : '')));
     return '<div class="gtip">' + d.innerHTML + '</div>';
+  }
+  function labelColor(d) {
+    if (d.kind === 'handel') return tradeCol((routeById(d.an[0][0]) || { art: 'land' }).art);
+    return mix(M(d.reich).farbe, '#ffffff', 0.7);
   }
   function initGlobe() {
     LANDF = { type: 'Feature', properties: { kind: 'land' }, geometry: LAND.geometry };
@@ -130,10 +135,7 @@
       .polygonLabel(polyLabel)
       .labelLat('lat').labelLng('lng').labelText(function (d) { return d.kind === 'handel' ? d.name.replace(/Ó/g, 'O') : d.name; })
       .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.006).labelResolution(2)
-      .labelColor(function (d) {
-        if (d.kind === 'handel') return TRADE_COL[(routeById(d.an[0][0]) || { art: 'land' }).art];
-        return mix(M(d.reich).farbe, '#ffffff', 0.7);
-      })
+      .labelColor(labelColor)
       .labelSize(function (d) { return d.kind === 'handel' ? 1.0 : 0.85; })
       .labelDotRadius(function (d) { return d.kind === 'handel' ? 0.42 : 0.28; })
       .labelLabel(function (d) {
@@ -555,7 +557,9 @@
   }
 
   /* ---------- Handel & Austausch ---------- */
-  var TRADE_COL = { land: '#ffcf6b', see: '#5fd8ff' };           // Globus (dunkler Hintergrund)
+  var TRADE_COL = { land: '#ffcf6b', see: '#5fd8ff' };           // Globus Satellit (dunkler Hintergrund)
+  var TRADE_SCHEM = { land: '#6b3206', see: '#0a3f66' };         // Globus schematisch (helle Textur)
+  function tradeCol(art) { return (state.mode === 'schem' ? TRADE_SCHEM : TRADE_COL)[art]; }
   var TRADE_MAP = { land: '#8a4b12', see: '#155f86' };           // Pergament (heller Hintergrund)
   var DASH_GLOBE = { belegt: [1, 0], vermittelt: [0.035, 0.018], umstritten: [0.006, 0.012] };
   var DASH_MAP = { belegt: null, vermittelt: '12 7', umstritten: '1 7' };
@@ -716,7 +720,40 @@
     });
   }
   function scheduleTagSides() { if (!tagSideRaf) tagSideRaf = requestAnimationFrame(updateTagSides); }
-  function htmlEl(d) { return d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.kind === 'standort' ? standortEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+
+  /* ---------- Eigener Standort (Pin) ---------- */
+  // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
+  var JENA = { kind: 'standort', name: 'Jena', lat: 50.9271, lng: 11.5892 };
+  var STANDORT = null;
+  function standortEl(d) {
+    if (d.__el) return d.__el;
+    var e = document.createElement('div'); e.className = 'standort';
+    e.innerHTML = '<svg viewBox="0 0 24 32" aria-hidden="true"><path d="M12 31C12 31 2 18.5 2 11.5a10 10 0 0 1 20 0C22 18.5 12 31 12 31z" fill="#e0262f" stroke="#fff" stroke-width="2"/><circle cx="12" cy="11.5" r="4" fill="#fff"/></svg><span></span>';
+    e.querySelector('span').textContent = d.name;
+    e.title = d === JENA ? 'Jena (Standard-Standort)' : 'Eigener Standort (wird nur im Browser verwendet)';
+    e.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      toast('📍 ' + (d === JENA ? 'Jena' : 'Hier bist du') + ' (' + d.lat.toFixed(1) + '°, ' + d.lng.toFixed(1) + '°)');
+    });
+    d.__el = e; return e;
+  }
+  function setStandortBtn(on, busy) {
+    var b = $('#tglStandort'); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); b.disabled = !!busy;
+  }
+  function toggleStandort() {
+    if (STANDORT) { STANDORT = null; setStandortBtn(false); refreshGlobe(); return; }
+    if (!navigator.geolocation) { toast('Standortbestimmung wird von diesem Browser nicht unterstützt.'); return; }
+    setStandortBtn(false, true);
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      STANDORT = { kind: 'standort', name: 'Mein Standort', lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setStandortBtn(true); refreshGlobe();
+      if (!mapOpen) fly(STANDORT.lat, STANDORT.lng, Math.max(1.2, globe.pointOfView().altitude * 0.8));
+    }, function (err) {
+      setStandortBtn(false);
+      toast(err.code === 1 ? 'Standortfreigabe wurde abgelehnt.' : 'Standort konnte nicht ermittelt werden.');
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+  }
   function tradeGlobePaths(tv) {
     var a = [];
     tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
@@ -724,9 +761,9 @@
     return a;
   }
   function pathColor(d) {
-    if (d.kontakt) return 'rgba(230,210,255,0.95)';
+    if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
     if (d.flow) return 'rgba(255,255,255,0.9)';
-    return TRADE_COL[d.route.art];
+    return tradeCol(d.route.art);
   }
   function pathDash(d, i) {
     if (d.kontakt) return [0.01, 0.02][i];
@@ -1173,6 +1210,7 @@
     $('#goRom').addEventListener('click', function () { fly(41.5, 14, 1.0); });
     $('#goHan').addEventListener('click', function () { fly(34, 108, 1.1); });
     $('#goAll').addEventListener('click', function () { fly(36, 62, homeAlt()); });
+    $('#tglStandort').addEventListener('click', toggleStandort);
     $('#year').addEventListener('input', function (e) { setYear(+e.target.value, true); });
     $('#play').addEventListener('click', togglePlay);
     $('#yMinus').addEventListener('click', function () { setYear(state.year - 10); });

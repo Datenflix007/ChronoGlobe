@@ -14,6 +14,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 - Zeitstrahl ziehen (Punkte = Ereignisse, Schwerter = Schlachten), ←/→ Jahr, Shift = 10 Jahre, Leertaste = Abspielen.
   Die Spuren der Nachbarreiche lassen sich über „Nachbarreiche (n)“ einklappen.
 - Auf Rom/China hineinzoomen (Mausrad/Pinch) oder „Karte entrollen“ → Reichskarte; Esc schließt.
+- Standardmäßig markiert ein Pin Jena. „Mein Standort“ (Menü → Globus) ersetzt ihn nach Freigabe im Browser durch den eigenen Standort (nur lokal, keine Übertragung; benötigt HTTPS oder localhost).
 - **Handel & Austausch** (Menü, Standard aus): Land- und Seewege, Waren, Gesandtschaften.
   - Gezeigt werden Verbindungen aller Reiche, die eingeblendet sind **und** im gewählten Jahr existieren.
     Ist nur Rom oder nur Han aktiv, erscheint nur dessen Seite bis zu den Vermittlern; sind beide aktiv, die durchgehende Verbindung.
