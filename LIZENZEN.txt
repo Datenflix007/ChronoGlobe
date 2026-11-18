@@ -11,3 +11,11 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
 - Symbole (Schwerter, Gesandtschaft): eigene SVG-Zeichnungen.
 - Schematische Globus-Textur img/earth-schematic.png: aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
   land-50m.json, gezeichnet mit d3 (build_schema_textur.py).
+- Römische Straßen (data/roemerstrassen.json): Itiner-e static version 2024 (de Soto, Pažout, Brughmans u. a.,
+  Scientific Data 12, 2025, Nr. 1731), Zenodo DOI 10.5281/zenodo.17122148, Lizenz CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). Verändert: nur Hauptstraßen, ohne Wasserwege, vereinfacht und
+  verkettet (build_roemerstrassen.py).
+- Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen
+  der verwendeten Literatur: data/literatur.json, Regeln: docs/GRUNDREGELN.md.
+- Quellenseiten in quellen/oeffentlich/: gemeinfreie Werke (Plinius d. Ä., Hirth 1885, Schoff 1912; OCR von archive.org
+  bzw. Text von LacusCurtius). quellen/lokal/ wird nicht veröffentlicht.

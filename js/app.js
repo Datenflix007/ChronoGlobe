@@ -13,7 +13,7 @@
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He)' }
   ];
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117, epoche: 'antike' };
-  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true };
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true, strassen: false };
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null;
@@ -719,7 +719,8 @@
       if (y >= k.jahr && y <= k.jahr + KONTAKT_JAHRE && k.reiche.some(function (r) { return reichAktiv(r, y); })) res.kontakte.push(k);
     });
     res.kar = karPlan(y, res);
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen].join('') + '|' +
+    res.strassen = strassenSichtbar(y);
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
       res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
@@ -852,11 +853,70 @@
   }
   function tradeGlobePaths(tv) {
     var a = [];
+    if (tv.strassen) a.push.apply(a, strassenPaths());
     tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
     tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
     return a;
   }
+
+  /* ---------- Layer „Römische Straßen“ (Itiner-e, CC BY 4.0) ---------- */
+  var STRASSEN = null, STR_OBJ = null;
+  function strassenSichtbar(y) { return !!STRASSEN && TRADE.on && TRADE.strassen && state.epoche === 'antike' && reichAktiv('rom', y); }
+  function strassenPaths() {
+    if (!STR_OBJ) STR_OBJ = STRASSEN.linien.map(function (l, i) { return { id: 'str' + i, strasse: true, s: l.s, pts: l.p }; });
+    return STR_OBJ;
+  }
+  function openStrassenInfo() {
+    var L = LIT.itinere2025;
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk str', 'Kartenlayer'));
+      var h = el('h3', null, 'Römische Straßen'); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Stand', STRASSEN.stand + ' (laut Datensatz)');
+      row(b, 'Darstellung', 'Nur Hauptstraßen, vereinfacht. Kräftig: gesicherter oder erschlossener Verlauf; blass: vermuteter Verlauf.');
+      row(b, 'Hinweis', 'Sichtbar, wenn das Römische Reich eingeblendet ist und im gewählten Jahr besteht. Das Netz zeigt einen einzigen Zeitstand; viele Straßen entstanden erst nach und nach.').classList.add('twarn');
+      row(b, 'Daten', L ? L.voll + '.' : STRASSEN._quelle);
+      row(b, 'Lizenz', 'CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), Daten vereinfacht und auf Hauptstraßen reduziert');
+    });
+  }
+
+  /* ---------- Schülertexte (data/texte.json, Darstellung in js/texte.js) ---------- */
+  var TEXTE = null, LIT = {};
+  var TX_NIV = (function () { try { return localStorage.getItem('tafelbild.niveau') || 'B'; } catch (e) { return 'B'; } })();
+  function textById(id) { return TEXTE ? TEXTE.texte.filter(function (t) { return t.id === id; })[0] : null; }
+  function routeText(v) {
+    if (v.art === 'see') return 'seeweg';
+    if (v.id === (HANDEL.karawanen && HANDEL.karawanen.route) && state.year >= HANDEL.karawanen.ab) return 'rueckgang';
+    return 'seidenstrasse';
+  }
+  function openText(id, daten) {
+    var T = textById(id); if (!T) return;
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk tx-tk', 'Schülertext · ' + T.kurz));
+      var h = el('h3', null, T.titel); h.id = 'tinfoTitle'; b.appendChild(h);
+      var bar = el('div', 'tx-niv'); bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Niveau wählen');
+      var inhalt = el('div', 'tx-inhalt');
+      ['A', 'B', 'C'].forEach(function (n) {
+        var x = el('button', n === TX_NIV ? 'on' : null, 'Niveau ' + n); x.type = 'button'; x.setAttribute('aria-pressed', n === TX_NIV);
+        x.title = { A: 'einfach (ca. 90 Wörter)', B: 'mittel (ca. 145 Wörter)', C: 'anspruchsvoll (ca. 200 Wörter)' }[n];
+        x.addEventListener('click', function () {
+          TX_NIV = n; try { localStorage.setItem('tafelbild.niveau', n); } catch (e) {}
+          bar.querySelectorAll('button[aria-pressed]').forEach(function (y) { y.classList.toggle('on', y === x); y.setAttribute('aria-pressed', y === x); });
+          zeichne();
+        });
+        bar.appendChild(x);
+      });
+      if (daten) { var db = el('button', 'tx-daten', daten.label); db.type = 'button'; db.addEventListener('click', daten.fn); bar.appendChild(db); }
+      b.appendChild(bar); b.appendChild(inhalt);
+      function zeichne() { inhalt.innerHTML = ''; Texte.render(inhalt, T, LIT, { land: LANDF, handel: HANDEL, zhenghe: ZHD }, { niveau: TX_NIV }); }
+      zeichne();
+    });
+  }
+  function textBtn(b, id) {
+    var x = el('button', 'small tmore tx-open', '📖 Schülertext lesen'); x.type = 'button';
+    x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
+  }
   function pathColor(d) {
+    if (d.strasse) return state.mode === 'schem' ? (d.s === 'H' ? 'rgba(122,40,20,0.4)' : 'rgba(122,40,20,0.85)') : (d.s === 'H' ? 'rgba(255,205,185,0.4)' : 'rgba(255,205,185,0.85)');
     if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
     if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
     if (d.flow) return d.teil === 'spaet' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.9)';
@@ -864,6 +924,7 @@
     return tradeCol(d.route.art);
   }
   function pathDash(d, i) {
+    if (d.strasse) return [1, 0][i];
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
       if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
@@ -874,6 +935,7 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
     if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
     if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
     return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2;
@@ -891,6 +953,11 @@
       .pathTransitionDuration(600)
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.strasse) {
+          t.appendChild(el('b', null, 'Römische Straße (Hauptstraße)')); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode((d.s === 'H' ? 'Verlauf vermutet · ' : '') + 'Daten: Itiner-e (CC BY 4.0) · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.zh) {
           t.appendChild(el('b', null, d.ab ? d.zh.name + ': ' + d.ab.name : d.zh.name)); t.appendChild(el('br'));
           t.appendChild(document.createTextNode((d.ab ? BELEGT_TXT[d.ab.belegt] : d.zh.stationen) + ' · Klick für Infos'));
@@ -901,11 +968,16 @@
         t.appendChild(document.createTextNode(TEIL_TXT[d.teil] + ': ' + BELEGT_TXT[PARTS[d.route.id][d.teil].belegt] + ' · Klick für Infos'));
         return t.outerHTML;
       })
-      .onPathClick(function (d) { if (d.zh) openZhInfo(d.zh); else if (d.kontakt) openKontaktInfo(d.kontakt); else openTradeInfo(d.route); })
+      .onPathClick(function (d) {
+        if (d.strasse) openStrassenInfo();
+        else if (d.zh) openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } });
+        else if (d.kontakt) openKontaktInfo(d.kontakt);
+        else openText(routeText(d.route), { label: 'Daten zur Route', fn: function () { openTradeInfo(d.route); } });
+      })
       .onLabelClick(function (d) {
         if (d.kind === 'handel') openPlaceInfo(d);
         else if (d.kind === 'zhhafen') openZhHafen(d);
-        else if (d.kind === 'karawane') toast('🐪 ' + d.name + ': ' + d.hinweis);
+        else if (d.kind === 'karawane') openText('rueckgang');
       });
   }
 
@@ -922,14 +994,19 @@
       var b = el('button', 'rl-item zh'); b.type = 'button'; b.style.setProperty('--zh', ZH_COL[v.nr - 1]);
       b.appendChild(el('i')); b.appendChild(el('span', null, 'Zheng He: ' + v.name));
       if (zhAktiv(v, state.year)) b.appendChild(el('small', null, 'gerade unterwegs'));
-      b.addEventListener('click', function () { openZhInfo(v); });
+      b.addEventListener('click', function () { openText('zhenghe', { label: 'Daten zur ' + v.nr + '. Fahrt', fn: function () { openZhInfo(v); } }); });
       box.appendChild(b);
     });
+    if (tv.strassen) {
+      var sb = el('button', 'rl-item str'); sb.type = 'button';
+      sb.appendChild(el('i')); sb.appendChild(el('span', null, 'Römische Straßen (Kartenlayer)'));
+      sb.addEventListener('click', openStrassenInfo); box.appendChild(sb);
+    }
     tv.routes.forEach(function (rt) {
       var b = el('button', 'rl-item ' + rt.v.art); b.type = 'button';
       b.appendChild(el('i')); b.appendChild(el('span', null, rt.v.name));
       if (rt.v.seiten && !rt.teile.mitte) b.appendChild(el('small', null, rt.teile.rom ? 'nur römische Seite' : 'nur chinesische Seite'));
-      b.addEventListener('click', function () { openTradeInfo(rt.v); });
+      b.addEventListener('click', function () { openText(routeText(rt.v), { label: 'Daten zur Route', fn: function () { openTradeInfo(rt.v); } }); });
       box.appendChild(b);
     });
     tv.kontakte.forEach(function (k) {
@@ -965,6 +1042,7 @@
     showInfo(function (b) {
       b.appendChild(el('div', 'tk ' + v.art, v.art === 'see' ? 'Seeweg' : 'Landweg'));
       var h = el('h3', null, v.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      textBtn(b, routeText(v));
       row(b, 'Zeitraum', fmtRange(v.von, v.bis));
       row(b, 'Sicherheit', badge(v.belegt));
       if (v.seiten) {
@@ -1074,10 +1152,14 @@
     function inside(xy) { return xy && xy[0] > 12 && xy[0] < W - 12 && xy[1] > 12 && xy[1] < H - 12; }
     var any = false, info = [], labels = g.append('g');
     var lines = g.insert('g', ':first-child');
+    if (tv.strassen && r === 'rom') {   // Römische Straßen (Itiner-e, CC BY 4.0) unter den Handelsrouten
+      var sd = path({ type: 'MultiLineString', coordinates: STRASSEN.linien.map(function (l) { return l.p; }) });
+      if (sd) { g.insert('path', ':first-child').attr('d', sd).attr('fill', 'none').attr('stroke', '#7a2e1c').attr('stroke-width', 1.1).attr('stroke-opacity', 0.55).attr('pointer-events', 'none'); any = true; }
+    }
     tv.routes.forEach(function (rt) {
       var v = rt.v, col = TRADE_MAP[v.art];
       var grp = lines.append('g').attr('class', 'troute').attr('tabindex', 0).attr('role', 'button').attr('aria-label', v.name + ': Infokarte öffnen');
-      keyAct(grp, function () { openTradeInfo(v); });
+      keyAct(grp, function () { openText(routeText(v), { label: 'Daten zur Route', fn: function () { openTradeInfo(v); } }); });
       rt.parts.forEach(function (p) {
         var d = path({ type: 'LineString', coordinates: p.pts }); if (!d) return;
         grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', 'rgba(245,236,210,.9)').attr('stroke-width', 8).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
@@ -1251,13 +1333,14 @@
     if (d.__el) return d.__el;
     var e = el('div', 'zhflag', d.zh.nr + '. Fahrt'); e.style.setProperty('--c', ZH_COL[d.zh.nr - 1]);
     e.title = d.zh.name + ' (Klick für Infos)';
-    e.addEventListener('click', function (ev) { ev.stopPropagation(); openZhInfo(d.zh); });
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } }); });
     d.__el = e; return e;
   }
   function openZhInfo(v) {
     showInfo(function (b) {
       b.appendChild(el('div', 'tk zh', 'Seeweg · Flotte der Ming'));
       var h = el('h3', null, 'Zheng He: ' + v.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      textBtn(b, 'zhenghe');
       row(b, 'Zeitraum', v.von + ' bis ' + v.bis);
       row(b, 'Sicherheit', badge(v.belegt));
       row(b, 'Stationen', v.stationen);
@@ -1424,7 +1507,7 @@
     while (KAR.els.length < plan.list.length) {
       var e = el('div', 'camel'); e.innerHTML = CAMEL;
       e.addEventListener('click', function () {
-        var c = this.__c; if (c) toast('🐪 Karawane zwischen ' + c.e.a.name + ' und ' + c.e.b.name + ': regionaler Zwischenhandel (Etappenhandel)');
+        var c = this.__c; if (c) { toast('🐪 Karawane zwischen ' + c.e.a.name + ' und ' + c.e.b.name + ': regionaler Zwischenhandel (Etappenhandel)'); openText(state.year >= HANDEL.karawanen.ab ? 'rueckgang' : 'seidenstrasse'); }
       });
       L.appendChild(e); KAR.els.push(e);
     }
@@ -1605,7 +1688,7 @@
     });
     function setTrade(k, v) {
       TRADE[k] = v;
-      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar' }[k]);
+      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr' }[k]);
       b.classList.toggle('on', v); b.setAttribute('aria-pressed', v);
       if (k === 'on') {
         $('#handelSub').classList.toggle('off', !v);
@@ -1627,7 +1710,8 @@
       document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = !ZH.on || !TRADE.on; });
       lastKey = ''; setYear(state.year);
     });
-    $('#btnZhInfo').addEventListener('click', openZhBackground);
+    $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
+    $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); });
     $('#btnZhWaren').addEventListener('click', function () { openWaren(ZHD); });
     $('#btnZhGo').addEventListener('click', function () { if (state.epoche !== 'ming') setYear(SEGS[1].start); else fly(8, 82, homeAlt()); });
     $('#year').addEventListener('change', function () { this.value = sliderPos(state.year); });   // Schieber im Zeitsprung einrasten
@@ -1668,8 +1752,10 @@
 
   /* ---------- Start ---------- */
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
-  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json')]).then(function (res) {
+  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json'),
+    load('data/texte.json'), load('data/literatur.json'), load('data/roemerstrassen.json')]).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = res[8];
     initTrade(); initZh(); buildZhChips();
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });

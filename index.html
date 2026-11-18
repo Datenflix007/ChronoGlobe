@@ -56,6 +56,7 @@
         <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren anzeigen</span></button>
         <button id="tglGes" class="chip plain hs on" aria-pressed="true" disabled><span>Gesandt&shy;schaften</span></button>
         <button id="tglKar" class="chip plain hs on kar" aria-pressed="true" disabled><span>Karawanen&shy;handel</span></button>
+        <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0)"><span>Römische Straßen</span></button>
       </div>
       <div class="tlegend" aria-label="Legende Handelswege">
         <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
@@ -63,6 +64,7 @@
         <div><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
         <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
         <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
+        <div><svg viewBox="0 0 40 8"><line class="str" x1="2" y1="4" x2="38" y2="4"/></svg>Römerstraße</div>
         <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
       </div>
       <div id="routeList" class="route-list" aria-live="polite"></div>
@@ -80,7 +82,7 @@
         </div>
         <div class="row zh-row">
           <button id="btnZhGo" class="small" disabled title="Zur Ming-Zeit springen (1405) bzw. zum Indischen Ozean drehen">→ 1405</button>
-          <button id="btnZhInfo" class="small" disabled>Hintergrund</button>
+          <button id="btnZhInfo" class="small" disabled>Schülertext</button>
           <button id="btnZhWaren" class="small" disabled>Waren</button>
         </div>
         <p class="hint">Zu sehen im Abschnitt <b>Spätmittelalter</b> der Zeitleiste (rechts). Gezeigt ist der Hinweg; zurück fuhr die Flotte meist auf demselben Weg.</p>
@@ -179,6 +181,8 @@
     <p><b>Karawanenhandel:</b> Die Kamel-Symbole zeigen regionalen Zwischenhandel auf kurzen Etappen. Ab 220 n. Chr. (Ende der Han-Dynastie) wird die durchgehende Mittelroute blass dargestellt. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler; gezeigt wird eine Verschiebung in Intensität und Organisation.</p>
     <p><b>Zeitleiste:</b> Sie hat zwei Abschnitte, „Europäische Antike“ (300 v. Chr. bis 480 n. Chr.) und „Europäisches Spätmittelalter“ (1400 bis 1440). Der Zeitsprung dazwischen (≈) ist nicht dargestellt; die Abschnitte haben verschiedene Maßstäbe.</p>
     <p><b>Entdeckungsfahrten des Zheng He</b> (unter „Handel &amp; Austausch“): die sieben Flottenfahrten der Ming-Zeit (1405–1433), zu sehen im Abschnitt Spätmittelalter. Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
+    <p><b>Schülertexte:</b> Ein Klick auf eine Route öffnet einen Text in drei Niveaus (A/B/C) mit Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“ und Arbeitsaufträgen. Alle Texte mit Belegen und Literaturverzeichnis: <a href="lehrkraft.html" target="_blank" rel="noopener">Lehrkraft-Ansicht öffnen ↗</a></p>
+    <p><b>Römische Straßen:</b> Daten aus „Itiner-e. A High-Resolution Dataset of Roads of the Roman Empire“ (de Soto, Pažout, Brughmans u. a., Scientific Data 2025; Zenodo, DOI 10.5281/zenodo.17122148), Lizenz CC BY 4.0, vereinfacht und auf Hauptstraßen reduziert.</p>
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble“ (NASA, gemeinfrei, über das Paket three-globe), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
     <button id="modalClose" class="small">Schließen</button>
@@ -187,6 +191,7 @@
 
 <script src="vendor/globe.gl.min.js"></script>
 <script src="vendor/d3.min.js"></script>
+<script src="js/texte.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

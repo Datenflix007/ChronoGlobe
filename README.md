@@ -36,6 +36,14 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - Häfen mit Infokarte (wann angelaufen, Funktion, Quelle), Waren-Labels mit Richtungspfeil, Ereignisse auf der Zeitleiste,
     Hintergrundtext und Warenübersicht.
 
+- **Schülertexte:** Ein Klick auf eine Route (oder in der Routenliste) öffnet einen Text in den Niveaus A/B/C.
+  - Mittelroute bis 220: „Die Seidenstraße als Landweg“, ab 220: „Nach der Han-Zeit“, Seeweg: „Der Seeweg nach Indien“,
+    Fahrten: „Die Reisen des Zheng He“.
+  - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
+  - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
+- **Römische Straßen** (Schalter im Handelsmenü): Hauptstraßen aus dem Datensatz Itiner-e (CC BY 4.0), auf dem Globus
+  und auf der Rom-Karte; sichtbar, wenn das Römische Reich eingeblendet ist.
+
 ## Daten ändern
 - `data/reiche.json` (Provinzen/Regionen, Ereignisse, Schlachten, Orte, Nachbarreiche): erzeugt mit `build_reiche.py` (Python, shapely).
 - `data/handel.json` (von Hand gepflegt):
@@ -50,6 +58,10 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 - `data/zhenghe.json` (Ming-Zeit): erzeugt mit `build_zhenghe.py` (reines Python). Gleiches Format wie `handel.json`
   (`verbindungen` mit zusätzlich `nr`, `stationen`, `abzweige`; `orte` mit `funktion`), dazu `ereignisse` und `info`.
   Seewege werden aus Teilstrecken zusammengesetzt; die Amerika-These (Menzies, „1421“) ist widerlegt und wird nicht dargestellt.
+- `data/texte.json` (Schülertexte) und `data/literatur.json` (Literatur, Lizenz, Ablage): Regeln in `docs/GRUNDREGELN.md`.
+  Prüfen mit `python tools/check_zitate.py`. Es vergleicht jede Belegstelle mit den Seitentexten in `quellen/oeffentlich/`
+  (gemeinfrei, im Repo) und `quellen/lokal/` (geschützt, nur lokal, per `.gitignore` ausgeschlossen).
+- `data/roemerstrassen.json`: erzeugt mit `build_roemerstrassen.py` aus `itinere_roads.geojson` (Zenodo, CC BY 4.0).
 - `build_data.py` nur noch für `land*.json` (der Teil für reiche.json ist veraltet).
 
 ## Wichtig

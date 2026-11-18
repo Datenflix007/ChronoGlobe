@@ -1,0 +1,90 @@
+{
+  "_hinweis": "Literatur und Quellen der Schülertexte. Zitierweise nach dem Merkblatt „Zitation“ des Historischen Instituts der FSU Jena (Vorgaben der VfZ): Vollbeleg bei der ersten Nennung, danach Kurztitel; „Vgl.“ bei sinngemäßer Übernahme; „Ebd.“ bei gleichem Titel wie in der vorigen Anmerkung. ablage: oeffentlich = Seitentext liegt im Repo (gemeinfrei), lokal = nur auf dem Rechner der Lehrkraft (urheberrechtlich geschützt, frei zugänglich, aber nicht frei lizenziert). Zugriff auf alle URLs: 18.11.2026.",
+  "titel": [
+    {
+      "id": "waugh2007", "typ": "Fachaufsatz",
+      "voll": "Daniel C. Waugh, Richthofen’s „Silk Roads“. Toward the Archaeology of a Concept, in: The Silk Road 5 (2007), Heft 1, S. 1–10 (URL: https://edspace.american.edu/silkroadjournal/wp-content/uploads/sites/984/2017/09/srjournal_v5n1-Summer-2007.pdf) [zuletzt 18.11.2026]",
+      "verz": "Waugh, Daniel C., Richthofen’s „Silk Roads“. Toward the Archaeology of a Concept, in: The Silk Road 5 (2007), Heft 1, S. 1–10",
+      "kurz": "Waugh, Silk Roads",
+      "lizenz": "frei zugänglich, © Autor/Silkroad Foundation (keine freie Lizenz)", "ablage": "lokal"
+    },
+    {
+      "id": "mertens2019", "typ": "Fachaufsatz",
+      "voll": "Matthias Mertens, Did Richthofen Really Coin „the Silk Road“?, in: The Silk Road 17 (2019), S. 1–9 (URL: https://edspace.american.edu/silkroadjournal/wp-content/uploads/sites/984/2020/02/2-Mertens-Did-Richthofen-Really-Coin-the-Silk-Road.pdf) [zuletzt 18.11.2026]",
+      "verz": "Mertens, Matthias, Did Richthofen Really Coin „the Silk Road“?, in: The Silk Road 17 (2019), S. 1–9",
+      "kurz": "Mertens, Richthofen",
+      "lizenz": "frei zugänglich, © 2019 Matthias Mertens/The Silk Road House", "ablage": "lokal"
+    },
+    {
+      "id": "delavaissiere2004", "typ": "Handbuchartikel",
+      "voll": "Étienne de la Vaissière, Sogdian Trade, in: Encyclopædia Iranica, Online-Ausgabe, 20.7.2004, aktualisiert 15.1.2013 (URL: https://www.iranicaonline.org/articles/sogdian-trade) [zuletzt 18.11.2026]",
+      "verz": "de la Vaissière, Étienne, Sogdian Trade, in: Encyclopædia Iranica, Online-Ausgabe, 2004 (aktualisiert 2013)",
+      "kurz": "de la Vaissière, Sogdian Trade",
+      "lizenz": "frei zugänglich, © Encyclopædia Iranica Foundation", "ablage": "lokal"
+    },
+    {
+      "id": "shahbazi2002", "typ": "Handbuchartikel",
+      "voll": "Alireza Shapur Shahbazi, Šāpur I. History, in: Encyclopædia Iranica, Online-Ausgabe, 20.7.2002, aktualisiert 20.2.2018 (URL: https://www.iranicaonline.org/articles/shapur-i) [zuletzt 18.11.2026]",
+      "verz": "Shahbazi, Alireza Shapur, Šāpur I. History, in: Encyclopædia Iranica, Online-Ausgabe, 2002 (aktualisiert 2018)",
+      "kurz": "Shahbazi, Šāpur I",
+      "lizenz": "frei zugänglich, © Encyclopædia Iranica Foundation", "ablage": "lokal"
+    },
+    {
+      "id": "hirth1885", "typ": "Monografie mit Quellenübersetzungen",
+      "voll": "Friedrich Hirth, China and the Roman Orient. Researches into Their Ancient and Mediaeval Relations as Represented in Old Chinese Records, Leipzig/München/Shanghai/Hongkong 1885",
+      "verz": "Hirth, Friedrich, China and the Roman Orient. Researches into Their Ancient and Mediaeval Relations as Represented in Old Chinese Records, Leipzig/München/Shanghai/Hongkong 1885",
+      "kurz": "Hirth, China",
+      "lizenz": "gemeinfrei (Hirth † 1927); Scan: archive.org/details/chinaandromanor00hirtgoog", "ablage": "oeffentlich"
+    },
+    {
+      "id": "schoff1912", "typ": "Quellenübersetzung mit Kommentar (Monografie)",
+      "voll": "Wilfred H. Schoff (Übers.), The Periplus of the Erythraean Sea. Travel and Trade in the Indian Ocean by a Merchant of the First Century, New York 1912",
+      "verz": "Schoff, Wilfred H. (Übers.), The Periplus of the Erythraean Sea. Travel and Trade in the Indian Ocean by a Merchant of the First Century, New York 1912",
+      "kurz": "Schoff, Periplus",
+      "lizenz": "gemeinfrei (Schoff † 1932); Scan: archive.org/details/periplusoferythr00schouoft", "ablage": "oeffentlich"
+    },
+    {
+      "id": "casson1990", "typ": "Fachaufsatz",
+      "voll": "Lionel Casson, New Light on Maritime Loans. P. Vindob. G 40822, in: Zeitschrift für Papyrologie und Epigraphik 84 (1990), S. 195–206",
+      "verz": "Casson, Lionel, New Light on Maritime Loans. P. Vindob. G 40822, in: Zeitschrift für Papyrologie und Epigraphik 84 (1990), S. 195–206",
+      "kurz": "Casson, Maritime Loans",
+      "lizenz": "© Dr. Rudolf Habelt GmbH, Bonn (geprüft an einer frei zugänglichen Kopie mit Originalseitenzählung)", "ablage": "lokal"
+    },
+    {
+      "id": "tripati2017", "typ": "Fachaufsatz",
+      "voll": "Sila Tripati, Early Users of Monsoon Winds for Navigation, in: Current Science 113 (2017), Heft 8, S. 1618–1623 (URL: https://www.currentscience.ac.in/Volumes/113/08/1618.pdf) [zuletzt 18.11.2026]",
+      "verz": "Tripati, Sila, Early Users of Monsoon Winds for Navigation, in: Current Science 113 (2017), Heft 8, S. 1618–1623",
+      "kurz": "Tripati, Monsoon Winds",
+      "lizenz": "frei zugänglich, © 2017 Current Science Association", "ablage": "lokal"
+    },
+    {
+      "id": "wade2004", "typ": "Fachaufsatz (Working Paper)",
+      "voll": "Geoff Wade, The Zheng He Voyages. A Reassessment, Singapur 2004 (= Asia Research Institute Working Paper Series 31) (URL: https://ari.nus.edu.sg/wp-content/uploads/2018/10/wps04_031.pdf) [zuletzt 18.11.2026]",
+      "verz": "Wade, Geoff, The Zheng He Voyages. A Reassessment, Singapur 2004 (= Asia Research Institute Working Paper Series 31)",
+      "kurz": "Wade, Zheng He Voyages",
+      "lizenz": "frei zugänglich, © Asia Research Institute, NUS", "ablage": "lokal"
+    },
+    {
+      "id": "church2005", "typ": "Fachaufsatz",
+      "voll": "Sally K. Church, Zheng He. An Investigation into the Plausibility of 450-ft Treasure Ships, in: Monumenta Serica 53 (2005), S. 1–43",
+      "verz": "Church, Sally K., Zheng He. An Investigation into the Plausibility of 450-ft Treasure Ships, in: Monumenta Serica 53 (2005), S. 1–43",
+      "kurz": "Church, Treasure Ships",
+      "lizenz": "© Monumenta Serica Institute (geprüft an einer frei zugänglichen Kopie mit Originalseitenzählung)", "ablage": "lokal"
+    },
+    {
+      "id": "plinius", "typ": "Quelle",
+      "voll": "Plin. nat.",
+      "verz": "Plinius der Ältere, Naturalis historia, lateinischer Text nach der Ausgabe von Karl Mayhoff, online bei LacusCurtius (Bill Thayer) (URL: https://penelope.uchicago.edu/Thayer/L/Roman/Texts/Pliny_the_Elder/home.html) [zuletzt 18.11.2026]",
+      "kurz": "Plin. nat.",
+      "lizenz": "gemeinfrei; deutsche Übertragungen in den Texten: eigene, vereinfachte Übersetzung", "ablage": "oeffentlich",
+      "antik": true
+    },
+    {
+      "id": "itinere2025", "typ": "Forschungsdatensatz (Kartenlayer Römische Straßen)",
+      "voll": "Pau de Soto/Adam Pažout/Tom Brughmans et al., Itiner-e. A High-Resolution Dataset of Roads of the Roman Empire, in: Scientific Data 12 (2025), Nr. 1731; Daten: Itiner-e static version 2024, Zenodo (URL: https://doi.org/10.5281/zenodo.17122148) [zuletzt 18.11.2026]",
+      "verz": "de Soto, Pau/Pažout, Adam/Brughmans, Tom et al., Itiner-e. A High-Resolution Dataset of Roads of the Roman Empire, in: Scientific Data 12 (2025), Nr. 1731",
+      "kurz": "de Soto et al., Itiner-e",
+      "lizenz": "CC BY 4.0 (vereinfacht und auf Hauptstraßen reduziert)", "ablage": "oeffentlich"
+    }
+  ]
+}
