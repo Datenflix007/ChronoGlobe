@@ -68,6 +68,11 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   Prüfen mit `python tools/check_zitate.py`. Es vergleicht jede Belegstelle mit den Seitentexten in `quellen/oeffentlich/`
   (gemeinfrei, im Repo) und `quellen/lokal/` (geschützt, nur lokal, per `.gitignore` ausgeschlossen).
 - `data/roemerstrassen.json`: erzeugt mit `build_roemerstrassen.py` aus `itinere_roads.geojson` (Zenodo, CC BY 4.0).
+- Satellitenbild:
+  - `img/earth-blue-marble-8k.jpg` (8192×4096) ist die Grundkugel.
+  - Beim Hineinzoomen legen sich Kacheln aus `img/tiles/` darüber (NASA Blue Marble Next Generation, Juli 2004, gemeinfrei).
+  - Stufe 6 gilt weltweit (ca. 2 km/Pixel). Die Stufen 7–8 (bis 500 m/Pixel) gibt es nur für Europa bis China, Nordafrika und den Indischen Ozean (20° W–150° O, 15° S–62° N). Außerhalb davon bleibt das 8k-Bild sichtbar.
+  - Neu erzeugen mit `python build_kacheln.py <ordner mit NASA-Bildern>`. Die Region steht im Skript und in `KACHELN` in `js/app.js`; beide müssen übereinstimmen.
 - `build_data.py` nur noch für `land*.json` (der Teil für reiche.json ist veraltet).
 
 ## Wichtig

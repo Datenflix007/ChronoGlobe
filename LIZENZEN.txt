@@ -6,6 +6,9 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
 - Satellitenbild img/earth-blue-marble-8k.jpg: NASA Earth Observatory, Blue Marble Next Generation w/ Topography
   and Bathymetry, Juli 2004 (Reto Stöckli, NASA Earth Observatory), gemeinfrei. Quelle: world.topo.bathy.200407.3x21600x10800.jpg
   über https://visibleearth.nasa.gov/ (Dateiserver assets.science.nasa.gov), verkleinert auf 8192×4096.
+- Satelliten-Kacheln img/tiles/{z}/{x}/{y}.jpg (Nahansicht): gleiche Quelle und Lizenz (gemeinfrei). Stufe 6 aus der
+  21600×10800-Fassung, Stufen 7–8 aus den 500-m-Teilbildern world.topo.bathy.200407.3x21600x21600.{B1,B2,C1,C2,D1,D2}.jpg,
+  umgerechnet in Web-Mercator-Kacheln mit build_kacheln.py.
 - Küstenlinien: Natural Earth (gemeinfrei) über world-atlas (ISC), vereinfacht -> data/land*.json
 - Reichsgrenzen (data/reiche.json): eigene, handgezeichnete, stark vereinfachte Näherungen. KEINE Atlasdaten.
 - Handelsverbindungen (data/handel.json): eigene, schematisch handgezeichnete Routen und eigene Zusammenstellung.

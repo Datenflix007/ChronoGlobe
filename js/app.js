@@ -69,6 +69,50 @@
     var max = 0; try { max = globe.renderer().capabilities.maxTextureSize; } catch (e) {}
     return max >= 8192 ? 'img/earth-blue-marble-8k.jpg' : 'img/earth-blue-marble.jpg';
   }
+  /* Satelliten-Kacheln für die Nahansicht (erzeugt mit build_kacheln.py, NASA Blue Marble Next Generation):
+     Stufe 6 weltweit (~2 km/Pixel), Stufen 7–8 nur in der Region Europa–China (500-m-Quelle).
+     Unter den Kacheln bleibt eine Kopie der Grundkugel mit dem 8k-Bild sichtbar: Fehlende Kacheln (außerhalb
+     der Region), gröbere Stufen und die Polargebiete zeigen dann das 8k-Bild statt Schwarz.
+     'data:,' als Adresse heißt „keine Kachel“: Es wird nichts geladen, die Grundkugel bleibt sichtbar. */
+  var KACHELN = { region: [-20, -15, 150, 62], stufenRegion: [7, 8], min: 6, max: 8, polar: 72, an: null, basis: null, te: null, bereich: {} };
+  function kachelBereich(z, box) {
+    var n = Math.pow(2, z);
+    function tx(lng) { return Math.min(n - 1, Math.max(0, Math.floor((lng + 180) / 360 * n))); }
+    function ty(lat) { var r = lat * Math.PI / 180; return Math.min(n - 1, Math.max(0, Math.floor((1 - Math.asinh(Math.tan(r)) / Math.PI) / 2 * n))); }
+    return [tx(box[0]), tx(box[2]), ty(box[3]), ty(box[1])];
+  }
+  function kachelUrl(x, y, z) {
+    if (z < KACHELN.min) return 'data:,';
+    var b = KACHELN.bereich[z] || (KACHELN.bereich[z] = KACHELN.stufenRegion.indexOf(z) >= 0
+      ? kachelBereich(z, KACHELN.region)
+      : kachelBereich(z, [-180, -KACHELN.polar, 180, KACHELN.polar]));   // Stufe 6: Polargebiete aus, dort wären die Kacheln winzig und zahlreich
+    if (x < b[0] || x > b[1] || y < b[2] || y > b[3]) return 'data:,';
+    return 'img/tiles/' + z + '/' + x + '/' + y + '.jpg';
+  }
+  function kachelnVorbereiten() {
+    if (KACHELN.te) return true;
+    var mesh = null, te = null, mat = globe.globeMaterial();
+    globe.scene().traverse(function (o) {
+      if (!mesh && o.isMesh && o.material === mat) mesh = o;
+      if (!te && o.thresholds && 'minLevel' in o && 'tileUrl' in o) te = o;
+    });
+    if (!mesh || !te) return false;
+    var basis = mesh.clone(); basis.scale.setScalar(0.997); basis.visible = false;
+    mesh.parent.add(basis);
+    te.thresholds = te.thresholds.map(function (_, t) { return 16 / Math.pow(2, t); });   // eine Stufe früher schärfer als Standard
+    globe.globeTileEngineMaxLevel(KACHELN.max);
+    KACHELN.basis = basis; KACHELN.te = te;
+    return true;
+  }
+  function kachelnPruefen() {
+    if (!globe) return;
+    if (!kachelnVorbereiten()) { clearTimeout(kachelnPruefen.t); kachelnPruefen.t = setTimeout(kachelnPruefen, 300); return; }   // Szene noch nicht fertig
+    var an = state.mode === 'sat';   // Kacheln nur im Satellitenmodus; welche Stufe, entscheidet die Engine nach Abstand
+    if (an === KACHELN.an) return;
+    KACHELN.an = an;
+    KACHELN.basis.visible = an;
+    globe.globeTileEngineUrl(an ? kachelUrl : null);
+  }
   /* Anisotrope Filterung: Gebiete am schräg gesehenen Globusrand bleiben scharf. Die Textur lädt asynchron. */
   function scharfStellen(url) {
     var n = 0;
@@ -131,6 +175,7 @@
     var tex = sat ? satTexture() : schemTexture();
     globe.globeImageUrl(tex);
     scharfStellen(tex);
+    KACHELN.an = null; kachelnPruefen();
     globe.bumpImageUrl(sat ? 'img/earth-topology.png' : '');
     globe.backgroundImageUrl(sat ? 'img/night-sky.png' : '');
     globe.backgroundColor(sat ? '#000010' : '#14202e');
@@ -189,7 +234,8 @@
     window.addEventListener('resize', scheduleTagSides);
     var c = globe.controls();
     c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
-    c.minDistance = 118; c.maxDistance = 520; c.zoomSpeed = 0.9; c.enablePan = false;
+    c.minDistance = 106; c.maxDistance = 520;   // nah heran: dort greifen die 500-m-Kacheln
+    c.zoomSpeed = 0.9; c.enablePan = false;
     globe.pointOfView({ lat: 36, lng: 62, altitude: homeAlt() }, 0);
     applyMode();
     function sizeGlobe() { var g = $('#globe'); globe.width(g.clientWidth || window.innerWidth).height(g.clientHeight || window.innerHeight); }
