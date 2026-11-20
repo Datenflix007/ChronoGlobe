@@ -1,0 +1,62 @@
+/* ChronoGlobe · Landingpage (Farben wie css/style.css) */
+:root{
+  --bg:#101a27; --panel:#162233; --line:rgba(255,255,255,.14); --txt:#eef3f8; --mut:#9fb0c3;
+  --rom:#c4342c; --han:#e09e0c; --acc:#5cc2ff;
+  --ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--ui)}
+body{min-height:100vh;display:flex;flex-direction:column;
+  background:radial-gradient(1200px 600px at 80% -10%,rgba(92,194,255,.12),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(196,52,44,.12),transparent 60%),var(--bg)}
+a{color:#9cc8ff}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
+
+.kopf{padding:28px 16px 8px;max-width:1180px;width:100%;margin:0 auto}
+.marke{display:flex;align-items:center;gap:14px}
+.logo{width:52px;height:52px;color:#dbe8f6;flex:none}
+.kopf h1{margin:0;font-size:clamp(28px,4vw,40px);letter-spacing:.3px}
+.sub{margin:2px 0 0;color:var(--mut);font-size:clamp(14px,1.6vw,17px)}
+
+.raster{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;padding:16px;max-width:1180px;width:100%;margin:0 auto}
+.kachel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 20px 22px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.kachel h2{margin:0;font-size:21px}
+.kachel p{margin:0;line-height:1.5;color:#dbe5ef}
+.kachel .art{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.kachel.frei{border-top:4px solid var(--acc)}
+.kachel.lehrer{border-top:4px solid var(--han)}
+.kachel.schueler{border-top:4px solid #3bd17a}
+.kachel.galerie{border-top:4px solid var(--rom);grid-column:1/-1}
+.knopf{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--txt);text-decoration:none;font-weight:600;cursor:pointer;align-self:flex-start}
+.knopf.prim{background:var(--acc);border-color:var(--acc);color:#05213a}
+.knopf:disabled{opacity:.6;cursor:wait}
+.feld{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--mut)}
+.feld select,.feld input{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0e1826;font-size:16px;color:var(--txt);width:100%}
+#codeFeld{text-transform:uppercase;letter-spacing:4px;font-weight:700;font-size:22px}
+.klein{font-size:13px;color:var(--mut)!important}
+.hinweis-db{font-size:14px;padding:10px 12px;border-radius:10px;background:rgba(224,164,12,.12);border:1px solid rgba(224,164,12,.4)}
+form,.nur-mit-db{display:flex;flex-direction:column;gap:10px}
+
+.neu{border:1px solid rgba(92,194,255,.4);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;background:rgba(92,194,255,.06)}
+.code-zeile{display:flex;align-items:baseline;gap:10px}
+.code-zeile b{font-size:30px;letter-spacing:4px}
+.qr{align-self:flex-start;padding:8px;background:#fff;border-radius:10px;line-height:0;max-width:100%}
+.qr canvas,.qr img{max-width:100%;height:auto}
+.qr:empty{display:none}
+.schluessel code{word-break:break-all;font-size:12px}
+.alte h3{margin:6px 0 4px;font-size:14px;color:var(--mut)}
+.alte ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.alte li{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alte li .knopf{padding:6px 10px;letter-spacing:2px}
+.klein-knopf{padding:5px 9px!important;font-size:12.5px;letter-spacing:0!important}
+
+.karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px}
+.karte{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0e1826;color:var(--txt);text-decoration:none;transition:transform .15s,border-color .15s}
+.karte:hover{transform:translateY(-2px);border-color:rgba(92,194,255,.6)}
+.karte img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#0a1220}
+.ktext{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.ktext span{font-size:13.5px;color:var(--mut);line-height:1.45}
+
+.fuss{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;padding:18px 16px 26px;font-size:13px;color:var(--mut)}
+@media (prefers-reduced-motion:reduce){.karte{transition:none}}

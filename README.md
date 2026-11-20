@@ -1,16 +1,41 @@
-# Digitales Tafelbild: Rom und China
+# ChronoGlobe
+
+Interaktiver Globus mit Zeitleiste für den Geschichtsunterricht (früher „Digitales Tafelbild: Rom und China“).
+Veröffentlicht unter **https://datenflix007.github.io/ChronoGlobe/**.
 
 <img width="946" height="631" alt="image" src="https://github.com/user-attachments/assets/62332721-ca48-4a0d-b88d-0c5059ea40fb" />
 
+## Modi
+Die Startseite (`index.html`) bietet vier Wege:
+- **Freies Nutzen – Menschheitsgeschichte** (`app.html?modus=frei`): der ganze Globus mit allen Daten und vollem Menü, dazu links auf der Zeitleiste der Abschnitt **Frühe Hochkulturen** (3500–300 v. Chr.: Mesopotamien, Ägypten, Indus-Kultur, Hethiter, Shang/Zhou, Perserreich; nur angedeutet, `data/fruehe_reiche.json` aus `build_fruehe_kulturen.py`).
+- **Session erstellen** (Lehrkraft): Tafelbild wählen und starten. Es erscheinen Code, Link, QR-Code und Lehrer-Schlüssel; „Session fortsetzen“ listet frühere Sessions dieses Browsers.
+- **Session beitreten** (Schüler:innen): Code eingeben oder QR-Code scannen (`index.html?code=XXXXXX`). Ohne Menü; man folgt der Lehrkraft je nach Freigabe.
+  - Auf Handy und Tablet ist die Schüleransicht reduziert:
+    - keine Ereignisspuren in der Zeitleiste, Statusanzeige über der Zeitleiste;
+    - im Querformat nur Jahr und Schieber;
+    - bei gesperrtem Zeitriegel ohne Abspiel- und ±10-Knöpfe.
+- **Tafelbilder ansehen**: Galerie aus `tafelbilder/index.json`, jedes Tafelbild einzeln (`app.html?tafelbild=<id>`).
+
+Live-Sessions brauchen ein eigenes Supabase-Projekt (`docs/SETUP.md`). Ohne Einrichtung funktionieren freier Modus und Tafelbilder weiter; die Session-Kacheln zeigen dann „Supabase nicht eingerichtet“.
+
+Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafelbild: `docs/TAFELBILD_ERSTELLEN.md`. Regeln für Änderungen (Kern oder einzelnes Tafelbild): `CLAUDE.md`.
 
 ## Einbinden
-1. Ordner `tafelbild/` in dein Repo `datenflix007.github.io` legen und pushen.
-2. Erreichbar unter `https://datenflix007.github.io/tafelbild/`.
-3. Verlinken: `<a href="tafelbild/">Digitales Tafelbild</a>`.
-Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (nicht per Doppelklick öffnen).
+- Das Repository über GitHub Pages veröffentlichen. Alle Pfade sind relativ; der Repo-Name spielt keine Rolle.
+- Lokal testen: `python -m http.server` im Ordner, dann http://localhost:8000 öffnen (nicht per Doppelklick).
+
+## Tests
+- `python tests/test_regression.py "app.html?tafelbild=rom-zentrum-der-welt"`: Klickfolge gegen den gespeicherten Ausgangszustand. Ebenso `app.html?modus=frei`, dort ohne Lehrerhinweise.
+- `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
+- `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
+- `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
 
 ## Bedienung
-- Oben rechts: **Erste Schritte** (Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen) und **Lehrerhinweise** (Entwurf mit Reitern: Unterrichtsreihe, Kompetenzziele, Handlungsziele, Sachanalyse, Methodisch-didaktische Analyse, Verlaufsplan). „Erste Schritte“ steht in `index.html` (`#modal`). Die Lehrerhinweise werden aus `lehrerhinweise/*.md` geladen (je Datei ein Reiter, derzeit Platzhalter; siehe `lehrerhinweise/README.md`).
+- Oben rechts:
+  - **Erste Schritte**: Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen.
+  - **Lehrerhinweise**: Reiter aus `tafelbild.json` → `lehrerhinweise`. Die Markdown-Dateien liegen im Tafelbild, z. B. `tafelbilder/rom-zentrum-der-welt/lehrerhinweise/` (derzeit Platzhalter). Im freien Modus gibt es keine Lehrerhinweise.
+- Der Titel oben links führt zurück zur Startseite.
+- Die Knöpfe „→ Rom“, „→ China“, „Eurasien“ kommen aus den Fokuspunkten des Tafelbilds.
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
   - Bei vielen eingeblendeten Reichen werden die Spuren der Zeitleiste enger. Im Spätmittelalter sind die antiken Nachbarspuren ausgeblendet.
 - Provinzen: Die römischen Flächen folgen den Provinzen um 117 n. Chr. Namen, Einrichtungsjahre und Hauptstädte stammen aus der Liste der Provinzen des Römischen Reichs (de.wikipedia).
@@ -29,7 +54,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - Das geht bei Rom, Han und allen Nachbarreichen.
   - Reiter **Vignetten**: kindgerechte Inhaltspunkte. Beim Römischen Reich heißt der Reiter **Wiederholung** und enthält Aufgaben mit Rückmeldung.
   - Reiter **Karte**: die Reichskarte. Bei Nachbarreichen wird der Ausschnitt aus deren Gebieten berechnet.
-  - Inhalte stehen in `data/vignetten.json`. Bisher sind es nur leere Platzhalter. Format: `docs/VIGNETTEN.md`. Vorschau aller Bausteine: `index.html?vignetten=demo`.
+  - Inhalte stehen in `data/vignetten.json` (Kern) bzw. `tafelbilder/<id>/vignetten.json` (Tafelbild). Bisher sind es nur leere Platzhalter. Format: `docs/VIGNETTEN.md`. Vorschau aller Bausteine: `app.html?modus=frei&vignetten=demo` (alte Adresse `index.html?vignetten=demo` leitet weiter).
 - Standardmäßig markiert ein Pin Jena. „Mein Standort“ (Menü → Globus) ersetzt ihn nach Freigabe im Browser durch den eigenen Standort (nur lokal, keine Übertragung; benötigt HTTPS oder localhost).
 - **Handel & Austausch** (Menü, Standard aus): Land- und Seewege, Waren, Gesandtschaften.
   - Gezeigt werden Verbindungen aller Reiche, die eingeblendet sind **und** im gewählten Jahr existieren.

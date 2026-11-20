@@ -19,6 +19,11 @@
   var BILDER = { an: false };   // Abbildungen statt Symbole (nur wo eine Abbildung vorliegt, z. B. Zheng Hes Schatzschiff)
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '', lastStrKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
+  /* Geöffnete Fenster (Teil des Zustands, siehe getState): Schriftrolle, Infokarte/Schülertext, Warenübersicht, Hilfe */
+  var FENSTER = { rolle: null, info: null, waren: null, modal: null }, INFO_NEU = null;
+  var ZUSTAND = { hoerer: [], still: 0, fern: 0 };
+  var DARF = function () { return true; };   // Schülerrechte in Live-Sessions (js/session.js setzt das)
+  function darfLokal(recht) { return ZUSTAND.fern > 0 || DARF(recht); }
 
   var SWORDS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
     '<path d="M5 4l11 11M19 4L8 15"/><path d="M13 17l5-5M6 12l5 5"/><path d="M16.5 15.5L20 19M7.5 15.5L4 19"/></g></svg>';
@@ -367,13 +372,13 @@
   function buildChips() {
     DATA.reihen.forEach(function (r) {
       var m = M(r); if (m.haupt) return;
-      var box = m.kontext ? $('#kxChips') : $('#nbChips');
+      var box = m.frueh ? $('#fruehChips') : m.kontext ? $('#kxChips') : $('#nbChips');
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip nb' + (m.kontext ? ' kx' : ''); b.dataset.r = r;
       b.style.setProperty('--c', m.farbe); b.style.setProperty('--cbg', rgba(m.farbe, 0.28));
       b.setAttribute('aria-pressed', 'false');
       b.title = m.name + ' (' + fmtYear(m.von) + ' bis ' + fmtYear(m.bis) + '). ' + m.kurz + (m.kontext ? ' Nur zur Orientierung, keine Schriftrolle.' : '');
       b.innerHTML = '<i></i><span></span>'; b.querySelector('span').textContent = m.name;
-      b.addEventListener('click', function () { setOn(r, !state.on[r]); });
+      b.addEventListener('click', function () { var o = {}; o[r] = !state.on[r]; setState({ reiche: o }); reichHinweis(r); });
       box.appendChild(b);
     });
   }
@@ -386,24 +391,38 @@
     lastKey = ''; setYear(state.year);
     if (v && !M(r).haupt && !regionsAt(r, state.year).length) toast(M(r).name + ' besteht von ' + fmtYear(M(r).von) + ' bis ' + fmtYear(M(r).bis));
   }
+  function reichHinweis(r) { if (state.on[r] && !M(r).haupt && !regionsAt(r, state.year).length) toast(M(r).name + ' besteht von ' + fmtYear(M(r).von) + ' bis ' + fmtYear(M(r).bis)); }
   function updateChips() {
     document.querySelectorAll('.chip.nb').forEach(function (b) { b.classList.toggle('absent', !exists(b.dataset.r, state.year)); });
   }
 
   /* ---------- Zeitleiste (Abschnitte je Epoche, dazwischen Zeitsprung) ---------- */
   function segOf(y) { return y >= SEGS[1].von ? SEGS[1] : SEGS[0]; }
+  /* Lineare Teile der Leiste: ein Abschnitt kann mehrere Teile mit eigenem Maßstab haben (frühe Hochkulturen) */
+  function teile() { var T = []; SEGS.forEach(function (S) { (S.teile || [S]).forEach(function (t) { T.push(t); }); }); return T; }
+  function teilVon(y) { return teile().filter(function (t) { return y >= t.von && y <= t.bis; })[0] || segOf(y); }
   function pct(y) {
-    var s = SEGS[0], t = SEGS[1];
-    if (y <= s.bis) return (s.a + (y - s.von) / (s.bis - s.von) * (s.b - s.a)) * 100;
-    if (y >= t.von) return (t.a + (y - t.von) / (t.bis - t.von) * (t.b - t.a)) * 100;
-    return (s.b + (y - s.bis) / (t.von - s.bis) * (t.a - s.b)) * 100;
+    var T = teile();
+    if (y <= T[0].von) return T[0].a * 100;
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i];
+      if (y > t.bis) continue;
+      if (y >= t.von) return (t.a + (y - t.von) / (t.bis - t.von) * (t.b - t.a)) * 100;
+      var p = T[i - 1]; return (p.b + (y - p.bis) / (t.von - p.bis) * (t.a - p.b)) * 100;   // im Zeitsprung
+    }
+    return T[T.length - 1].b * 100;
   }
   /* Anteil 0..1 auf der Leiste -> Jahr; im Zeitsprung rastet es am näheren Rand ein */
   function yearAt(f) {
-    var s = SEGS[0], t = SEGS[1];
-    if (f <= s.b) return Math.round(s.von + Math.max(0, f - s.a) / (s.b - s.a) * (s.bis - s.von));
-    if (f >= t.a) return Math.round(t.von + Math.min(1, (f - t.a) / (t.b - t.a)) * (t.bis - t.von));
-    return f - s.b < t.a - f ? s.bis : t.von;
+    var T = teile();
+    if (f <= T[0].a) return T[0].von;
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i];
+      if (f > t.b) continue;
+      if (f >= t.a) return Math.round(t.von + (f - t.a) / (t.b - t.a) * (t.bis - t.von));
+      var p = T[i - 1]; return f - p.b < t.a - f ? p.bis : t.von;
+    }
+    return T[T.length - 1].bis;
   }
   /* Jahre im Zeitsprung gibt es nicht: vorwärts -> Anfang des nächsten Abschnitts, rückwärts -> Ende des vorigen */
   /* Jahre addieren ohne Jahr 0: 1 v. Chr. + 10 Jahre = 10 n. Chr. (Rechnung in astronomischen Jahren) */
@@ -419,31 +438,31 @@
   }
   function buildTicks() {
     var ticks = $('#ticks'); ticks.innerHTML = '';
-    SEGS.forEach(function (S, si) {
-      for (var y = S.von; y <= S.bis; y += S.tick) {
+    SEGS.forEach(function (S0, si) { (S0.teile || [S0]).forEach(function (S, ti, alle) {
+      for (var y = S.von; ti < alle.length - 1 ? y < S.bis : y <= S.bis; y += S.tick) {
         var t = document.createElement('div'); t.style.left = pct(y) + '%';
         if (y % S.major) { t.className = 'tick minor'; }
         else {
           t.className = 'tick' + (y % S.alt ? ' odd' : '');
-          var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
+          var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : S.kurz ? shortYear(y) : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
           t.appendChild(l); t.appendChild(sh);
         }
         ticks.appendChild(t);
       }
-    });
+    }); });
     buildEpochs();
   }
   /* Epochen-Übersicht über der Zeitleiste: Name je Abschnitt, Zeitsprung dazwischen. Klick springt in den Abschnitt. */
   function buildEpochs() {
     var bar = $('#epbar'); bar.innerHTML = '';
-    SEGS.forEach(function (S) {
-      var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S.ep;
+    SEGS.forEach(function (S0) { (S0.teile || [S0]).forEach(function (S) {
+      var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S0.ep; d.dataset.von = S.von; d.dataset.bis = S.bis;
       d.style.left = S.a * 100 + '%'; d.style.width = (S.b - S.a) * 100 + '%';
       d.appendChild(el('b', null, S.name)); d.appendChild(el('span', null, S.sub));
       d.title = S.name + ' (' + fmtYear(S.von) + ' bis ' + fmtYear(S.bis) + '), ' + S.sub;
-      d.addEventListener('click', function () { if (segOf(state.year) !== S) setYear(S.start); });
+      d.addEventListener('click', function () { if (!(state.year >= S.von && state.year <= S.bis)) setYear(S.start); });
       bar.appendChild(d);
-    });
+    }); });
     var g = el('div', 'epgap', '≈'); g.style.left = SEGS[0].b * 100 + '%'; g.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%';
     g.title = 'Zeitsprung: ' + fmtYear(SEGS[0].bis) + ' bis ' + fmtYear(SEGS[1].von) + ' ist nicht dargestellt';
     bar.appendChild(g);
@@ -512,7 +531,7 @@
       var d = state.year - b.dataset.y; b.classList.toggle('on', d >= 0 && d <= SCHLACHT_JAHRE);
     });
     updateMarkersMing();
-    document.querySelectorAll('#epbar .ep').forEach(function (b) { b.classList.toggle('on', b.dataset.ep === state.epoche); });
+    document.querySelectorAll('#epbar .ep').forEach(function (b) { b.classList.toggle('on', state.year >= +b.dataset.von && state.year <= +b.dataset.bis); });
     $('#lanes').classList.toggle('ming', state.epoche === 'ming');   // Spätmittelalter: antike Nachbarspuren ausblenden
   }
   function stateKey(y) {
@@ -535,6 +554,7 @@
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
     y = normYear(y, state.year);
+    if (y !== state.year && !darfLokal('zeit')) { $('#year').value = sliderPos(state.year); return; }   // Zeitriegel gesperrt (Session)
     var ep = segOf(y).ep;
     if (ep !== state.epoche) epochWechsel(ep);
     karYearJump(y);
@@ -555,6 +575,7 @@
     }
     else strassenAnteile(y);   // gleicher Stil, aber Netz wächst weiter
     visibleBattles(y).forEach(function (b) { if (b.__el) b.__el.classList.toggle('fresh', y - b.jahr <= 4); });
+    zustandGemeldet();
   }
   /* Wechsel zwischen den Abschnitten (über Zeitleiste, Play, ±10, Tastatur) */
   function epochWechsel(ep) {
@@ -567,12 +588,13 @@
     if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
   }
   function togglePlay() {
+    if (!playTimer && !darfLokal('zeit')) return;
     if (playTimer) { clearTimeout(playTimer); playTimer = null; $('#play').textContent = '▶'; return; }
     if (state.year >= YMAX) setYear(YMIN);
     $('#play').textContent = '❚❚';
     (function step() {
       // am Ende der Antike kurz anhalten, dann über den Zeitsprung
-      var t = state.year === ANTIKE_ENDE ? 1500 : segOf(state.year).takt;
+      var t = state.year === ANTIKE_ENDE ? 1500 : teilVon(state.year).takt || segOf(state.year).takt;
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
         if (PENS.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
@@ -616,13 +638,14 @@
   function finishClose() {
     clearTimeout(closeTimer); closeTimer = null;
     $('#mapOverlay').classList.remove('show'); $('#mapOverlay').setAttribute('aria-hidden', 'true');
-    mapOpen = false; mapReich = null; mapPrev = null;
+    mapOpen = false; mapReich = null; mapPrev = null; FENSTER.rolle = null;
     globe.controls().autoRotate = state.rotate;
     var pov = globe.pointOfView(); globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: 0.9 }, 600);
   }
   /* Schriftrolle eines Reichs: Reiter „Vignetten“ (Rom: „Wiederholung“) und „Karte“ */
   function setRollView(v) {
     rollView = v;
+    if (FENSTER.rolle && FENSTER.rolle.reiter !== v) { FENSTER.rolle.reiter = v; zustandGemeldet(); }
     var vig = v === 'vig';
     $('#vigView').classList.toggle('on', vig); $('#mapView').classList.toggle('on', !vig);
     $('#vigView').setAttribute('aria-hidden', !vig); $('#mapView').setAttribute('aria-hidden', vig);
@@ -637,10 +660,12 @@
     Vignetten.render($('#vigView'), VIG, { reich: r, name: m.name, farbe: m.farbe });
   }
   function openMap(r, view) {
+    if (!darfLokal('reiche')) return;
     if (closeTimer) finishClose();
     if (mapOpen) return;
     if (!hatRolle(r)) return;
     mapOpen = true; mapReich = r; mapPrev = null;
+    FENSTER.rolle = { reich: r, reiter: view || 'vig', vignette: 'liste' };
     globe.controls().autoRotate = false;
     var ov = $('#mapOverlay'); ov.classList.add('show'); ov.setAttribute('aria-hidden', 'false');
     Vignetten.zuruecksetzen(r); renderVignetten(r); $('#vigView').scrollTop = 0;
@@ -650,9 +675,11 @@
     void sc.offsetWidth;
     requestAnimationFrame(function () { requestAnimationFrame(function () { sc.classList.add('open'); }); });
     $('#mapClose').focus({ preventScroll: true });
+    zustandGemeldet();
   }
   function closeMap() {
     if (!mapOpen) return;
+    FENSTER.rolle = null; zustandGemeldet();
     var sc = $('#scroll'); sc.classList.remove('open');
     closeTimer = setTimeout(finishClose, 1550);
   }
@@ -1083,6 +1110,7 @@
     return state.mode === 'schem' ? 'rgba(10,63,102,' + a + ')' : 'rgba(150,215,255,' + a + ')';
   }
   function openOrbisInfo(d) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'orbis', id: d ? d.id : null };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk see', 'Schiffsverkehr (ORBIS)'));
       var h = el('h3', null, d ? d.orbis.von_ort + ' – ' + d.orbis.nach_ort : 'Schiffsverkehr im Römischen Reich'); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1209,6 +1237,7 @@
   var STR_TXT = { itinere_belegt: 'mit Itiner-e-Belegen eingegrenzt', itinere_teilweise: 'teilweise mit Itiner-e-Belegen', regionalmodell_nicht_einzelbelegt: 'nur regional modelliert (keine Einzelbelege)' };
   var PHASE_TXT = { vor: 'noch nicht angelegt (Modell)', ausbau: 'in der modellierten Ausbauphase', roemisch: 'in römischer Nutzung (Modell)', nachroemisch: 'nach dem Ende der modellierten römischen Nutzung', undatiert: 'nicht datierbar' };
   function openStrassenLinie(d) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'strasse', id: d.id };
     var L = d.L, z = L.zeit || {}, it = z.itinere;
     showInfo(function (b) {
       b.appendChild(el('div', 'tk str', 'Römische Straße · ' + L.id));
@@ -1238,6 +1267,7 @@
     });
   }
   function openStrassenInfo() {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'strassen' };
     var L = LIT.itinere2025;
     showInfo(function (b) {
       b.appendChild(el('div', 'tk str', 'Kartenlayer'));
@@ -1262,8 +1292,9 @@
     if (v.id === (HANDEL.karawanen && HANDEL.karawanen.route) && state.year >= HANDEL.karawanen.ab) return 'rueckgang';
     return 'seidenstrasse';
   }
-  function openText(id, daten) {
+  function openText(id, zurueck) {
     var T = textById(id); if (!T) return;
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'text', id: id, zurueck: zurueck && zurueck.art ? zurueck : null };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk tx-tk', 'Schülertext · ' + T.kurz));
       var h = el('h3', null, T.titel); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1274,12 +1305,17 @@
         x.title = { A: 'einfach (ca. 90 Wörter)', B: 'mittel (ca. 145 Wörter)', C: 'anspruchsvoll (ca. 200 Wörter)' }[n];
         x.addEventListener('click', function () {
           TX_NIV = n; try { localStorage.setItem('tafelbild.niveau', n); } catch (e) {}
+          zustandGemeldet();
           bar.querySelectorAll('button[aria-pressed]').forEach(function (y) { y.classList.toggle('on', y === x); y.setAttribute('aria-pressed', y === x); });
           zeichne();
         });
         bar.appendChild(x);
       });
-      if (daten) { var db = el('button', 'tx-daten', daten.label); db.type = 'button'; db.addEventListener('click', daten.fn); bar.appendChild(db); }
+      if (zurueck && zurueck.art) {   // Rücksprung zur Infokarte der Route bzw. Fahrt
+        var zv = zurueck.art === 'zh' ? zhById(zurueck.id) : null;
+        var db = el('button', 'tx-daten', zurueck.art === 'zh' ? 'Daten zur ' + (zv ? zv.nr : '') + '. Fahrt' : 'Daten zur Route'); db.type = 'button';
+        db.addEventListener('click', function () { infoOeffnen(zurueck); }); bar.appendChild(db);
+      }
       b.appendChild(bar); b.appendChild(inhalt);
       function zeichne() { inhalt.innerHTML = ''; Texte.render(inhalt, T, LIT, { land: LANDF, handel: HANDEL, zhenghe: ZHD }, { niveau: TX_NIV }); }
       zeichne();
@@ -1365,9 +1401,9 @@
       .onPathClick(function (d) {
         if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
-        else if (d.zh) openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } });
+        else if (d.zh) openText('zhenghe', { art: 'zh', id: d.zh.id });
         else if (d.kontakt) openKontaktInfo(d.kontakt);
-        else openText(routeText(d.route), { label: 'Daten zur Route', fn: function () { openTradeInfo(d.route); } });
+        else openText(routeText(d.route), { art: 'route', id: d.route.id });
       })
       .onLabelClick(function (d) {
         if (d.kind === 'handel') openPlaceInfo(d);
@@ -1389,7 +1425,7 @@
       var b = el('button', 'rl-item zh'); b.type = 'button'; b.style.setProperty('--zh', ZH_COL[v.nr - 1]);
       b.appendChild(el('i')); b.appendChild(el('span', null, 'Zheng He: ' + v.name));
       if (zhAktiv(v, state.year)) b.appendChild(el('small', null, 'gerade unterwegs'));
-      b.addEventListener('click', function () { openText('zhenghe', { label: 'Daten zur ' + v.nr + '. Fahrt', fn: function () { openZhInfo(v); } }); });
+      b.addEventListener('click', function () { openText('zhenghe', { art: 'zh', id: v.id }); });
       box.appendChild(b);
     });
     if (tv.strassen) {
@@ -1406,7 +1442,7 @@
       var b = el('button', 'rl-item ' + rt.v.art); b.type = 'button';
       b.appendChild(el('i')); b.appendChild(el('span', null, rt.v.name));
       if (rt.v.seiten && !rt.teile.mitte) b.appendChild(el('small', null, rt.teile.rom ? 'nur römische Seite' : 'nur chinesische Seite'));
-      b.addEventListener('click', function () { openText(routeText(rt.v), { label: 'Daten zur Route', fn: function () { openTradeInfo(rt.v); } }); });
+      b.addEventListener('click', function () { openText(routeText(rt.v), { art: 'route', id: rt.v.id }); });
       box.appendChild(b);
     });
     tv.kontakte.forEach(function (k) {
@@ -1420,15 +1456,17 @@
   /* Infokarten */
   var tinfoReturn = null;
   function showInfo(build) {
+    FENSTER.info = INFO_NEU; INFO_NEU = null;
     var body = $('#tinfoBody'); body.innerHTML = '';
     build(body);
     var t = $('#tinfo'); if (t.hidden) tinfoReturn = document.activeElement;
     t.hidden = false; t.querySelector('.tinfo-box').scrollTop = 0;
     $('#tinfoClose').focus({ preventScroll: true });
+    zustandGemeldet();
   }
   function closeInfo() {
     var t = $('#tinfo'); if (t.hidden) return false;
-    t.hidden = true;
+    t.hidden = true; FENSTER.info = null; zustandGemeldet();
     if (tinfoReturn && document.body.contains(tinfoReturn) && tinfoReturn.focus) tinfoReturn.focus({ preventScroll: true });
     return true;
   }
@@ -1439,6 +1477,7 @@
   }
   function linkBtn(txt, fn) { var x = el('button', 'tlink', txt); x.type = 'button'; x.addEventListener('click', fn); return x; }
   function openTradeInfo(v) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'route', id: v.id };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk ' + v.art, v.art === 'see' ? 'Seeweg' : 'Landweg'));
       var h = el('h3', null, v.name); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1480,6 +1519,7 @@
     });
   }
   function openPlaceInfo(o) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'ort', id: o.id };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk', 'Handelsort'));
       var h = el('h3', null, o.name); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1494,6 +1534,7 @@
     });
   }
   function openKontaktInfo(k) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'kontakt', id: k.id };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk kontakt', 'Gesandtschaft · ' + fmtYear(k.jahr)));
       var h = el('h3', null, k.name); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1504,6 +1545,7 @@
     });
   }
   function openWaren(src) {
+    if (!darfLokal('routen')) return;
     var D = src && src.waren ? src : HANDEL, ming = D === ZHD;
     var body = $('#wbody'); body.innerHTML = '';
     $('#wmt').textContent = ming ? 'Warenübersicht: Fahrten des Zheng He' : 'Warenübersicht';
@@ -1525,7 +1567,7 @@
     tb.appendChild(tbody); wrap.appendChild(tb); body.appendChild(wrap);
     if (ming) {
       body.appendChild(el('p', 'wnote', 'Vieles waren Geschenke im Rahmen der Tributdiplomatie: China gab Seide und Porzellan, fremde Herrscher schickten Gesandte mit Gaben. Daneben wurde an den Häfen auch gehandelt.'));
-      $('#wmodal').hidden = false; $('#wmodalClose').focus({ preventScroll: true });
+      warenZeigen(true);
       return;
     }
     var d = el('p', 'wnote'); d.appendChild(el('b', null, 'Handelsdefizit? '));
@@ -1539,8 +1581,10 @@
       li.appendChild(el('div', null, u.text)); li.appendChild(el('div', 'wmeta', 'Quelle: ' + u.quelle)); ul.appendChild(li);
     });
     body.appendChild(ul);
-    $('#wmodal').hidden = false; $('#wmodalClose').focus({ preventScroll: true });
+    warenZeigen(false);
   }
+  function warenZeigen(ming) { FENSTER.waren = ming ? 'zh' : 'handel'; $('#wmodal').hidden = false; $('#wmodalClose').focus({ preventScroll: true }); zustandGemeldet(); }
+  function warenSchliessen() { if ($('#wmodal').hidden) return false; $('#wmodal').hidden = true; FENSTER.waren = null; zustandGemeldet(); return true; }
 
   /* Pergamentkarte: Routen, Orte, Waren, Gesandtschaften */
   function keyAct(sel, fn) {
@@ -1570,7 +1614,7 @@
     tv.routes.forEach(function (rt) {
       var v = rt.v, col = TRADE_MAP[v.art];
       var grp = lines.append('g').attr('class', 'troute').attr('tabindex', 0).attr('role', 'button').attr('aria-label', v.name + ': Infokarte öffnen');
-      keyAct(grp, function () { openText(routeText(v), { label: 'Daten zur Route', fn: function () { openTradeInfo(v); } }); });
+      keyAct(grp, function () { openText(routeText(v), { art: 'route', id: v.id }); });
       rt.parts.forEach(function (p) {
         var d = path({ type: 'LineString', coordinates: p.pts }); if (!d) return;
         grp.append('path').attr('d', d).attr('fill', 'none').attr('stroke', 'rgba(245,236,210,.9)').attr('stroke-width', 8).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
@@ -1905,10 +1949,11 @@
     if (d.__el) return d.__el;
     var e = el('div', 'zhflag', d.zh.nr + '. Fahrt'); e.style.setProperty('--c', ZH_COL[d.zh.nr - 1]);
     e.title = d.zh.name + ' (Klick für Infos)';
-    e.addEventListener('click', function (ev) { ev.stopPropagation(); openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } }); });
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openText('zhenghe', { art: 'zh', id: d.zh.id }); });
     d.__el = e; return e;
   }
   function openZhInfo(v) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'zh', id: v.id };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk zh', 'Seeweg · Flotte der Ming'));
       var h = el('h3', null, 'Zheng He: ' + v.name); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1932,6 +1977,7 @@
     });
   }
   function openZhHafen(o) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'zhhafen', id: o.id };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk zh', 'Hafen · Fahrten des Zheng He'));
       var h = el('h3', null, o.name); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1945,6 +1991,7 @@
     });
   }
   function openZhBackground() {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'zhhintergrund' };
     var I = ZHD.info;
     showInfo(function (b) {
       b.appendChild(el('div', 'tk zh', 'Hintergrund'));
@@ -2061,10 +2108,7 @@
       b.style.setProperty('--c', ZH_COL[v.nr - 1]); b.style.setProperty('--cbg', rgba(ZH_COL[v.nr - 1], 0.25));
       b.appendChild(el('i')); b.appendChild(el('span', null, v.nr + '. Fahrt ' + v.von + '–' + String(v.bis).slice(2)));
       b.title = v.name + ': ' + v.stationen;
-      b.addEventListener('click', function () {
-        ZH.fahrt[v.nr] = !ZH.fahrt[v.nr]; b.classList.toggle('on', ZH.fahrt[v.nr]); b.setAttribute('aria-pressed', ZH.fahrt[v.nr]);
-        lastKey = ''; setYear(state.year);
-      });
+      b.addEventListener('click', function () { var f = {}; f[v.nr] = !ZH.fahrt[v.nr]; setState({ zh: { fahrten: f } }); });
       box.appendChild(b);
     });
   }
@@ -2190,7 +2234,7 @@
         var e = intro.els[r], chip = $(r === 'rom' ? '#tglRom' : '#tglHan');
         var z = M(r).zentrum, ang = d3.geoDistance([pov.lng, pov.lat], z);
         var rc0 = chip.getBoundingClientRect(), pb = $('#panelBody').getBoundingClientRect();
-        var inPanel = rc0.top >= pb.top - 2 && rc0.bottom <= pb.bottom + 2;
+        var inPanel = rc0.width > 0 && rc0.top >= pb.top - 2 && rc0.bottom <= pb.bottom + 2;   // Menü ausgeblendet (Schüleransicht): keine Linie
         var vis = !collapsed && inPanel && !mapOpen && state.on[r] && regionsAt(r, state.year).length && ang < 1.35;
         var op = vis ? Math.min(1, (1.35 - ang) / 0.25) : 0;
         ['path', 'start', 'ring', 'dot'].forEach(function (k) { e[k].setAttribute('visibility', op ? 'visible' : 'hidden'); });
@@ -2274,12 +2318,11 @@
     // Kompakt: nach Auswahl einer Route/Karte die Schublade schließen, damit man das Ergebnis sieht
     $('#routeList').addEventListener('click', function () { if (compact()) setPanel(true, true); });
     $('#cards').addEventListener('click', function (e) { if (compact() && e.target.closest('button')) setSide(true, true); });
-    ['#goRom', '#goHan', '#goAll'].forEach(function (id) { $(id).addEventListener('click', function () { if (compact()) setPanel(true, true); }); });
-    $('#modeSat').addEventListener('click', function () { state.mode = 'sat'; applyMode(); });
-    $('#modeSchem').addEventListener('click', function () { state.mode = 'schem'; applyMode(); });
+    $('#fokusBtns').addEventListener('click', function (e) { if (compact() && e.target.closest('button')) setPanel(true, true); });
+    $('#modeSat').addEventListener('click', function () { setState({ ansicht: 'sat' }); });
+    $('#modeSchem').addEventListener('click', function () { setState({ ansicht: 'schem' }); });
     function setAll(v) {
-      DATA.reihen.forEach(function (r) { setOn(r, v, true); });
-      buildLanes(); lastKey = ''; setYear(state.year);
+      var o = {}; DATA.reihen.forEach(function (r) { o[r] = v; }); setState({ reiche: o });
     }
     $('#allOn').addEventListener('click', function () { setAll(true); });
     $('#allOff').addEventListener('click', function () { setAll(false); });
@@ -2301,31 +2344,15 @@
     }
     $('#tlToggle').addEventListener('click', function () { setTlMini(!$('#timeline').classList.contains('mini')); });
     try { if (localStorage.getItem('tafelbild.tl') === '0') setTlMini(true, true); } catch (e) {}
-    $('#tglRom').addEventListener('click', function () { setOn('rom', !state.on.rom); });
-    $('#tglHan').addEventListener('click', function () { setOn('han', !state.on.han); });
-    $('#tglOrte').addEventListener('click', function () {
-      state.orte = !state.orte; this.classList.toggle('on', state.orte); this.setAttribute('aria-pressed', state.orte); lastKey = ''; setYear(state.year);
-    });
+    $('#tglRom').addEventListener('click', function () { setState({ reiche: { rom: !state.on.rom } }); });
+    $('#tglHan').addEventListener('click', function () { setState({ reiche: { han: !state.on.han } }); });
+    $('#tglOrte').addEventListener('click', function () { setState({ globus: { orte: !state.orte } }); });
     $('#tglVw').addEventListener('click', function () {
-      state.vw = !state.vw; this.classList.toggle('on', state.vw); this.setAttribute('aria-pressed', state.vw); lastKey = ''; setYear(state.year);
+      setState({ globus: { vw: !state.vw } });
       if (state.vw && state.epoche === 'antike' && (state.year < 370 || state.year > 480)) toast('Völkerwanderung: Die Züge laufen vor allem 375–456 n. Chr. Spiel die Zeitleiste ab 370 ab.');
     });
-    $('#tglSchl').addEventListener('click', function () {
-      state.schlachten = !state.schlachten; this.classList.toggle('on', state.schlachten); this.setAttribute('aria-pressed', state.schlachten);
-      $('#lanes').classList.toggle('noschl', !state.schlachten); lastKey = ''; setYear(state.year);
-    });
-    function setTrade(k, v) {
-      TRADE[k] = v;
-      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff' }[k]);
-      b.classList.toggle('on', v); b.setAttribute('aria-pressed', v);
-      if (k === 'on') {
-        $('#handelSub').classList.toggle('off', !v);
-        document.querySelectorAll('#handelSub button').forEach(function (x) { x.disabled = !v; });
-        if (v && !ZH.on) document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = true; });
-        if (!v) closeInfo();
-      }
-      lastKey = ''; setYear(state.year);
-    }
+    $('#tglSchl').addEventListener('click', function () { setState({ globus: { schlachten: !state.schlachten } }); });
+    function setTrade(k, v) { var o = {}; o[k] = v; setState({ handel: o }); }
     $('#tglHandel').addEventListener('click', function () { setTrade('on', !TRADE.on); });
     $('#tglLand').addEventListener('click', function () { setTrade('land', !TRADE.land); });
     $('#tglSee').addEventListener('click', function () { setTrade('see', !TRADE.see); });
@@ -2334,22 +2361,12 @@
     $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
     $('#tglSchiff').addEventListener('click', function () { setTrade('schiff', !TRADE.schiff); });
     // Entdeckungsfahrten des Zheng He (unter Handel & Austausch)
-    $('#tglZh').addEventListener('click', function () {
-      ZH.on = !ZH.on; this.classList.toggle('on', ZH.on); this.setAttribute('aria-pressed', ZH.on);
-      document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = !ZH.on || !TRADE.on; });
-      lastKey = ''; setYear(state.year);
-    });
+    $('#tglZh').addEventListener('click', function () { setState({ zh: { on: !ZH.on } }); });
     $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
-    $('#tglBilder').addEventListener('click', function () {
-      BILDER.an = !BILDER.an; this.classList.toggle('on', BILDER.an); this.setAttribute('aria-pressed', BILDER.an);
-      PENS.forEach(function (q) { zhSchiffStil(q.schiff); });
-    });
-    $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); $('#strOpt').classList.toggle('off', !TRADE.strassen); });
+    $('#tglBilder').addEventListener('click', function () { setState({ zh: { bilder: !BILDER.an } }); });
+    $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); });
     [['#tglStrEhem', 'ehemals'], ['#tglStrAnim', 'animieren']].forEach(function (x) {
-      $(x[0]).addEventListener('click', function () {
-        STR_OPT[x[1]] = !STR_OPT[x[1]]; this.classList.toggle('on', STR_OPT[x[1]]); this.setAttribute('aria-pressed', STR_OPT[x[1]]);
-        lastKey = ''; setYear(state.year);
-      });
+      $(x[0]).addEventListener('click', function () { var o = {}; o[x[1]] = !STR_OPT[x[1]]; setState({ strassen: o }); });
     });
     $('#btnZhWaren').addEventListener('click', function () { openWaren(ZHD); });
     $('#btnZhGo').addEventListener('click', function () { if (state.epoche !== 'ming') setYear(SEGS[1].start); else fly(8, 82, homeAlt()); });
@@ -2357,19 +2374,14 @@
     $('#btnWaren').addEventListener('click', openWaren);
     $('#tinfoClose').addEventListener('click', closeInfo);
     $('#tinfo').addEventListener('click', function (e) { if (e.target === this) closeInfo(); });
-    $('#wmodalClose').addEventListener('click', function () { $('#wmodal').hidden = true; });
-    $('#wmodal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
-    $('#tglRot').addEventListener('click', function () {
-      state.rotate = !state.rotate; this.classList.toggle('on', state.rotate); this.setAttribute('aria-pressed', state.rotate); globe.controls().autoRotate = state.rotate && !mapOpen;
-    });
-    $('#goRom').addEventListener('click', function () { fly(41.5, 14, 1.0); });
-    $('#goHan').addEventListener('click', function () { fly(34, 108, 1.1); });
-    $('#goAll').addEventListener('click', function () { fly(36, 62, homeAlt()); });
+    $('#wmodalClose').addEventListener('click', warenSchliessen);
+    $('#wmodal').addEventListener('click', function (e) { if (e.target === this) warenSchliessen(); });
+    $('#tglRot').addEventListener('click', function () { setState({ drehen: !state.rotate }); });
     $('#tglStandort').addEventListener('click', toggleStandort);
-    $('#year').addEventListener('input', function (e) { setYear(yearAt(+e.target.value / 1000), true); });
+    $('#year').addEventListener('input', function (e) { setState({ jahr: yearAt(+e.target.value / 1000) }, { schieber: true }); });
     $('#play').addEventListener('click', togglePlay);
-    $('#yMinus').addEventListener('click', function () { setYear(plusJahre(state.year, -10)); });
-    $('#yPlus').addEventListener('click', function () { setYear(plusJahre(state.year, 10)); });
+    $('#yMinus').addEventListener('click', function () { setState({ jahr: plusJahre(state.year, -10) }); });
+    $('#yPlus').addEventListener('click', function () { setState({ jahr: plusJahre(state.year, 10) }); });
     $('#mapClose').addEventListener('click', closeMap);
     $('#tabVig').addEventListener('click', function () { setRollView('vig'); });
     $('#tabKarte').addEventListener('click', function () { setRollView('karte'); });
@@ -2379,13 +2391,26 @@
       setRollView(rollView === 'vig' ? 'karte' : 'vig'); $(rollView === 'vig' ? '#tabVig' : '#tabKarte').focus();
     });
     $('#mapOverlay').addEventListener('click', function (e) { if (e.target === this) closeMap(); });
-    $('#btnInfo').addEventListener('click', function () { $('#modal').hidden = false; });
-    $('#modalClose').addEventListener('click', function () { $('#modal').hidden = true; });
-    $('#modal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
+    $('#btnInfo').addEventListener('click', function () { modalOeffnen('hilfe'); });
+    $('#modalClose').addEventListener('click', modalSchliessen);
+    $('#modal').addEventListener('click', function (e) { if (e.target === this) modalSchliessen(); });
     // Lehrerhinweise: Fenster mit Reitern (Pfeiltasten wechseln den Reiter)
-    $('#btnLehrer').addEventListener('click', function () { $('#lmodal').hidden = false; lehrerLaden(); $('.ltabs [aria-selected="true"]').focus({ preventScroll: true }); });
-    $('#lmodalClose').addEventListener('click', function () { $('#lmodal').hidden = true; });
-    $('#lmodal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
+    $('#btnLehrer').addEventListener('click', function () { modalOeffnen('lehrer'); });
+    $('#lmodalClose').addEventListener('click', modalSchliessen);
+    $('#lmodal').addEventListener('click', function (e) { if (e.target === this) modalSchliessen(); });
+    bindRest();
+  }
+  /* Lehrerhinweise: je Reiter eine Markdown-Datei aus dem Tafelbild-Ordner (tafelbild.json → lehrerhinweise) */
+  function lehrerReiterBauen(lh, ordner) {
+    var tabs = $('#ltabs'), panels = $('#lpanels'); tabs.innerHTML = ''; panels.innerHTML = '';
+    $('#lquelle').textContent = ordner + lh.ordner + '*.md';
+    lh.reiter.forEach(function (r, i) {
+      var t = el('button', null, r.titel); t.type = 'button'; t.setAttribute('role', 'tab'); t.id = 'lt-' + r.id;
+      t.setAttribute('aria-controls', 'lp-' + r.id); t.setAttribute('aria-selected', i === 0); t.tabIndex = i === 0 ? 0 : -1; tabs.appendChild(t);
+      var p = el('section', 'lpanel'); p.setAttribute('role', 'tabpanel'); p.id = 'lp-' + r.id; p.setAttribute('aria-labelledby', t.id);
+      p.setAttribute('data-md', ordner + lh.ordner + r.datei); p.hidden = i > 0; p.appendChild(el('p', 'hint', 'Wird geladen …')); panels.appendChild(p);
+    });
+    LEHRER_GELADEN = false;
     var ltabs = Array.prototype.slice.call(document.querySelectorAll('.ltabs [role="tab"]'));
     function lehrerReiter(t) {
       ltabs.forEach(function (x) {
@@ -2401,20 +2426,256 @@
         if (n) { e.preventDefault(); e.stopPropagation(); lehrerReiter(ltabs[(i + n + ltabs.length) % ltabs.length]); }
       });
     });
+  }
+  function bindRest() {
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        if (!$('#wmodal').hidden) { $('#wmodal').hidden = true; return; }
-        if (!$('#modal').hidden) { $('#modal').hidden = true; return; }
-        if (!$('#lmodal').hidden) { $('#lmodal').hidden = true; return; }
+        if (warenSchliessen()) return;
+        if (modalSchliessen()) return;
         if (closeInfo()) return;
         closeMap(); return;
       }
       if (e.target && (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || (e.target.closest && e.target.closest('.troute,.tplace,.wchips-map,.roll-tabs')))) return;
       if (mapOpen && rollView === 'vig') return;   // in den Vignetten verstellen Pfeiltasten nicht das Jahr
-      if (e.key === 'ArrowLeft') setYear(plusJahre(state.year, e.shiftKey ? -10 : -1));
-      if (e.key === 'ArrowRight') setYear(plusJahre(state.year, e.shiftKey ? 10 : 1));
+      if (e.key === 'ArrowLeft') setState({ jahr: plusJahre(state.year, e.shiftKey ? -10 : -1) });
+      if (e.key === 'ArrowRight') setState({ jahr: plusJahre(state.year, e.shiftKey ? 10 : 1) });
       if (e.key === ' ' && !mapOpen && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); }
     });
+  }
+
+
+  /* ---------- Zentraler Zustand ----------
+     Der gesamte sichtbare Zustand steht in einem serialisierbaren Objekt (getState). Änderungen laufen über
+     setState(teil) → applyState(teil, {quelle}). Interne Funktionen (setYear, Fenster öffnen/schließen) melden
+     Änderungen an die Abonnenten (abonnieren). Format: docs/ARCHITEKTUR.md. */
+  function handelSetzen(k, v) {
+    TRADE[k] = v;
+    var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff' }[k]);
+    if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); }
+    if (k === 'on') {
+      $('#handelSub').classList.toggle('off', !v);
+      document.querySelectorAll('#handelSub button').forEach(function (x) { x.disabled = !v; });
+      if (v && !ZH.on) document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = true; });
+      if (!v) closeInfo();
+    }
+    if (k === 'strassen') $('#strOpt').classList.toggle('off', !v);
+  }
+  function chipSetzen(sel, v) { var b = $(sel); if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); } }
+  function kopie(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
+  function gleich(a, b) { return JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b); }
+  function getState() {
+    var pov = globe ? globe.pointOfView() : { lat: 36, lng: 62, altitude: 2.7 };
+    var reiche = {}; DATA.reihen.forEach(function (r) { reiche[r] = !!state.on[r]; });
+    var fahrten = {}; (ZHD ? ZHD.verbindungen : []).forEach(function (v) { fahrten[v.nr] = !!ZH.fahrt[v.nr]; });
+    return {
+      v: 1, tafelbild: window.CG_TAFELBILD ? window.CG_TAFELBILD.id : null,
+      jahr: state.year, ansicht: state.mode,
+      kamera: { lat: Math.round(pov.lat * 1000) / 1000, lng: Math.round(pov.lng * 1000) / 1000, alt: Math.round(pov.altitude * 1000) / 1000 },
+      drehen: state.rotate,
+      reiche: reiche,
+      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw },
+      handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff },
+      strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
+      zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
+      niveau: TX_NIV,
+      fenster: kopie(FENSTER)
+    };
+  }
+  /* Teilzustand anwenden. opt.quelle: 'lokal' (eigene Bedienung), 'lehrer' (Live-Session), 'tafelbild' (Start);
+     opt.dauer: Kameraflug in ms; opt.schieber: Jahr kommt vom Schieber (Schieberwert nicht zurücksetzen). */
+  function applyState(t, opt) {
+    opt = opt || {}; if (!t) return;
+    var fern = opt.quelle === 'lehrer' || opt.quelle === 'tafelbild';
+    if (fern) ZUSTAND.fern++;
+    ZUSTAND.still++;
+    try {
+      var neu = false, lanes = false;
+      if (t.ansicht && t.ansicht !== state.mode) { state.mode = t.ansicht; applyMode(); }
+      if (t.reiche) Object.keys(t.reiche).forEach(function (r) {
+        if (!DATA.meta[r] || !!t.reiche[r] === !!state.on[r]) return;
+        setOn(r, !!t.reiche[r], true); neu = true; if (!M(r).haupt) lanes = true;
+      });
+      if (t.globus) {
+        if ('orte' in t.globus && !!t.globus.orte !== state.orte) { state.orte = !!t.globus.orte; chipSetzen('#tglOrte', state.orte); neu = true; }
+        if ('vw' in t.globus && !!t.globus.vw !== state.vw) { state.vw = !!t.globus.vw; chipSetzen('#tglVw', state.vw); neu = true; }
+        if ('schlachten' in t.globus && !!t.globus.schlachten !== state.schlachten) {
+          state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
+        }
+      }
+      if ('drehen' in t && !!t.drehen !== state.rotate) { state.rotate = !!t.drehen; chipSetzen('#tglRot', state.rotate); globe.controls().autoRotate = state.rotate && !mapOpen; }
+      if (t.handel) ['on', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff'].forEach(function (k) {
+        if (k in t.handel && !!t.handel[k] !== !!TRADE[k]) { handelSetzen(k, !!t.handel[k]); neu = true; }
+      });
+      if (t.strassen) ['ehemals', 'animieren'].forEach(function (k) {
+        if (k in t.strassen && !!t.strassen[k] !== !!STR_OPT[k]) { STR_OPT[k] = !!t.strassen[k]; chipSetzen(k === 'ehemals' ? '#tglStrEhem' : '#tglStrAnim', STR_OPT[k]); neu = true; }
+      });
+      if (t.zh) {
+        if ('on' in t.zh && !!t.zh.on !== ZH.on) {
+          ZH.on = !!t.zh.on; chipSetzen('#tglZh', ZH.on);
+          document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = !ZH.on || !TRADE.on; }); neu = true;
+        }
+        if (t.zh.fahrten) Object.keys(t.zh.fahrten).forEach(function (nr) {
+          if (!!t.zh.fahrten[nr] === !!ZH.fahrt[nr]) return;
+          ZH.fahrt[nr] = !!t.zh.fahrten[nr]; chipSetzen('#zhChips .chip[data-nr="' + nr + '"]', ZH.fahrt[nr]); neu = true;
+        });
+        if ('bilder' in t.zh && !!t.zh.bilder !== BILDER.an) { BILDER.an = !!t.zh.bilder; chipSetzen('#tglBilder', BILDER.an); PENS.forEach(function (q) { zhSchiffStil(q.schiff); }); }
+      }
+      if (t.niveau && t.niveau !== TX_NIV && /^[ABC]$/.test(t.niveau)) {
+        TX_NIV = t.niveau; try { localStorage.setItem('tafelbild.niveau', TX_NIV); } catch (e) {}
+        if (FENSTER.info && FENSTER.info.art === 'text' && !('fenster' in t)) infoOeffnen(FENSTER.info);
+      }
+      if (lanes) buildLanes();
+      if (t.jahr != null && t.jahr !== state.year) { if (neu) lastKey = ''; setYear(t.jahr, !!opt.schieber); }
+      else if (neu) { lastKey = ''; setYear(state.year); }
+      if (t.kamera && isFinite(t.kamera.lat) && isFinite(t.kamera.lng)) {
+        globe.pointOfView({ lat: t.kamera.lat, lng: t.kamera.lng, altitude: t.kamera.alt || homeAlt() }, opt.dauer != null ? opt.dauer : 0);
+      }
+      if ('fenster' in t) fensterAnwenden(t.fenster || {});
+    } finally {
+      ZUSTAND.still--;
+      if (fern) ZUSTAND.fern--;
+    }
+    zustandGemeldet(opt.quelle);
+  }
+  function setState(t, opt) { applyState(t, Object.assign({ quelle: 'lokal' }, opt || {})); }
+  function abonnieren(fn) { ZUSTAND.hoerer.push(fn); return function () { ZUSTAND.hoerer = ZUSTAND.hoerer.filter(function (x) { return x !== fn; }); }; }
+  function zustandGemeldet(quelle) {
+    if (ZUSTAND.still || !ZUSTAND.hoerer.length) return;
+    var q = quelle || (ZUSTAND.fern ? 'lehrer' : 'lokal');
+    ZUSTAND.hoerer.forEach(function (fn) { try { fn(q); } catch (e) { console.error(e); } });
+  }
+  /* Fenster aus einer Beschreibung öffnen bzw. schließen */
+  function infoOeffnen(d) {
+    if (!d) return;
+    var finde = function (L, id) { return (L || []).filter(function (x) { return x.id === id; })[0]; };
+    if (d.art === 'route') { var v = routeById(d.id); if (v) openTradeInfo(v); }
+    else if (d.art === 'ort') { var o = finde(HANDEL.orte, d.id); if (o) openPlaceInfo(o); }
+    else if (d.art === 'kontakt') { var k = finde(HANDEL.kontakte, d.id); if (k) openKontaktInfo(k); }
+    else if (d.art === 'zh') { var z = zhById(d.id); if (z) openZhInfo(z); }
+    else if (d.art === 'zhhafen') { var h = finde(ZHD.orte, d.id); if (h) openZhHafen(h); }
+    else if (d.art === 'zhhintergrund') openZhBackground();
+    else if (d.art === 'orbis') openOrbisInfo(d.id ? finde(ORBIS_OBJ, d.id) || null : null);
+    else if (d.art === 'strasse') { var sx = finde(STR_OBJ, d.id); if (sx) openStrassenLinie(sx); }
+    else if (d.art === 'strassen') openStrassenInfo();
+    else if (d.art === 'text') openText(d.id, d.zurueck);
+  }
+  function modalOeffnen(id) {
+    FENSTER.modal = id;
+    $('#modal').hidden = id !== 'hilfe'; $('#lmodal').hidden = id !== 'lehrer';
+    if (id === 'lehrer') { lehrerLaden(); $('.ltabs [aria-selected="true"]').focus({ preventScroll: true }); }
+    zustandGemeldet();
+  }
+  function modalSchliessen() {
+    if ($('#modal').hidden && $('#lmodal').hidden) return false;
+    $('#modal').hidden = true; $('#lmodal').hidden = true; FENSTER.modal = null; zustandGemeldet(); return true;
+  }
+  function fensterAnwenden(f) {
+    var r = f.rolle || null, a = FENSTER.rolle;
+    if (!r && a) closeMap();
+    else if (r && (!a || a.reich !== r.reich)) { if (mapOpen || closeTimer) finishClose(); openMap(r.reich, r.reiter); }
+    if (r && FENSTER.rolle) {
+      if (r.vignette != null && r.vignette !== FENSTER.rolle.vignette) { Vignetten.setzen(r.reich, r.vignette); FENSTER.rolle.vignette = r.vignette; renderVignetten(r.reich); }
+      if (r.reiter && r.reiter !== FENSTER.rolle.reiter) setRollView(r.reiter);
+    }
+    if (!gleich(f.info, FENSTER.info)) { if (f.info) infoOeffnen(f.info); else closeInfo(); }
+    if ((f.waren || null) !== FENSTER.waren) { if (f.waren) openWaren(f.waren === 'zh' ? ZHD : HANDEL); else warenSchliessen(); }
+    if ((f.modal || null) !== FENSTER.modal) { if (f.modal) modalOeffnen(f.modal); else modalSchliessen(); }
+  }
+
+
+
+  /* ---------- Frühe Hochkulturen und Zeitraum ----------
+     data/fruehe_reiche.json (build_fruehe_kulturen.py) wird zu den Kerndaten hinzugefügt. Ein Tafelbild lädt nur Reiche,
+     deren Lebenszeit in seinen Zeitraum fällt („relevanter Ausschnitt“); der freie Modus zeigt alles. */
+  function reicheErgaenzen(f) {
+    if (!f || !f.meta) return;
+    Object.keys(f.meta).forEach(function (r) { DATA.meta[r] = Object.assign({ frueh: true }, f.meta[r]); });
+    DATA.reihen = DATA.reihen.concat(f.reihen || Object.keys(f.meta));
+    ['regionen', 'ereignisse', 'schlachten', 'orte'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
+  }
+  function reicheFiltern(tb) {
+    var z = tb && tb.zeitraum; if (!z) return;
+    var weg = {}, liste = tb.reiche && Array.isArray(tb.reiche.verfuegbar) ? tb.reiche.verfuegbar : null;
+    DATA.reihen.forEach(function (r) {
+      var m = DATA.meta[r];
+      if (m.bis <= z.von || m.von >= z.bis) weg[r] = 1;
+      // frühe Hochkulturen nur, wenn das Tafelbild in diese Zeit reicht oder sie ausdrücklich nennt
+      else if (m.frueh && z.von >= SEGS[0].von && !(liste && liste.indexOf(r) >= 0)) weg[r] = 1;
+    });
+    if (!Object.keys(weg).length) return;
+    DATA.reihen = DATA.reihen.filter(function (r) { return !weg[r]; });
+    Object.keys(weg).forEach(function (r) { delete DATA.meta[r]; });
+    DATA.regionen = DATA.regionen.filter(function (f) { return !weg[f.properties.reich]; });
+    DATA.ereignisse = DATA.ereignisse.filter(function (e) { return !weg[e.reich]; });
+    DATA.orte = DATA.orte.filter(function (o) { return !weg[o.reich]; });
+    DATA.schlachten = DATA.schlachten.filter(function (s) { return s.reiche.some(function (r) { return !weg[r]; }); });
+  }
+  /* Reichen geladene Reiche vor 300 v. Chr. zurück, bekommt der erste Abschnitt einen Vorlauf mit eigenem Maßstab */
+  function zeitleisteEinrichten() {
+    var frueh = Math.min.apply(null, DATA.reihen.map(function (r) { return DATA.meta[r].von; }));
+    var tb = window.CG && CG.tafelbild;
+    if (tb && tb.zeitraum) frueh = Math.max(frueh, tb.zeitraum.von);
+    $('#fruehSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].frueh; });
+    if (frueh >= SEGS[0].von) return;
+    var von = Math.floor(frueh / 500) * 500, S = SEGS[0];
+    S.teile = [
+      { von: von, bis: S.von, a: 0, b: 0.2, takt: 12, tick: 500, major: 1000, alt: 1000, start: -2560, kurz: true,
+        name: 'Frühe Hochkulturen', sub: 'Ägypten, Mesopotamien, Indus, China' },
+      { von: S.von, bis: S.bis, a: 0.2, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }
+    ];
+    S.von = von; YMIN = Math.min(YMIN, von);
+  }
+
+  /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
+     Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
+  var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', zh: '#tglZh', bilder: '#tglBilder' };
+  function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
+  /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
+  function fokusZustand(f) {
+    var t = Object.assign({}, f.filter || {}); t.kamera = fokusKamera(f);
+    if (f.jahr != null) t.jahr = f.jahr;
+    return t;
+  }
+  function tafelbildStart(tb) {
+    var st = tb.start || {}, a = (tb.ebenen && tb.ebenen.aktiv) || {}, t = {};
+    if (st.jahr != null) t.jahr = st.jahr;
+    if (st.ansicht) t.ansicht = st.ansicht;
+    if ('drehen' in st) t.drehen = !!st.drehen;
+    var k = st.kamera, fp = (tb.fokuspunkte || []).filter(function (f) { return f.id === k; })[0];
+    if (fp) t.kamera = fokusKamera(fp); else if (k && typeof k === 'object') t.kamera = fokusKamera(k);
+    if (tb.reiche && tb.reiche.aktiv) { t.reiche = {}; DATA.reihen.forEach(function (r) { t.reiche[r] = tb.reiche.aktiv.indexOf(r) >= 0; }); }
+    t.globus = {}; ['orte', 'schlachten', 'vw'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
+    t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
+    if ('handel' in a) t.handel.on = !!a.handel;
+    t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
+    t.zh = {}; if ('zh' in a) t.zh.on = !!a.zh; if ('bilder' in a) t.zh.bilder = !!a.bilder;
+    return t;
+  }
+  function tafelbildAnwenden(tb) {
+    if (!tb) return;
+    document.title = tb.id ? tb.titel + ' · ChronoGlobe' : 'ChronoGlobe · ' + tb.titel;
+    $('#h1kopf').textContent = tb.kopf || 'ChronoGlobe'; $('#h1sub').textContent = tb.untertitel || tb.titel || '';
+    if (tb.zeitraum) { YMIN = Math.max(YMIN, tb.zeitraum.von); YMAX = Math.min(YMAX, tb.zeitraum.bis); }
+    // verfügbare Reiche und Ebenen
+    var rv = tb.reiche && tb.reiche.verfuegbar;
+    if (Array.isArray(rv)) DATA.reihen.forEach(function (r) {
+      if (rv.indexOf(r) >= 0) return;
+      var b = r === 'rom' ? $('#tglRom') : r === 'han' ? $('#tglHan') : $('.chip.nb[data-r="' + r + '"]'); if (b) b.hidden = true;
+    });
+    var ev = tb.ebenen && tb.ebenen.verfuegbar;
+    if (Array.isArray(ev)) Object.keys(EBENEN_SEL).forEach(function (k) { if (ev.indexOf(k) < 0) { var b = $(EBENEN_SEL[k]); if (b) b.hidden = true; } });
+    // Fokuspunkte → Knöpfe im Menü
+    var box = $('#fokusBtns'); box.innerHTML = '';
+    (tb.fokuspunkte || []).forEach(function (f) {
+      var b = el('button', 'small', f.knopf || f.name); b.type = 'button'; b.id = 'fokus-' + f.id; b.title = f.name;
+      b.addEventListener('click', function () { setState(fokusZustand(f), { dauer: 1400 }); });
+      box.appendChild(b);
+    });
+    // Lehrerhinweise nur mit Tafelbild
+    if (tb.lehrerhinweise && tb.lehrerhinweise.reiter && tb.lehrerhinweise.reiter.length) lehrerReiterBauen(tb.lehrerhinweise, tb.ordner || '');
+    else $('#btnLehrer').hidden = true;
+    applyState(tafelbildStart(tb), { quelle: 'tafelbild' });
   }
 
   /* ---------- Start ---------- */
@@ -2470,15 +2731,19 @@
     return out.join('\n');
   }
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
-  Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json'),
-    load('data/texte.json'), load('data/literatur.json'), load('data/roemerstrassen.json'),
-    load('data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
+  function daten(k, url) { return window.CG && CG.daten ? CG.daten(k, url) : load(url); }
+  (window.CG && CG.bereit ? CG.bereit : Promise.resolve(null)).then(function () { return Promise.all([daten('reiche', 'data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), daten('handel', 'data/handel.json'), daten('zhenghe', 'data/zhenghe.json'),
+    daten('texte', 'data/texte.json'), daten('literatur', 'data/literatur.json'), daten('roemerstrassen', 'data/roemerstrassen.json'),
+    daten('orbis_schiff', 'data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
+    daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
-    load(/[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]).then(function (res) {
+    daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[10];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[11];
+    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
+    Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
@@ -2488,11 +2753,17 @@
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
+    tafelbildAnwenden(window.CG ? CG.tafelbild : null);
+    if (location.hash === '#hilfe') modalOeffnen('hilfe');
     setTimeout(startIntro, 600);
     window.__tafelbild = { strOpt: STR_OPT, strassen: function () { return { geladen: STRASSEN.linien.length, fehler: STRASSEN.fehler.length,
         sichtbar: strassenPaths(state.year).length, aufGlobus: globe.pathsData().filter(function (d) { return d.strasse; }).length,
         stile: globe.pathsData().filter(function (d) { return d.strasse; }).reduce(function (a, d) { a[d.stil] = (a[d.stil] || 0) + 1; return a; }, {}) }; },
-      state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
+      state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible,
+      getState: getState, applyState: applyState, setState: setState };
+    window.ChronoGlobe = { getState: getState, applyState: applyState, setState: setState, abonnieren: abonnieren,
+      setzeRechte: function (fn) { DARF = typeof fn === 'function' ? fn : function () { return true; }; }, globe: globe, homeAlt: homeAlt };
+    document.dispatchEvent(new CustomEvent('chronoglobe:bereit'));
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';
     m.textContent = 'Daten konnten nicht geladen werden. Bitte die Seite über einen Webserver öffnen (nicht per Doppelklick). ' + err.message;

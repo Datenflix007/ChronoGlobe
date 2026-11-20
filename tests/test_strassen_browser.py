@@ -32,7 +32,7 @@ with sync_playwright() as p:
     except Exception: b = p.chromium.launch(headless=True)
     pg = b.new_page(viewport={'width': 1500, 'height': 950}); pg.route('http://localhost:8765/**', serve)
     errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto('http://localhost:8765/index.html'); pg.wait_for_function('window.' + T); pg.wait_for_timeout(2500)
+    pg.goto('http://localhost:8765/app.html?modus=frei'); pg.wait_for_function('window.' + T); pg.wait_for_timeout(2500)
     pg.evaluate(T + '.globe.controls().autoRotate=false; ' + T + '.globe.pointOfView({lat:44,lng:12,altitude:1.1},0); 0')
     st = lambda: pg.evaluate(T + '.strassen()')
     jahr = lambda y: (pg.evaluate(T + '.setYear(%d)' % y), pg.wait_for_timeout(250))
@@ -100,7 +100,7 @@ with sync_playwright() as p:
     check('7c. Römisches Reich ausgeblendet: keine Straßen', st()['aufGlobus'] == 0, str(st()))
     pg.click('#tglRom'); pg.wait_for_timeout(300)
 
-    farben = pg.evaluate("[...new Set(%s.globe.pathsData().filter(d => d.strasse).map(d => %s.globe.pathColor()(d).replace(/,[^,]*\)$/, ')')))]" % (T, T))
+    farben = pg.evaluate("[...new Set(%s.globe.pathsData().filter(d => d.strasse).map(d => %s.globe.pathColor()(d).replace(/,[^,]*[)]$/, ')')))]" % (T, T))
     check('einfarbig: ein Farbton für alle Straßen', len(farben) == 1, str(farben))
     # Schiffsverkehr (ORBIS): wächst mit dem Reich, Britannien ab 43
     pg.click('#tglSchiff'); orb = {}

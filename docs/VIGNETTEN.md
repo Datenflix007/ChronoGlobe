@@ -4,7 +4,7 @@ Ein Klick auf ein eingeblendetes Reich (Globus oder „Schriftrolle öffnen“ i
 Sie hat zwei Reiter: **Vignetten** (beim Römischen Reich **Wiederholung**) und **Karte**.
 
 Die Inhalte stehen in `data/vignetten.json`. Die Engine liegt in `js/vignetten.js`.
-Vorschau aller Bausteine mit Beispielinhalt: `index.html?vignetten=demo` (Datei `data/vignetten_demo.json`).
+Vorschau aller Bausteine mit Beispielinhalt: `app.html?modus=frei&vignetten=demo` (Datei `data/vignetten_demo.json`). Ein Tafelbild bringt seine Vignetten als Daten-Overlay mit (`tafelbilder/<id>/vignetten.json`, siehe `docs/TAFELBILD_ERSTELLEN.md`).
 
 Für die Sachinhalte gelten die Regeln in `docs/GRUNDREGELN.md`. Erfundene Erzählungen stehen immer im Baustein `erzaehlung`, der sie automatisch als erfunden kennzeichnet.
 

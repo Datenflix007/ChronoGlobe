@@ -1,0 +1,47 @@
+{
+  "_hinweis": "Vorlage für ein neues Tafelbild. Ordner kopieren nach tafelbilder/<neue-id>/, alle Felder anpassen, Felder mit „_hinweis“ dürfen bleiben oder gelöscht werden. Dann in tafelbilder/index.json eintragen und python tools/check_tafelbilder.py ausführen. Anleitung: docs/TAFELBILD_ERSTELLEN.md",
+
+  "_hinweis_id": "Kleinbuchstaben, Ziffern, Bindestrich; muss genau dem Ordnernamen entsprechen.",
+  "id": "neue-id",
+
+  "_hinweis_titel": "titel: Galerie und Session-Auswahl. kopf/untertitel: Kopfzeile im Globus.",
+  "titel": "Titel des Tafelbilds",
+  "kopf": "Digitales Tafelbild",
+  "untertitel": "Leitfrage oder Thema",
+  "beschreibung": "Ein bis zwei Sätze für die Galerie.",
+  "vorschaubild": "vorschau.jpg",
+
+  "_hinweis_zeitraum": "Jahre ohne Jahr 0 (−44 = 44 v. Chr.). Die Zeitleiste lässt nur diesen Bereich zu. epochen: nur zur Beschreibung.",
+  "zeitraum": { "von": -300, "bis": 480, "epochen": ["antike"] },
+
+  "_hinweis_start": "Startansicht: jahr, ansicht (sat | schem), kamera (id eines Fokuspunkts oder {lat, lng, alt}), drehen (Globus dreht sich langsam).",
+  "start": { "jahr": 117, "ansicht": "sat", "kamera": "eurasien", "drehen": true },
+
+  "_hinweis_reiche": "verfuegbar: Liste der Reich-IDs aus data/reiche.json (meta) oder \"alle\"; aktiv: anfangs eingeblendet.",
+  "reiche": { "verfuegbar": "alle", "aktiv": ["rom", "han"] },
+
+  "_hinweis_ebenen": "verfuegbar: Liste oder \"alle\" – mögliche Ebenen: orte, schlachten, vw, handel, land, see, waren, gesandt, karawanen, strassen, schiff, zh, bilder. aktiv: Startwerte (true/false), zusätzlich strassen_ehemals, strassen_animieren.",
+  "ebenen": {
+    "verfuegbar": "alle",
+    "aktiv": { "orte": false, "schlachten": true, "handel": false }
+  },
+
+  "_hinweis_fokuspunkte": "Knöpfe im Menü und Fokus-Knöpfe der Lehrkraft in Live-Sessions. alt: Abstand der Kamera (0,05–6) oder \"standard\". Optional: jahr (springt mit) und filter (Teilzustand wie getState, z. B. {\"handel\": {\"on\": true}}).",
+  "fokuspunkte": [
+    { "id": "rom", "name": "Rom", "knopf": "→ Rom", "lat": 41.5, "lng": 14, "alt": 1.0 },
+    { "id": "eurasien", "name": "Eurasien", "knopf": "Eurasien", "lat": 36, "lng": 62, "alt": "standard" }
+  ],
+
+  "_hinweis_lehrerhinweise": "Optional. Je Reiter eine Markdown-Datei im angegebenen Unterordner. Weglassen = kein Knopf „Lehrerhinweise“.",
+  "lehrerhinweise": {
+    "ordner": "lehrerhinweise/",
+    "reiter": [
+      { "id": "reihe", "titel": "Unterrichtsreihe", "datei": "01_unterrichtsreihe.md" }
+    ]
+  },
+
+  "_hinweis_daten": "Optional. Eigene Dateien zu den Kerndaten: Schlüssel reiche, handel, zhenghe, texte, literatur, roemerstrassen, orbis_schiff, vignetten. art \"ersetzen\" = statt der Kerndatei; \"ergaenzen\" = Objekte werden gemischt, Listen angehängt (gleiche id ersetzt den Kerneintrag).",
+  "daten": {
+    "vignetten": { "datei": "vignetten.json", "art": "ersetzen" }
+  }
+}
