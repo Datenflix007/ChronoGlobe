@@ -100,9 +100,18 @@ with sync_playwright() as p:
     check('7c. Römisches Reich ausgeblendet: keine Straßen', st()['aufGlobus'] == 0, str(st()))
     pg.click('#tglRom'); pg.wait_for_timeout(300)
 
-    pg.click('#tglStrUns'); pg.wait_for_timeout(300)
-    farben = pg.evaluate("[...new Set(%s.globe.pathsData().filter(d => d.strasse).map(d => d.L.datierung))]" % T)
-    check('Datierung zeigen: drei Qualitätsstufen vorhanden', len(farben) == 3, str(farben))
+    farben = pg.evaluate("[...new Set(%s.globe.pathsData().filter(d => d.strasse).map(d => %s.globe.pathColor()(d).replace(/,[^,]*\)$/, ')')))]" % (T, T))
+    check('einfarbig: ein Farbton für alle Straßen', len(farben) == 1, str(farben))
+    # Schiffsverkehr (ORBIS): wächst mit dem Reich, Britannien ab 43
+    pg.click('#tglSchiff'); orb = {}
+    for y in (-250, 30, 117, 470):
+        jahr(y); orb[y] = pg.evaluate("%s.globe.pathsData().filter(d => d.orbis).length" % T)
+    brit = lambda: pg.evaluate("%s.globe.pathsData().filter(d => d.orbis && /Rutupiae/.test(d.orbis.von_ort + d.orbis.nach_ort)).length" % T)
+    jahr(30); b30 = brit(); jahr(117); b117 = brit()
+    check('ORBIS-Schiffsverkehr wächst mit dem Reich, Britannien ab 43', 0 < orb[-250] < orb[30] < orb[117] and orb[470] < orb[117] and b30 == 0 < b117,
+          '%s, Britannien 30: %d, 117: %d' % (orb, b30, b117))
+    pg.click('#tglSchiff'); jahr(117)
+    check('ORBIS aus: keine Schiffsstrecken', pg.evaluate("%s.globe.pathsData().filter(d => d.orbis).length" % T) == 0)
     check('keine Skriptfehler', not errs, '; '.join(errs[:3]))
     b.close()
 

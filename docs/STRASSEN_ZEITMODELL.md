@@ -24,7 +24,7 @@ Der Layer „Römerstraßen anzeigen“ (Menü → Handel & Austausch) zeigt die
 | B Ausbau | `beginn_min` ≤ j < `beginn_max` | wächst als Netz: ab `netz.von` vom Anschlusspunkt aus gezeichnet, bis `netz.bis` ganz; ohne „Ausbau animieren“ ganz ab `beginn_modell` | wie Hauptmodus |
 | C römisch | `beginn_max` ≤ j ≤ `roemische_nutzung_bis_modell` | voll sichtbar | voll sichtbar |
 | D nachrömisch | danach | **unsichtbar** | blass, gestrichelt: „ehemalige römische Trasse – mittelalterliche Nutzung nicht allgemein belegt“ |
-| undatiert | Ausbauzeitraum fehlt oder ist ungültig | unsichtbar | nur mit „Datierung zeigen“: grau gepunktet |
+| undatiert | Ausbauzeitraum fehlt oder ist ungültig | unsichtbar | unsichtbar (im Datensatz derzeit keine solche Linie) |
 
 - Fehlt das Nutzungsende, gilt die Linie höchstens bis 476 als römisch (Ende Westroms). Danach wird sie wie Phase D behandelt.
 - Nach 1400 ist im Hauptmodus keine Straße aktiv. Der Datensatz enthält keine Belege für eine mittelalterliche Nutzung. Eine Straße darf erst dann als mittelalterlich genutzt erscheinen, wenn eigene Quellen- und Zeitangaben vorliegen. Dafür gibt es noch kein Datenfeld.
@@ -37,7 +37,7 @@ Der Layer „Römerstraßen anzeigen“ (Menü → Handel & Austausch) zeigt die
 **Darstellung:**
 - Gesichert oder erschlossen: kräftig. Vermutet: blass.
 - **Zeichenfeder:** Eine Straße wird wie die Schiffsrouten gezeichnet (ca. 1,6 s je Schritt), und zwar vom Anschlusspunkt an das schon gezeichnete Netz aus in beide Richtungen; im Ausbau nur bis zum Anteil des Jahres. Die Geometrie bleibt fest, es wächst nur der sichtbare Strich (Shader-Werte `dashSize`/`dashOffset`). Übergangsanimationen von globe.gl sind abgeschaltet, damit keine Linie aus ihrem ersten Punkt heraus „fliegt“. Beim Zurückspulen gilt der neue Zustand sofort; bei „Bewegung reduzieren“ entfällt die Feder.
-- Mit „Datierung zeigen“: grün = mit Itiner-e-Belegen eingegrenzt, gelb = teilweise, sonst Farbe des Regionalmodells.
+- **Eine Farbe für alle Straßen (Entscheidung, 20.11.2026):** Eine Einfärbung nach Datierungsqualität (grün = Itiner-e-belegt, gelb = teilweise, sonst Regionalmodell) war als Option „Datierung zeigen“ vorhanden. Sie wurde entfernt, weil die Farben im Unterricht eher verwirrten: Sie lassen sich leicht als Straßentypen oder Epochen missverstehen. Unterschieden wird nur noch die Deckkraft (kräftig = gesichert oder erschlossen, blass = vermutet). Die Datierungsqualität jeder Straße steht in ihrer Infokarte; die Daten (`zeit.datierung`) bleiben unverändert.
 - Ein Klick auf eine Straße öffnet eine Infokarte. Sie zeigt räumliche Sicherheit, Modellzeiten, Quellenlage, Itiner-e-Belege und Zuordnung.
 - Auf der flachen Rom-Karte gelten dieselben Zustände.
 
@@ -104,4 +104,4 @@ Damit das Netz von den schon gezeichneten Straßen aus wächst und keine Linie l
 ## Tests
 
     node tests/strassenzeit.test.js                    # Rechenlogik mit den echten Daten (11 Tests)
-    python tests/test_strassen_browser.py [ordner]     # App im Browser (20 Prüfungen, benötigt playwright + Edge/Chromium)
+    python tests/test_strassen_browser.py [ordner]     # App im Browser (22 Prüfungen inkl. ORBIS-Schiffsverkehr, benötigt playwright + Edge/Chromium)

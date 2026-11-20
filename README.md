@@ -58,10 +58,11 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
     Fahrten: „Die Reisen des Zheng He“.
   - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
   - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
+- **Schiffsverkehr (ORBIS)** (Schalter im Handelsmenü, standardmäßig aus): 505 Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich bis Britannien nach dem Verkehrsmodell ORBIS (Stanford, um 200 n. Chr.; Daten `emeeks/orbis_v2`, MIT), auf dem Globus und auf der Rom-Karte. ORBIS hat keine Jahreszahlen: Eine Strecke erscheint, solange beide Endhäfen römisch sind (z. B. Britannien 43–410). Einfarbig hellblau, Flüsse blasser; Klick öffnet eine Infokarte. Daten: `data/orbis_schiff.json`, erzeugt mit `python build_orbis.py <ordner mit den ORBIS-Dateien>`. Siehe `docs/DATENQUELLEN.md`.
 - **Römerstraßen** (Schalter im Handelsmenü): 819 Hauptstraßen aus Itiner-e (CC BY 4.0) auf dem Globus und auf der Rom-Karte, sichtbar, wenn das Römische Reich eingeblendet ist. Das Netz verändert sich mit der Zeitleiste:
   - Straßen erscheinen in ihrer modellierten Ausbauphase (gezeichnet wie die Schiffsrouten; jede Straße setzt am schon gezeichneten Netz an und wächst von dort weiter, ausgehend von Rom; didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.
   - Danach sind sie im Hauptmodus ausgeblendet. Ab 1400 ist keine Straße aktiv.
-  - Optionen: „Ehemalige Trassen“ (blass gestrichelt, mittelalterliche Nutzung nicht allgemein belegt), „Ausbau animieren“ und „Datierung zeigen“ (grün belegt, gelb teilweise, sonst Regionalmodell).
+  - Optionen: „Ehemalige Trassen“ (blass gestrichelt, mittelalterliche Nutzung nicht allgemein belegt) und „Ausbau animieren“. Alle Straßen haben eine Farbe (kräftig = gesichert, blass = vermutet); die Datierungsqualität steht in der Infokarte jeder Straße.
   - Ein Klick auf eine Straße zeigt räumliche Sicherheit, Modellzeiten und Itiner-e-Belege.
 
 ## Daten ändern

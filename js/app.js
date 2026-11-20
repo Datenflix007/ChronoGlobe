@@ -13,8 +13,8 @@
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
-  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false };
-  var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau, Datierungsqualität
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false };
+  var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau; unsicherheit bleibt aus (einfarbige Darstellung)
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var BILDER = { an: false };   // Abbildungen statt Symbole (nur wo eine Abbildung vorliegt, z. B. Zheng Hes Schatzschiff)
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '', lastStrKey = '';
@@ -862,7 +862,7 @@
   /* Sichtbare Teilstrecken, Orte, Gesandtschaften. Regel: Reich eingeblendet UND existiert im Jahr.
      Nur ein Reich aktiv -> nur dessen Seite (bis zu den Vermittlern); beide aktiv -> durchgehende Verbindung. */
   function tradeVisible(y) {
-    var res = { routes: [], parts: [], places: [], kontakte: [], kar: { list: [], key: 'aus' }, key: 'aus' };
+    var res = { routes: [], parts: [], places: [], kontakte: [], kar: { list: [], key: 'aus' }, schiff: [], key: 'aus' };
     if (!TRADE.on) return res;
     var K = HANDEL.karawanen;
     HANDEL.verbindungen.forEach(function (v) {
@@ -892,8 +892,9 @@
     });
     res.kar = karPlan(y, res);
     res.strassen = strassenSichtbar(y);
+    res.schiff = orbisSichtbar(y);
     res.strKey = strassenSchluessel(y);
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' +
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' + res.schiff.map(function (d) { return d.n; }).join('.') + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
       res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
@@ -1059,9 +1060,39 @@
   function tradeGlobePaths(tv) {
     var a = [];
     if (tv.strassen) a.push.apply(a, strassenPaths(state.year));
+    if (tv.schiff) a.push.apply(a, tv.schiff);
     tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
     tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
     return a;
+  }
+
+  /* ---------- Layer „Schiffsverkehr (ORBIS)“: Küste, Hochsee, Fähren, Flüsse (data/orbis_schiff.json, build_orbis.py) ----------
+     ORBIS hat keine Jahreszahlen. Eine Strecke erscheint in den Jahren, in denen beide Endhäfen römisch sind (Darstellungsregel). */
+  var ORBIS = null, ORBIS_OBJ = [];
+  var ORBIS_ART = { kueste: 'Küstenschifffahrt', hochsee: 'Hochseeroute', faehre: 'Fähre', fluss: 'Flussschifffahrt' };
+  function initOrbis(d) {
+    ORBIS = d && Array.isArray(d.routen) ? d : null;
+    ORBIS_OBJ = ORBIS ? ORBIS.routen.map(function (r, i) { return { id: r.id, n: i, orbis: r, pts: r.p }; }) : [];
+  }
+  function orbisSichtbar(y) {
+    if (!ORBIS || !TRADE.on || !TRADE.schiff || !state.on.rom || state.epoche !== 'antike') return [];
+    return ORBIS_OBJ.filter(function (d) { return d.orbis.zeiten.some(function (z) { return y >= z[0] && y < z[1]; }); });
+  }
+  function orbisFarbe(d) {
+    var a = d.orbis.art === 'fluss' ? 0.5 : 0.75;
+    return state.mode === 'schem' ? 'rgba(10,63,102,' + a + ')' : 'rgba(150,215,255,' + a + ')';
+  }
+  function openOrbisInfo(d) {
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk see', 'Schiffsverkehr (ORBIS)'));
+      var h = el('h3', null, d ? d.orbis.von_ort + ' – ' + d.orbis.nach_ort : 'Schiffsverkehr im Römischen Reich'); h.id = 'tinfoTitle'; b.appendChild(h);
+      if (d) row(b, 'Art', ORBIS_ART[d.orbis.art] || d.orbis.art);
+      else row(b, 'Im Jahr ' + fmtYear(state.year), orbisSichtbar(state.year).length + ' von ' + ORBIS_OBJ.length + ' Strecken (Küste, Hochsee, Fähren, Flüsse)');
+      row(b, 'Was gezeigt wird', 'Das Verkehrsnetz des ORBIS-Modells um 200 n. Chr.: Strecken, auf denen Schiffe Waren und Menschen transportierten, im Mittelmeer, am Atlantik bis Britannien und auf den großen Flüssen. Die Linien sind Modellstrecken, keine belegten einzelnen Fahrten.');
+      row(b, 'Zeit', 'ORBIS enthält keine Jahreszahlen. Eine Strecke erscheint, solange beide Endhäfen im Tafelbild römisch sind. Das ist eine Darstellungsregel, kein Beleg für den Beginn des Verkehrs.').classList.add('twarn');
+      row(b, 'Daten', 'ORBIS – The Stanford Geospatial Network Model of the Roman World (W. Scheidel, E. Meeks), orbis.stanford.edu; Daten aus github.com/emeeks/orbis_v2, vereinfacht mit build_orbis.py.');
+      row(b, 'Lizenz', 'MIT (Repository emeeks/orbis_v2)');
+    });
   }
 
   /* ---------- Layer „Römische Straßen“ (Itiner-e, CC BY 4.0) ---------- */
@@ -1165,12 +1196,8 @@
     var schem = state.mode === 'schem';
     if (d.stil === 'ehemals') return schem ? 'rgba(122,40,20,0.32)' : 'rgba(255,215,195,0.3)';
     if (d.stil === 'undatiert') return schem ? 'rgba(70,70,70,0.6)' : 'rgba(210,210,210,0.6)';
+    // einfarbig (Entscheidung, siehe docs/STRASSEN_ZEITMODELL.md): die Datierungsqualität steht in der Infokarte
     var a = d.s === 'H' ? 0.4 : 0.85, rgb = schem ? '122,40,20' : '255,205,185';
-    if (STR_OPT.unsicherheit) {
-      var dt = d.L.datierung;
-      if (dt === 'itinere_belegt') rgb = schem ? '20,110,60' : '150,245,185';
-      else if (dt === 'itinere_teilweise') rgb = schem ? '150,95,0' : '255,215,110';
-    }
     return 'rgba(' + rgb + ',' + a.toFixed(2) + ')';
   }
   function strassenDash(d, i) {
@@ -1219,7 +1246,7 @@
       row(b, 'Im Jahr ' + fmtYear(state.year), c.ausbau + ' Linien im Ausbau, ' + c.roemisch + ' in römischer Nutzung, ' + c.nachroemisch + ' nachrömisch' + (c.undatiert ? ', ' + c.undatiert + ' undatiert' : '') + ' (von ' + STRASSEN.linien.length + ')');
       row(b, 'Belegt', 'Verlauf und räumliche Sicherheit der Hauptstraßen (Itiner-e). Für einen Teil der Linien grenzen Itiner-e-Belege (frühestes Datum, Bauphasen meist nach Meilensteinen) den Ausbau ein.');
       row(b, 'Modelliert', 'Ausbauzeitraum und Ende der römischen Nutzung je Region (regionales Szenariomodell). Die schrittweise Einblendung ist eine didaktische Animation, kein belegter Baufortschritt.');
-      row(b, 'Darstellung', 'Kräftig: gesicherter oder erschlossener Verlauf; blass: vermutet. Option „Ehemalige Trassen“: nach dem Ende der römischen Nutzung blass gestrichelt (mittelalterliche Nutzung nicht allgemein belegt). Option „Datierung zeigen“: grün mit Itiner-e-Belegen, gelb teilweise, sonst nur Regionalmodell.');
+      row(b, 'Darstellung', 'Kräftig: gesicherter oder erschlossener Verlauf; blass: vermutet. Option „Ehemalige Trassen“: nach dem Ende der römischen Nutzung blass gestrichelt (mittelalterliche Nutzung nicht allgemein belegt).');
       row(b, 'Nach 1400', 'Keine Linie gilt als aktiv: Für eine mittelalterliche Nutzung enthält der Datensatz keine Belege. Im Referenzmodus erscheinen die ehemaligen Trassen.').classList.add('twarn');
       row(b, 'Daten', (L ? L.voll + '.' : M._quelle) + ' Zeitmodell ' + (M._zeitmodell_version || '') + ', angereichert mit build_strassen_zeit.py.');
       row(b, 'Lizenz', 'CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), Daten vereinfacht und auf Hauptstraßen reduziert');
@@ -1264,6 +1291,7 @@
   }
   function pathColor(d) {
     if (d.strasse) return strassenFarbe(d);
+    if (d.orbis) return orbisFarbe(d);
     if (d.vw) return state.mode === 'schem' ? mix(d.vw.farbe, '#000000', 0.35) : mix(d.vw.farbe, '#ffffff', 0.25);
     if (d.eu) return state.mode === 'schem' ? '#1d4f8a' : '#8fc3ff';
     if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
@@ -1277,6 +1305,7 @@
     if (d.vw) return [0.03, 0.012][i];   // Zeichenfeder: sichtbarer Anteil, dahinter Lücke
     if (d.eu) return [1, 0][i];
     if (d.strasse) return strassenDash(d, i);
+    if (d.orbis) return [1, 0][i];
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
       if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
@@ -1290,6 +1319,7 @@
     if (d.vw) return 2.6;
     if (d.eu) return 2;
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
+    if (d.orbis) return null;
     if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
     if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
     return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2;
@@ -1315,6 +1345,11 @@
             : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
           return t.outerHTML;
         }
+        if (d.orbis) {
+          t.appendChild(el('b', null, (ORBIS_ART[d.orbis.art] || '') + ': ' + d.orbis.von_ort + ' – ' + d.orbis.nach_ort)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode('ORBIS-Modell um 200 n. Chr. · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.zh) {
           t.appendChild(el('b', null, d.ab ? d.zh.name + ': ' + d.ab.name : d.zh.name)); t.appendChild(el('br'));
           t.appendChild(document.createTextNode((d.ab ? BELEGT_TXT[d.ab.belegt] : d.zh.stationen) + ' · Klick für Infos'));
@@ -1329,6 +1364,7 @@
       })
       .onPathClick(function (d) {
         if (d.strasse) openStrassenLinie(d);
+        else if (d.orbis) openOrbisInfo(d);
         else if (d.zh) openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } });
         else if (d.kontakt) openKontaktInfo(d.kontakt);
         else openText(routeText(d.route), { label: 'Daten zur Route', fn: function () { openTradeInfo(d.route); } });
@@ -1360,6 +1396,11 @@
       var sb = el('button', 'rl-item str'); sb.type = 'button';
       sb.appendChild(el('i')); sb.appendChild(el('span', null, 'Römische Straßen (Kartenlayer)'));
       sb.addEventListener('click', openStrassenInfo); box.appendChild(sb);
+    }
+    if (tv.schiff && tv.schiff.length) {
+      var ob = el('button', 'rl-item orbis'); ob.type = 'button';
+      ob.appendChild(el('i')); ob.appendChild(el('span', null, 'Schiffsverkehr im Reich (ORBIS)'));
+      ob.addEventListener('click', function () { openOrbisInfo(null); }); box.appendChild(ob);
     }
     tv.routes.forEach(function (rt) {
       var b = el('button', 'rl-item ' + rt.v.art); b.type = 'button';
@@ -1520,6 +1561,11 @@
         if (sd) { g.insert('path', ':first-child').attr('d', sd).attr('fill', 'none').attr('stroke', st[0] === 'undatiert' ? '#555' : '#7a2e1c').attr('stroke-width', 1.1)
           .attr('stroke-opacity', st[1]).attr('stroke-dasharray', st[2]).attr('pointer-events', 'none'); any = true; }
       });
+    }
+    if (tv.schiff && tv.schiff.length && r === 'rom') {   // Schiffsverkehr (ORBIS) unter den Handelsrouten
+      var sd2 = path({ type: 'MultiLineString', coordinates: tv.schiff.map(function (d) { return d.pts; }) });
+      if (sd2) { g.insert('path', ':first-child').attr('d', sd2).attr('fill', 'none').attr('stroke', '#155f86').attr('stroke-width', 1.1)
+        .attr('stroke-opacity', 0.55).attr('pointer-events', 'none'); any = true; }
     }
     tv.routes.forEach(function (rt) {
       var v = rt.v, col = TRADE_MAP[v.art];
@@ -2270,7 +2316,7 @@
     });
     function setTrade(k, v) {
       TRADE[k] = v;
-      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr' }[k]);
+      var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff' }[k]);
       b.classList.toggle('on', v); b.setAttribute('aria-pressed', v);
       if (k === 'on') {
         $('#handelSub').classList.toggle('off', !v);
@@ -2286,6 +2332,7 @@
     $('#tglWaren').addEventListener('click', function () { setTrade('waren', !TRADE.waren); });
     $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
     $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
+    $('#tglSchiff').addEventListener('click', function () { setTrade('schiff', !TRADE.schiff); });
     // Entdeckungsfahrten des Zheng He (unter Handel & Austausch)
     $('#tglZh').addEventListener('click', function () {
       ZH.on = !ZH.on; this.classList.toggle('on', ZH.on); this.setAttribute('aria-pressed', ZH.on);
@@ -2298,7 +2345,7 @@
       PENS.forEach(function (q) { zhSchiffStil(q.schiff); });
     });
     $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); $('#strOpt').classList.toggle('off', !TRADE.strassen); });
-    [['#tglStrEhem', 'ehemals'], ['#tglStrAnim', 'animieren'], ['#tglStrUns', 'unsicherheit']].forEach(function (x) {
+    [['#tglStrEhem', 'ehemals'], ['#tglStrAnim', 'animieren']].forEach(function (x) {
       $(x[0]).addEventListener('click', function () {
         STR_OPT[x[1]] = !STR_OPT[x[1]]; this.classList.toggle('on', STR_OPT[x[1]]); this.setAttribute('aria-pressed', STR_OPT[x[1]]);
         lastKey = ''; setYear(state.year);
@@ -2425,10 +2472,11 @@
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
   Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json'),
     load('data/texte.json'), load('data/literatur.json'), load('data/roemerstrassen.json'),
+    load('data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     load(/[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); VIG = res[9];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[10];
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });

@@ -8,7 +8,8 @@ Stand der Prüfung: 20.11.2026. Geprüft wurden ORBIS und die Datensatzliste von
 |---|---|---|---|
 | Straßenverlauf | Itiner-e (2025), 819 vereinfachte Hauptstraßen | ORBIS-Straßennetz (2012/2014) | **Itiner-e bleibt**: genauer, neuer, teils datiert |
 | Zeitangaben der Straßen | regionales Modell + Itiner-e-Belege | ORBIS: keine Jahreszahlen | ORBIS hilft hier nicht |
-| Reisezeiten, Seewege | – | ORBIS: Geschwindigkeit und Kosten je Strecke, See- und Flussrouten | möglicher **neuer Baustein** |
+| Schiffsverkehr (Küste, Hochsee, Flüsse) | **ORBIS** (seit 20.11.2026, Schalter „Schiffsverkehr (ORBIS)“) | – | **umgesetzt**, siehe unten |
+| Reisezeiten | – | ORBIS: Geschwindigkeit und Kosten je Strecke | möglicher neuer Baustein |
 | Römische Städte | 94 Orte, von Hand gesetzt (`data/reiche.json` → `orte`) | Hanson, Cities Database (1388 Städte, mit Anfangsjahr) | möglicher **Ersatz/Ergänzung**, Lizenz vorher klären |
 | Ortsnamen, Koordinaten | von Hand | Pleiades (Ortsverzeichnis), ORBIS-Orte | zum Abgleich geeignet |
 
@@ -53,7 +54,14 @@ Stand der Prüfung: 20.11.2026. Geprüft wurden ORBIS und die Datensatzliste von
    - Die Zoomstufen ergeben sich aus dem Barrington-Rang (1 → Weltstadt … 4/5 → nur ganz nah).
    - Die Liste ist rund 15-mal so lang wie die bisherige. Die Ausdünnung nach Zoomstufe bleibt daher wichtig.
    - Grenze: Hanson deckt nur das Römische Reich ab. Han-China und die Nachbarreiche bleiben von Hand gepflegt.
-2. **Reisezeiten aus ORBIS** (MIT):
+2. **Schiffsverkehr aus ORBIS – umgesetzt** (`build_orbis.py` → `data/orbis_schiff.json`):
+   - Übernommen werden nur die Schiffsstrecken, nicht die Straßen: 505 Strecken (349 Küste, 56 Hochsee, 5 Fähren, 95 Flüsse). Stromauf und stromab zwischen denselben Orten sind zu einer Flussstrecke zusammengefasst.
+   - Die Endpunkte der Schiffsstrecken tragen ORBIS-Kennungen, die um 100 000, 200 000 usw. versetzt sind. Kennung modulo 100 000 ergibt den Ort in `sites_extended.csv`.
+   - **Zeitregel:** ORBIS hat keine Jahreszahlen. Eine Strecke ist sichtbar, solange beide Endpunkte in einer römischen Fläche aus `data/reiche.json` liegen (Puffer 0,3°, weil Häfen knapp außerhalb der vereinfachten Küstenflächen liegen können). Beispiele: Rutupiae–Gesoriacum 43–410, Strecken im Westen bis 476. Das ist eine Darstellungsregel und kein Beleg für den Beginn des Verkehrs. Die Infokarte sagt das ausdrücklich.
+   - Nur im Abschnitt Antike und nur, wenn das Römische Reich eingeblendet ist.
+   - **Darstellung:** einfarbig hellblau (wie bei den Straßen keine Farbcodierung nach Art), Flüsse blasser. Die Art (Küste, Hochsee, Fähre, Fluss) steht im Tooltip und in der Infokarte.
+   - Sichtbare Strecken: 250 v. Chr. 50, 100 v. Chr. 248, 30 n. Chr. 447, 117 n. Chr. 505, 470 n. Chr. 380.
+3. **Reisezeiten aus ORBIS** (MIT):
    - neuer Schalter, z. B. „Reisezeit ab Rom“, mit Einfärbung der Orte nach Tagen
    - einfaches Wegenetzmodell aus `base_routes.geojson`, nicht das vollständige ORBIS-Modell mit Jahreszeiten und Verkehrsmitteln
-3. **Straßen bleiben Itiner-e.** ORBIS und AWMC/DARMC wären ungenauer und haben keine Zeitangaben (siehe `docs/STRASSEN_ZEITMODELL.md`).
+4. **Straßen bleiben Itiner-e.** ORBIS und AWMC/DARMC wären ungenauer und haben keine Zeitangaben (siehe `docs/STRASSEN_ZEITMODELL.md`).

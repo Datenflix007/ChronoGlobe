@@ -527,6 +527,8 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .chip.hs.kar{grid-column:1 / -1}
 /* Römische Straßen */
 .tlegend line.str{stroke:#ffcdb9;stroke-width:1.6}
+.tlegend line.orbis{stroke:#96d7ff;stroke-width:1.6}
+.rl-item.orbis i{background:#96d7ff;height:2px}
 .rl-item.str i{background:#ffcdb9;height:2px}
 .tinfo .tk.str{color:#ffcdb9}
 /* Schülertexte (Infokarte) */
