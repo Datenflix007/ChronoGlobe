@@ -10,6 +10,7 @@
 Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (nicht per Doppelklick öffnen).
 
 ## Bedienung
+- Oben rechts: **Erste Schritte** (Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen) und **Lehrerhinweise** (Entwurf mit Reitern: Unterrichtsreihe, Kompetenzziele, Handlungsziele, Sachanalyse, Methodisch-didaktische Analyse, Verlaufsplan). „Erste Schritte“ steht in `index.html` (`#modal`). Die Lehrerhinweise werden aus `lehrerhinweise/*.md` geladen (je Datei ein Reiter, derzeit Platzhalter; siehe `lehrerhinweise/README.md`).
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
   - Bei vielen eingeblendeten Reichen werden die Spuren der Zeitleiste enger. Im Spätmittelalter sind die antiken Nachbarspuren ausgeblendet.
 - Provinzen: Die römischen Flächen folgen den Provinzen um 117 n. Chr. Namen, Einrichtungsjahre und Hauptstädte stammen aus der Liste der Provinzen des Römischen Reichs (de.wikipedia).

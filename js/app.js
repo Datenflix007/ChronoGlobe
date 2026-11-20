@@ -17,7 +17,7 @@
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau, Datierungsqualität
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var BILDER = { an: false };   // Abbildungen statt Symbole (nur wo eine Abbildung vorliegt, z. B. Zheng Hes Schatzschiff)
-  var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
+  var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '', lastStrKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
 
   var SWORDS = '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">' +
@@ -521,7 +521,7 @@
       var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
       var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
       stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
-      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + strassenSchluessel(y);
+      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key;
     }
     stateKey.zv = null;
     var ids = [];
@@ -542,9 +542,15 @@
     if (!fromSlider) $('#year').value = sliderPos(y);
     $('#yearOut').textContent = fmtYear(y);
     $('#track').style.setProperty('--pf', pct(y) / 100);
-    var key = stateKey(y);
+    var key = stateKey(y), strKey = strassenSchluessel(y);
     if (key !== lastKey) {
-      lastKey = key; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
+      lastKey = key; lastStrKey = strKey; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
+      if (mapOpen) drawMap(mapReich, true);
+    } else if (strKey !== lastStrKey) {
+      // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
+      // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
+      lastStrKey = strKey;
+      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : tradeGlobePaths(CUR_TV).concat(vwPaths()));
       if (mapOpen) drawMap(mapReich, true);
     }
     else strassenAnteile(y);   // gleicher Stil, aber Netz wächst weiter
@@ -887,7 +893,7 @@
     res.kar = karPlan(y, res);
     res.strassen = strassenSichtbar(y);
     res.strKey = strassenSchluessel(y);
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' + res.strKey + '|' +
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
       res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
@@ -2329,10 +2335,30 @@
     $('#btnInfo').addEventListener('click', function () { $('#modal').hidden = false; });
     $('#modalClose').addEventListener('click', function () { $('#modal').hidden = true; });
     $('#modal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
+    // Lehrerhinweise: Fenster mit Reitern (Pfeiltasten wechseln den Reiter)
+    $('#btnLehrer').addEventListener('click', function () { $('#lmodal').hidden = false; lehrerLaden(); $('.ltabs [aria-selected="true"]').focus({ preventScroll: true }); });
+    $('#lmodalClose').addEventListener('click', function () { $('#lmodal').hidden = true; });
+    $('#lmodal').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
+    var ltabs = Array.prototype.slice.call(document.querySelectorAll('.ltabs [role="tab"]'));
+    function lehrerReiter(t) {
+      ltabs.forEach(function (x) {
+        var an = x === t; x.setAttribute('aria-selected', an); x.tabIndex = an ? 0 : -1;
+        document.getElementById(x.getAttribute('aria-controls')).hidden = !an;
+      });
+      t.focus({ preventScroll: true });
+    }
+    ltabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { lehrerReiter(t); });
+      t.addEventListener('keydown', function (e) {
+        var n = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (n) { e.preventDefault(); e.stopPropagation(); lehrerReiter(ltabs[(i + n + ltabs.length) % ltabs.length]); }
+      });
+    });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (!$('#wmodal').hidden) { $('#wmodal').hidden = true; return; }
         if (!$('#modal').hidden) { $('#modal').hidden = true; return; }
+        if (!$('#lmodal').hidden) { $('#lmodal').hidden = true; return; }
         if (closeInfo()) return;
         closeMap(); return;
       }
@@ -2345,6 +2371,57 @@
   }
 
   /* ---------- Start ---------- */
+  /* ---------- Lehrerhinweise: Inhalte aus lehrerhinweise/*.md (Reiter in index.html, data-md = Datei) ---------- */
+  var LEHRER_GELADEN = false;
+  function lehrerLaden() {
+    if (LEHRER_GELADEN) return;
+    LEHRER_GELADEN = true;
+    document.querySelectorAll('.lpanel[data-md]').forEach(function (sec) {
+      fetch(sec.getAttribute('data-md'), { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (t) { sec.innerHTML = markdown(t); })
+        .catch(function () { sec.innerHTML = '<p class="hint">Datei <code>' + esc(sec.getAttribute('data-md')) + '</code> konnte nicht geladen werden (Seite über einen Webserver öffnen).</p>'; LEHRER_GELADEN = false; });
+    });
+  }
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  /* kleiner Markdown-Leser: Überschriften, Absätze, Listen, Zitate, Tabellen, fett/kursiv/Code/Links; HTML wird maskiert */
+  function markdown(src) {
+    var zeilen = src.replace(/\r/g, '').replace(/<!--[\s\S]*?-->/g, '').split('\n'), out = [], i = 0, ersteH1 = true;
+    function inl(t) {
+      return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+        .replace(/\[([^\]]+)\]\(((?:https?:\/\/|\.{0,2}\/|[\w-]+\.html)[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+    function zellen(z) { return z.trim().replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); }); }
+    while (i < zeilen.length) {
+      var z = zeilen[i], m;
+      if (!z.trim()) { i++; continue; }
+      if ((m = /^(#{1,4})\s+(.*)$/.exec(z))) {
+        if (m[1].length === 1 && ersteH1) { ersteH1 = false; i++; continue; }   // Titel trägt der Reiter
+        var h = Math.min(4, m[1].length + 1); out.push('<h' + h + '>' + inl(m[2]) + '</h' + h + '>'); i++; continue;
+      }
+      if (/^\s*\|/.test(z) && i + 1 < zeilen.length && /^\s*\|?\s*:?-{2,}/.test(zeilen[i + 1])) {
+        var kopf = zellen(z), t = '<table class="ltab"><thead><tr>' + kopf.map(function (c) { return '<th>' + inl(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+        i += 2;
+        while (i < zeilen.length && /^\s*\|/.test(zeilen[i])) { t += '<tr>' + zellen(zeilen[i]).map(function (c) { return '<td>' + inl(c) + '</td>'; }).join('') + '</tr>'; i++; }
+        out.push(t + '</tbody></table>'); continue;
+      }
+      if (/^\s*([-*]|\d+\.)\s+/.test(z)) {
+        var ol = /^\s*\d+\./.test(z), li = [];
+        while (i < zeilen.length && /^\s*([-*]|\d+\.)\s+/.test(zeilen[i])) { li.push('<li>' + inl(zeilen[i].replace(/^\s*([-*]|\d+\.)\s+/, '')) + '</li>'); i++; }
+        out.push((ol ? '<ol>' : '<ul>') + li.join('') + (ol ? '</ol>' : '</ul>')); continue;
+      }
+      if (/^>\s?/.test(z)) {
+        var q = [];
+        while (i < zeilen.length && /^>\s?/.test(zeilen[i])) { q.push(zeilen[i].replace(/^>\s?/, '')); i++; }
+        out.push('<blockquote>' + inl(q.join(' ')) + '</blockquote>'); continue;
+      }
+      var abs = [];
+      while (i < zeilen.length && zeilen[i].trim() && !/^(#{1,4}\s|>|\s*\||\s*([-*]|\d+\.)\s)/.test(zeilen[i])) { abs.push(zeilen[i]); i++; }
+      out.push('<p>' + inl(abs.join(' ')) + '</p>');
+    }
+    return out.join('\n');
+  }
   function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
   Promise.all([load('data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), load('data/handel.json'), load('data/zhenghe.json'),
     load('data/texte.json'), load('data/literatur.json'), load('data/roemerstrassen.json'),

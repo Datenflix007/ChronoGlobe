@@ -206,6 +206,33 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .modal-box h2{margin:0 0 10px}
 .modal-box p{line-height:1.55;color:#dbe5ef;font-size:15px}
 .modal-box .small{flex:none;padding:10px 20px}
+.modal-box{max-height:88vh;overflow:auto}
+.top-btns{margin-left:auto;display:flex;gap:8px}
+.modal-box .steps{margin:0 0 6px;padding-left:22px;color:#dbe5ef;font-size:15px;line-height:1.5}
+.modal-box .steps li{margin:0 0 6px}
+.modal-box .mh{margin:16px 0 4px;font-size:16px;color:#cfe0f2}
+/* Lehrerhinweise */
+.lbox{width:min(920px,94vw)}
+.lhead{display:flex;align-items:center;gap:12px}
+.lhead h2{margin:0;flex:1}
+.modal-box .lentwurf{font-size:13.5px;color:var(--mut);margin:8px 0 12px}
+.lentwurf a{color:#9cc8ff}
+.ltabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.ltabs button{font:600 13px var(--ui);padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:#cfe0f2;cursor:pointer}
+.ltabs button[aria-selected="true"]{background:#2b4e78;border-color:#6aa8e8;color:#fff}
+.ltabs button:focus-visible{outline:2px solid #9cc8ff;outline-offset:2px}
+.lpanel h3{margin:12px 0 4px;font-size:15px;color:#cfe0f2}
+.lpanel ul{margin:4px 0 8px;padding-left:22px;color:#dbe5ef;font-size:15px;line-height:1.5}
+.lpanel li{margin:0 0 4px}
+.lpanel h2,.lpanel h4{margin:12px 0 4px;color:#cfe0f2}.lpanel h2{font-size:17px}.lpanel h4{font-size:14px}
+.lpanel p{line-height:1.55;color:#dbe5ef;font-size:15px}
+.lpanel ol{margin:4px 0 8px;padding-left:22px;color:#dbe5ef;font-size:15px;line-height:1.5}
+.lpanel blockquote{margin:6px 0 10px;padding:8px 12px;border-left:3px solid #6aa8e8;background:rgba(106,168,232,.1);color:#dbe5ef;font-size:14.5px;border-radius:0 8px 8px 0}
+.lpanel code,.lentwurf code{font-size:.92em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:4px}
+.ltab{width:100%;border-collapse:collapse;font-size:14px;color:#dbe5ef;margin:6px 0 10px}
+.ltab th,.ltab td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.ltab th{background:#1d2d42;color:#cfe0f2}
+@media (max-width:700px){.ltab{font-size:12.5px}.ltab th,.ltab td{padding:4px 5px}}
 code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 
 @media (max-width:1180px){

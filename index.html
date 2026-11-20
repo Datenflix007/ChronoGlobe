@@ -16,7 +16,10 @@
 <header class="top">
   
   <h1>Digitales Tafelbild <span id="h1sub">Rom - Das Zentrum der Welt?</span></h1>
-  <button id="btnInfo" class="ghost" title="Hinweise und Lizenzen">Hinweise</button>
+  <div class="top-btns">
+    <button id="btnInfo" class="ghost" title="Bedienung, Hinweise zu Daten und Lizenzen">Erste Schritte</button>
+    <button id="btnLehrer" class="ghost" title="Unterrichtsreihe, Ziele, Sachanalyse, Didaktik und Verlaufsplan">Lehrerhinweise</button>
+  </div>
 </header>
 
 <aside class="panel" id="panel">
@@ -196,10 +199,20 @@
   </div>
 </div>
 
-<!-- Hinweise -->
+<!-- Erste Schritte (Bedienung, Hinweise zu Daten, Lizenzen) -->
 <div id="modal" class="modal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="mt">
-    <h2 id="mt">Hinweise</h2>
+    <h2 id="mt">Erste Schritte</h2>
+    <ol class="steps">
+      <li><b>Globus bewegen:</b> mit der Maus ziehen (oder wischen) dreht den Globus, Mausrad bzw. zwei Finger zoomen. „→ Rom“, „→ China“ und „Eurasien“ im Menü springen zu festen Ansichten.</li>
+      <li><b>Zeit wählen:</b> Schieber der Zeitleiste ziehen, ▶ spielt ab, „−10/+10“ springen um zehn Jahre. Tastatur: ←/→ ein Jahr, mit Shift zehn Jahre, Leertaste Abspielen. Punkte auf der Zeitleiste sind Ereignisse, Schwerter Schlachten.</li>
+      <li><b>Reiche ein- und ausblenden:</b> im Menü links Rom, Han und die Nachbarreiche. Rechts erklären Infokarten, was im gewählten Jahr geschieht.</li>
+      <li><b>Schriftrolle öffnen:</b> Klick auf ein Reich auf dem Globus oder „Schriftrolle öffnen“ in der Infokarte. Dort stehen Vignetten (bei Rom: Wiederholung mit Aufgaben) und die Karte des Reichs.</li>
+      <li><b>Handel &amp; Austausch:</b> „Handelsverbindungen anzeigen“ blendet Land- und Seewege, Waren und Gesandtschaften ein. Klick auf eine Route öffnet eine Infokarte und einen Schülertext in drei Niveaus. Darunter: Römerstraßen und die Fahrten des Zheng He.</li>
+      <li><b>Spätmittelalter:</b> Rechts auf der Zeitleiste liegt der Abschnitt 1400–1453 mit den Fahrten des Zheng He und den portugiesischen Fahrten.</li>
+      <li><b>Schließen:</b> Esc oder Klick neben ein Fenster.</li>
+    </ol>
+    <h3 class="mh">Hinweise zu Daten und Darstellung</h3>
     <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> (grob nach Provinzen bzw. Regionen mit Erwerbs- und Verlustjahr) und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen und Jahreszahlen nur ungefähr wieder. Schlachtsymbole erscheinen für etwa 25 Jahre ab dem Schlachtjahr. Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
     <p><b>Handel &amp; Austausch:</b> Die Routen sind <b>schematisch</b> und grob von Hand gezeichnet. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien. Linien: durchgezogen = belegt, gestrichelt = vermittelt, gepunktet = umstritten. Quellen stehen in jeder Infokarte.</p>
     <p><b>Karawanenhandel:</b> Die Kamel-Symbole zeigen regionalen Zwischenhandel auf kurzen Etappen. Ab 220 n. Chr. (Ende der Han-Dynastie) wird die durchgehende Mittelroute blass dargestellt. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler; gezeigt wird eine Verschiebung in Intensität und Organisation.</p>
@@ -216,6 +229,32 @@
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble Next Generation“ (NASA Earth Observatory, gemeinfrei), Küstenlinien <i>Natural Earth</i> 1:50 Mio. und 1:10 Mio. (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
     <button id="modalClose" class="small">Schließen</button>
+  </div>
+</div>
+
+<!-- Lehrerhinweise -->
+<div id="lmodal" class="modal" hidden>
+  <div class="modal-box lbox" role="dialog" aria-modal="true" aria-labelledby="lmt">
+    <div class="lhead">
+      <h2 id="lmt">Lehrerhinweise</h2>
+      <button id="lmodalClose" class="small">Schließen</button>
+    </div>
+    <p class="lentwurf">Inhalte aus <code>lehrerhinweise/*.md</code> in diesem Repository.</p>
+    <div class="ltabs" role="tablist" aria-label="Lehrerhinweise">
+      <button role="tab" id="lt-reihe" aria-controls="lp-reihe" aria-selected="true">Unterrichtsreihe</button>
+      <button role="tab" id="lt-kompetenz" aria-controls="lp-kompetenz" aria-selected="false" tabindex="-1">Kompetenzziele</button>
+      <button role="tab" id="lt-handlung" aria-controls="lp-handlung" aria-selected="false" tabindex="-1">Handlungsziele</button>
+      <button role="tab" id="lt-sach" aria-controls="lp-sach" aria-selected="false" tabindex="-1">Sachanalyse</button>
+      <button role="tab" id="lt-didaktik" aria-controls="lp-didaktik" aria-selected="false" tabindex="-1">Methodisch-didaktische Analyse</button>
+      <button role="tab" id="lt-verlauf" aria-controls="lp-verlauf" aria-selected="false" tabindex="-1">Verlaufsplan</button>
+    </div>
+
+    <section class="lpanel" role="tabpanel" id="lp-reihe" aria-labelledby="lt-reihe" data-md="lehrerhinweise/01_unterrichtsreihe.md"><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-kompetenz" aria-labelledby="lt-kompetenz" data-md="lehrerhinweise/02_kompetenzziele.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-handlung" aria-labelledby="lt-handlung" data-md="lehrerhinweise/03_handlungsziele.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-sach" aria-labelledby="lt-sach" data-md="lehrerhinweise/04_sachanalyse.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-didaktik" aria-labelledby="lt-didaktik" data-md="lehrerhinweise/05_methodisch_didaktische_analyse.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-verlauf" aria-labelledby="lt-verlauf" data-md="lehrerhinweise/06_verlaufsplan.md" hidden><p class="hint">Wird geladen …</p></section>
   </div>
 </div>
 
