@@ -1700,6 +1700,16 @@
     }
     $('#lanesToggle').addEventListener('click', function () { setLanes(!$('#lanes').classList.contains('collapsed')); });
     try { if (localStorage.getItem('tafelbild.lanes') === '0') setLanes(true); } catch (e) {}
+    // Zeitleiste verkleinern: der Globus wächst in den frei werdenden Platz (über --tlh) und bleibt mittig
+    function setTlMini(mini, nosave) {
+      $('#timeline').classList.toggle('mini', mini);
+      var b = $('#tlToggle'); b.setAttribute('aria-expanded', !mini);
+      b.title = mini ? 'Zeitleiste vergrößern' : 'Zeitleiste verkleinern';
+      if (!nosave) try { localStorage.setItem('tafelbild.tl', mini ? '0' : '1'); } catch (e) {}
+      setTimeout(scheduleTagSides, 60);
+    }
+    $('#tlToggle').addEventListener('click', function () { setTlMini(!$('#timeline').classList.contains('mini')); });
+    try { if (localStorage.getItem('tafelbild.tl') === '0') setTlMini(true, true); } catch (e) {}
     $('#tglRom').addEventListener('click', function () { setOn('rom', !state.on.rom); });
     $('#tglHan').addEventListener('click', function () { setOn('han', !state.on.han); });
     $('#tglOrte').addEventListener('click', function () {

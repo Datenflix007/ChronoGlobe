@@ -6,7 +6,8 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:var(--ui);overflow:hidden}
-#globe{position:fixed;inset:0}
+/* Globus nur im freien Bereich über der Zeitleiste, damit er dort mittig sitzt (--tlh = Höhe der Zeitleiste, aus app.js) */
+#globe{position:fixed;top:0;left:0;right:0;bottom:calc(var(--tlh,180px) + 14px)}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 
@@ -99,6 +100,18 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .play:hover{transform:scale(1.06)}
 .tl-tools{margin-left:auto;display:flex;gap:6px}
 .tl-tools .small{flex:none;min-width:56px}
+/* Zeitleiste verkleinern: nur Kopf und Schieber, ohne Epochenleiste und Spuren */
+.tl-min{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--mut)}
+.tl-min:hover{background:rgba(255,255,255,.14);color:var(--txt)}
+.tl-min svg{transition:transform .25s}
+.timeline.mini .tl-min svg{transform:rotate(180deg)}
+.timeline.mini{padding-top:8px}
+.timeline.mini .epbar,.timeline.mini .lanes,.timeline.mini .lanes-toggle{display:none}
+.timeline.mini .tl-head{margin-bottom:2px}
+.timeline.mini .tl-tools{margin-left:auto}
+@media (max-width:520px){ .timeline.mini .tl-min{margin-left:auto} }
+.timeline.mini .year{font-size:22px;min-width:0}
+.timeline.mini .play{width:36px;height:36px;font-size:14px}
 
 .track{position:relative;padding:0 13px;--pf:.5}
 .lanes{position:relative;display:flex;flex-direction:column;gap:5px}

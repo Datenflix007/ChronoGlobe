@@ -16,6 +16,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   getrennt durch einen schraffierten Zeitsprung (≈). Play, ±10 und Pfeiltasten springen über die Lücke; Klick auf ein
   Epochenfeld springt in den Abschnitt. Die Abschnitte haben verschiedene Maßstäbe; Reichsflächen gibt es nur in der Antike.
   Die Spuren der Nachbarreiche lassen sich über „Nachbarreiche (n)“ einklappen.
+  Der Pfeil rechts oben in der Zeitleiste verkleinert sie: Dann bleiben nur noch Jahr, Abspielen und Schieber. Der Globus nutzt den frei werdenden Platz und steht immer mittig im Bereich über der Zeitleiste.
 - **Schriftrolle:** Klick (oder Tipp) auf ein eingeblendetes Reich auf dem Globus, oder „Schriftrolle öffnen“ im Infoband, öffnet die Rolle dieses Reichs. Esc schließt sie.
   - Das geht bei Rom, Han und allen Nachbarreichen.
   - Reiter **Vignetten**: kindgerechte Inhaltspunkte. Beim Römischen Reich heißt der Reiter **Wiederholung** und enthält Aufgaben mit Rückmeldung.
