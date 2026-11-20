@@ -23,7 +23,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .held-globus{-webkit-mask-image:radial-gradient(circle,#000 62%,transparent 71%);mask-image:radial-gradient(circle,#000 62%,transparent 71%)}
 .held-text{position:relative;z-index:1;max-width:620px;display:flex;flex-direction:column;gap:18px}
 .marke{display:flex;align-items:center;gap:12px}
-.logo{width:46px;height:46px;color:#dbe8f6;flex:none;filter:drop-shadow(0 0 10px rgba(92,194,255,.5))}
+.logo{width:46px;height:46px;flex:none;object-fit:contain;filter:drop-shadow(0 0 10px rgba(92,194,255,.5))}
 .marke-name{font:800 22px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:#dbe8f6}
 .held h1{margin:0;font-size:clamp(38px,6.2vw,74px);line-height:1.02;letter-spacing:-.01em;font-weight:800}
 .verlauf{background:linear-gradient(90deg,#5cc2ff,#a78bfa 45%,#ff7a59);-webkit-background-clip:text;background-clip:text;color:transparent}
