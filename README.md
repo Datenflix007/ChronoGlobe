@@ -10,7 +10,9 @@
 Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (nicht per Doppelklick öffnen).
 
 ## Bedienung
-- Ansicht Satellit/Schematisch, Rom, Han und 11 Nachbarreiche ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
+- Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
+  - Bei vielen eingeblendeten Reichen werden die Spuren der Zeitleiste enger. Im Spätmittelalter sind die antiken Nachbarspuren ausgeblendet.
+- Orte („Orte anzeigen“): Je näher man heranzoomt, desto mehr Orte erscheinen (ganz weit weg keine → Weltstädte → große Provinzzentren → weitere Hauptstädte und Wirtschaftszentren → erst ganz nah alle Orte). Die Schrift bleibt auf dem Bildschirm etwa gleich groß.
 - Zeitstrahl ziehen (Punkte = Ereignisse, Schwerter = Schlachten), ←/→ Jahr, Shift = 10 Jahre, Leertaste = Abspielen.
   Die Zeitleiste hat Epochen-Abschnitte („Europäische Antike“ −300 bis 480, „Europäisches Spätmittelalter“ 1400 bis 1440),
   getrennt durch einen schraffierten Zeitsprung (≈). Play, ±10 und Pfeiltasten springen über die Lücke; Klick auf ein
@@ -36,7 +38,10 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - **Entdeckungsfahrten des Zheng He** (im Handelsmenü, Schalter für alle und jede einzelne Fahrt; Waren über den
     gemeinsamen Schalter „Waren anzeigen“):
   - Sieben Flottenfahrten (1405–1433) in Grüntönen, zu sehen im Zeitleisten-Abschnitt „Europäisches Spätmittelalter“.
-  - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist; laufende Fahrt hell mit wanderndem Strich, frühere blass.
+  - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist (ca. 7 s). Ein Schiff fährt an der Linienspitze mit, Häfen erscheinen beim Erreichen. Beim Abspielen wartet die Zeitleiste, bis die Fahrt gezeichnet ist.
+  - Danach ist die laufende Fahrt hell mit wanderndem Strich, frühere sind blass.
+  - Infoband: erzählende Karte zur laufenden Fahrt (Häfen in Reihenfolge, erreichte abgehakt), Karte „China · Ming-Dynastie“ (Hauptstadt Nanjing, ab 1421 Peking; Jiaozhi 1407–1427) und „Zur gleichen Zeit in Europa“ (Ceuta 1415, Madeira 1419, Azoren 1427, Kap Bojador 1434; auch als Marker auf Globus und Zeitleiste).
+  - Das Ming-Reich (vereinfacht) erscheint, wenn das Han-Reich (China) eingeblendet ist.
     Teilflotten dünn, Unsicheres gepunktet („umstritten“).
   - Häfen mit Infokarte (wann angelaufen, Funktion, Quelle), Waren-Labels mit Richtungspfeil, Ereignisse auf der Zeitleiste,
     Hintergrundtext und Warenübersicht.
@@ -51,6 +56,10 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 
 ## Daten ändern
 - `data/reiche.json` (Provinzen/Regionen, Ereignisse, Schlachten, Orte, Nachbarreiche): erzeugt mit `build_reiche.py` (Python, shapely).
+  - Orte haben eine `stufe` (1 Weltstadt, 2 großes Provinzzentrum, 3 weitere Hauptstadt/Wirtschaftszentrum, 4 kleinerer Ort; Zuordnung in `STUFE_ROM_HAN`) und `zeiten`. Die Zeiten berechnet das Skript: In diesen Jahren gehört das Gebiet des Ortes zum Reich.
+  - Europa (Kontext): Franken, Alamannen, West- und Ostgoten, Sueben, Vandalen, Burgunder, das Reich Odoakers und die Angelsachsen (`kontext: true`). Sie stehen in einer eigenen Menügruppe, sind ausgegraut und haben keine Schriftrolle.
+  - Bei Überlappung gewinnen die Kontext-Reiche gegen Westrom (Reihenfolge `PRIO`).
+  - `luecken`-Prüfung: Innerhalb des Reichsgebiets sollten keine Flächen frei bleiben. Ausgenommen sind historisch freie Gebiete wie die Westalpen vor 15 v. Chr.
 - `data/handel.json` (von Hand gepflegt):
   - `verbindungen`: id, name, art (`land`|`see`), pfad (`[lng,lat]` von West nach Ost), von/bis, reiche, vermittler,
     richtung_waren (`{name, von_nach: "west->ost"|"ost->west"}`), belegt (`belegt`|`vermittelt`|`umstritten`), quelle, hinweis.
@@ -68,6 +77,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   Prüfen mit `python tools/check_zitate.py`. Es vergleicht jede Belegstelle mit den Seitentexten in `quellen/oeffentlich/`
   (gemeinfrei, im Repo) und `quellen/lokal/` (geschützt, nur lokal, per `.gitignore` ausgeschlossen).
 - `data/roemerstrassen.json`: erzeugt mit `build_roemerstrassen.py` aus `itinere_roads.geojson` (Zenodo, CC BY 4.0).
+- Schematische Ansicht: `img/earth-schematic-8k.png` und Kacheln `img/tiles_schem/` aus Natural Earth 1:10 Mio. Die Abdeckung ist dieselbe wie bei den Satelliten-Kacheln. Neu erzeugen mit `python build_schema_kacheln.py <land-10m.json>` (world-atlas 2.0.2).
 - Satellitenbild:
   - `img/earth-blue-marble-8k.jpg` (8192×4096) ist die Grundkugel.
   - Beim Hineinzoomen legen sich Kacheln aus `img/tiles/` darüber (NASA Blue Marble Next Generation, Juli 2004, gemeinfrei).

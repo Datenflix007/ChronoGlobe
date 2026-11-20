@@ -1,9 +1,10 @@
 {
-  "_hinweis": "Inhalte der Schriftrollen je Reich. Format und alle Bausteine: docs/VIGNETTEN.md. Leere 'bloecke' = Platzhalter 'Inhalt folgt'.",
-  "platzhalter": 3,
+  "_hinweis": "Inhalte der Schriftrollen je Reich. Format und alle Bausteine: docs/VIGNETTEN.md. Leere 'bloecke' = Platzhalter 'Inhalt folgt'. 'schriftrolle': false = Reich hat keine Schriftrolle (nicht anklickbar). Kontext-Reiche (europäische Nachfolgestaaten) haben nie eine, außer mit true.",
+  "platzhalter": 5,
   "reiche": {
     "rom": {
       "name": "Römisches Reich",
+      "schriftrolle": true,
       "modus": "wiederholung",
       "titel": "",
       "einleitung": "",
@@ -22,11 +23,22 @@
           "id": "rom-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "rom-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "rom-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "han": {
       "name": "Han-Reich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -45,11 +57,22 @@
           "id": "han-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "han-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "han-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "karth": {
       "name": "Karthago",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -68,11 +91,22 @@
           "id": "karth-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "karth-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "karth-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "ptol": {
       "name": "Ptolemäerreich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -91,11 +125,22 @@
           "id": "ptol-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "ptol-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "ptol-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "seleu": {
       "name": "Seleukidenreich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -114,11 +159,22 @@
           "id": "seleu-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "seleu-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "seleu-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "parth": {
       "name": "Partherreich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -137,11 +193,22 @@
           "id": "parth-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "parth-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "parth-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "sasan": {
       "name": "Sasanidenreich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -160,11 +227,22 @@
           "id": "sasan-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "sasan-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "sasan-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "maurya": {
       "name": "Maurya-Reich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -183,11 +261,22 @@
           "id": "maurya-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "maurya-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "maurya-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "kusch": {
       "name": "Kuschanreich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -206,11 +295,22 @@
           "id": "kusch-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "kusch-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "kusch-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "gupta": {
       "name": "Gupta-Reich",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -229,11 +329,22 @@
           "id": "gupta-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "gupta-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "gupta-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "xiong": {
       "name": "Xiongnu",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -252,11 +363,22 @@
           "id": "xiong-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "xiong-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xiong-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "xianb": {
       "name": "Xianbei",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -275,11 +397,22 @@
           "id": "xianb-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "xianb-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xianb-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
     },
     "hunnen": {
       "name": "Hunnen",
+      "schriftrolle": true,
       "modus": "vignetten",
       "titel": "",
       "einleitung": "",
@@ -298,8 +431,54 @@
           "id": "hunnen-3",
           "titel": "",
           "bloecke": []
+        },
+        {
+          "id": "hunnen-4",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "hunnen-5",
+          "titel": "",
+          "bloecke": []
         }
       ]
+    },
+    "franken": {
+      "name": "Franken",
+      "schriftrolle": false
+    },
+    "alaman": {
+      "name": "Alamannen",
+      "schriftrolle": false
+    },
+    "westgot": {
+      "name": "Westgotenreich",
+      "schriftrolle": false
+    },
+    "sueben": {
+      "name": "Suebenreich",
+      "schriftrolle": false
+    },
+    "vandal": {
+      "name": "Vandalenreich",
+      "schriftrolle": false
+    },
+    "burgund": {
+      "name": "Burgunderreich",
+      "schriftrolle": false
+    },
+    "odoaker": {
+      "name": "Reich des Odoaker",
+      "schriftrolle": false
+    },
+    "ostgot": {
+      "name": "Ostgoten",
+      "schriftrolle": false
+    },
+    "angels": {
+      "name": "Angelsachsen",
+      "schriftrolle": false
     }
   }
 }

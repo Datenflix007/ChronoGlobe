@@ -15,7 +15,11 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
   Inhalte gestützt auf antike Quellen (u. a. Periplus Maris Erythraei, Plinius d. Ä., Strabon, Ptolemaios, Isidor von Charax,
   Shiji, Hanshu, Hou Hanshu); die Quellenangaben stehen bei jedem Eintrag. Keine Atlas- oder Kartendaten Dritter.
 - Symbole (Schwerter, Gesandtschaft): eigene SVG-Zeichnungen.
-- Schematische Globus-Textur img/earth-schematic.png: aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
+- Schematische Ansicht in hoher Auflösung: img/earth-schematic-8k.png und Kacheln img/tiles_schem/ aus Natural Earth 1:10 Mio.
+  (gemeinfrei) über world-atlas 2.0.2 (ISC), land-10m.json, gezeichnet mit build_schema_kacheln.py.
+- Ming-Reich und Vergleich Europa (data/zhenghe.json → ming, europa): eigene, vereinfachte Zeichnung bzw. eigene
+  Zusammenstellung; Quellenangaben stehen bei jedem Eintrag.
+- Schematische Globus-Textur img/earth-schematic.png (Rückfall): aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
   land-50m.json, gezeichnet mit d3 (build_schema_textur.py).
 - Römische Straßen (data/roemerstrassen.json): Itiner-e static version 2024 (de Soto, Pažout, Brughmans u. a.,
   Scientific Data 12, 2025, Nr. 1731), Zenodo DOI 10.5281/zenodo.17122148, Lizenz CC BY 4.0

@@ -245,6 +245,67 @@ try:
 except ImportError:
     print('(shapely fehlt: keine Landprüfung)')
 
+# ---------------- Kontext: Ming-Reich, Hauptstädte, Europa zur gleichen Zeit ----------------
+# Ming-Reich um 1405–1440, grob von Hand gezeichnet (ohne Tibet, Mongolei, Tarimbecken; Grenze etwa entlang der Großen Mauer,
+# Liaodong bis zum Yalu, Yunnan einschließlich der Grenz-Tusi). Jiaozhi (Nordvietnam) war 1407–1427 Ming-Provinz.
+MING = [
+    dict(name='Ming-Reich (vereinfacht)', von=1400, bis=1441, pts=[
+        (98.2,39.8),(102.5,38.4),(104.0,37.6),(105.9,39.0),(106.7,38.9),(108.5,37.9),(110.6,38.9),(111.5,40.3),(114.0,40.8),
+        (116.5,40.8),(118.5,40.5),(119.8,40.1),(121.0,41.8),(123.5,42.5),(124.8,40.6),(124.3,39.6),(122.5,38.8),(122.8,37.0),
+        (123.0,31.0),(122.0,28.0),(119.0,24.0),(117.0,22.8),(114.0,21.5),(111.0,20.6),(111.5,18.0),(108.5,17.8),(108.0,20.0),
+        (108.3,21.5),(107.9,21.5),(106.7,22.8),(105.3,23.3),(103.9,22.5),(102.2,22.4),(101.7,21.2),(100.2,21.5),(98.6,24.1),
+        (97.6,24.8),(98.6,27.5),(99.2,28.3),(101.5,30.0),(102.5,31.5),(103.2,33.0),(104.0,34.2),(102.5,34.8),(101.6,36.0),
+        (101.5,37.5),(100.0,38.5)]),
+    dict(name='Jiaozhi (Nordvietnam, Ming-Provinz 1407–1427)', von=1407, bis=1428, pts=[
+        (102.2,22.4),(103.9,22.5),(105.3,23.3),(106.7,22.8),(107.9,21.5),(108.5,21.0),(107.0,19.5),(106.2,17.8),(105.6,16.8),
+        (104.6,17.6),(104.4,18.6),(103.8,20.5),(102.5,21.5)]),
+]
+def ming_regionen():
+    feats = []
+    try:
+        from shapely.geometry import Polygon, mapping, shape
+        from shapely.geometry.polygon import orient
+        land = shape(json.load(open(os.path.join(HERE, 'data', 'land.json'), encoding='utf-8'))['geometry']).buffer(0)
+        frueher = None
+        for i, m in enumerate(MING):
+            g = Polygon(m['pts']).buffer(0).intersection(land)
+            if frueher is not None: g = g.difference(frueher)   # keine Überlappung
+            frueher = g if frueher is None else frueher.union(g)
+            polys = [orient(q, sign=-1.0) for q in getattr(g, 'geoms', [g]) if q.geom_type == 'Polygon' and q.area > 0.004]
+            gm = mapping(polys[0]) if len(polys) == 1 else {'type': 'MultiPolygon', 'coordinates': [mapping(q)['coordinates'] for q in polys]}
+            gm = json.loads(json.dumps(gm, default=float))
+            def rnd(o): return [rnd(x) for x in o] if isinstance(o, (list, tuple)) else round(o, 3)
+            feats.append({'type': 'Feature', 'properties': {'id': 'ming%d' % i, 'reich': 'ming', 'name': m['name'], 'von': m['von'], 'bis': m['bis'], 'art': 'kern'},
+                          'geometry': {'type': gm['type'], 'coordinates': rnd(gm['coordinates'])}})
+    except ImportError:
+        print('(shapely fehlt: Ming-Reich ohne Küstenanpassung übersprungen)')
+    return feats
+
+DATA['ming'] = {
+    'name': 'Ming-Reich', 'farbe': '#c9772b',
+    'regionen': ming_regionen(),
+    'hauptstaedte': [
+        dict(name='Nanjing (Hauptstadt bis 1421)', lng=118.78, lat=32.06, von=1400, bis=1420),
+        dict(name='Peking (Hauptstadt ab 1421)', lng=116.40, lat=39.90, von=1421, bis=1440),
+    ],
+    'hinweis': 'Fläche stark vereinfacht. Die Ming beherrschten weder Tibet noch die Mongolei; die Nordgrenze verlief etwa entlang der Großen Mauer.',
+}
+# Europa zur gleichen Zeit: portugiesische Entdeckungsfahrten (zum Vergleich)
+DATA['europa'] = [
+    dict(jahr=1415, titel='Portugal erobert Ceuta', ort='Ceuta', lng=-5.32, lat=35.89, belegt='belegt',
+         text='Ein portugiesisches Heer erobert die Hafenstadt Ceuta in Nordafrika. Prinz Heinrich („der Seefahrer“) ist dabei. Danach beginnen die Fahrten an der afrikanischen Küste entlang.',
+         quelle='Gomes Eanes de Zurara, Crónica da Tomada de Ceuta (um 1450)'),
+    dict(jahr=1419, titel='Madeira wird erreicht', ort='Madeira', lng=-16.92, lat=32.65, belegt='belegt',
+         text='Portugiesische Seefahrer (João Gonçalves Zarco, Tristão Vaz Teixeira) erreichen Porto Santo und Madeira. Ab etwa 1420/25 werden die Inseln besiedelt.',
+         quelle='Zurara, Crónica dos feitos da Guiné (1453)'),
+    dict(jahr=1427, titel='Azoren entdeckt', ort='Azoren', lng=-25.67, lat=37.74, belegt='umstritten',
+         text='Ein portugiesischer Seefahrer (Diogo de Silves) sichtet die Azoren mitten im Atlantik. Das Jahr stammt aus einer Seekarte von 1439 und ist nicht ganz sicher; besiedelt wurden die Inseln ab etwa 1432/39.',
+         quelle='Seekarte des Gabriel de Vallseca (1439)'),
+    dict(jahr=1434, titel='Gil Eanes umsegelt Kap Bojador', ort='Kap Bojador', lng=-14.48, lat=26.13, belegt='belegt',
+         text='Gil Eanes fährt als erster Europäer an Kap Bojador vorbei, das lange als Grenze des befahrbaren Meeres galt. Seine Schiffe sind viel kleiner als die Flotte des Zheng He.',
+         quelle='Zurara, Crónica dos feitos da Guiné (1453)'),
+]
+
 out = os.path.join(HERE, 'data', 'zhenghe.json')
 with open(out, 'w', encoding='utf-8') as fh:
     json.dump(DATA, fh, ensure_ascii=False, indent=1)
