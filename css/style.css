@@ -750,7 +750,7 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .cg-schueler #panel,.cg-schueler #btnLehrer,.cg-schueler #lmodal{display:none!important}
 .cg-zeit-aus #year,.cg-zeit-aus #play,.cg-zeit-aus #yMinus,.cg-zeit-aus #yPlus,.cg-zeit-aus #lanes button,.cg-zeit-aus .epoch{pointer-events:none;opacity:.55}
 .cg-globus-aus #globe{cursor:default}
-.cg-badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font:600 13px var(--ui);box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:calc(100vw - 24px)}
+.cg-badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font:600 13px var(--ui);box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:calc(100vw - 24px)}
 .cg-punkt{width:9px;height:9px;border-radius:50%;background:#e0a40c;flex:none}
 .cg-badge[data-s="live"] .cg-punkt{background:#3bd17a}
 .cg-badge[data-s="abfrage"] .cg-punkt,.cg-badge[data-s="aus"] .cg-punkt{background:#e0503c}
@@ -787,3 +787,26 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .cg-qr-box{text-align:center}
 .cg-qr{display:inline-block;padding:10px;background:#fff;border-radius:12px;margin:6px 0}
 .cg-link{font-size:13px;word-break:break-all;color:var(--mut)}
+
+/* ---------- Schüleransicht auf Handy und Tablet ----------
+   Schüler:innen folgen meist der Lehrkraft: weniger Bedienelemente, mehr Globus, gut lesbare Statuszeile. */
+@media (max-width:760px),(max-height:560px),(max-width:1024px) and (orientation:portrait){
+  .cg-schueler .cg-badge{top:auto;bottom:calc(var(--tlh,140px) + 22px);font-size:13.5px}
+  .cg-schueler .cg-zurueck{padding:7px 12px;font-size:13.5px}
+  .cg-schueler .top h1{font-size:17px}
+  .cg-schueler .lanes,.cg-schueler .lanes-toggle{display:none}   /* Ereignisspuren: auf kleinen Bildschirmen zu klein zum Antippen */
+  .cg-schueler.cg-zeit-aus #play,.cg-schueler.cg-zeit-aus #yMinus,.cg-schueler.cg-zeit-aus #yPlus,.cg-schueler.cg-zeit-aus #tlToggle{display:none}
+  .cg-schueler .year{font-size:26px;min-width:0}
+  .cg-schueler #year{height:34px}   /* größere Fläche für den Schieber */
+}
+@media (max-width:760px) and (orientation:portrait){
+  .cg-schueler .top h1 #h1sub{display:none}
+}
+/* flache Querformate (Handy quer): nur Jahr und Schieber, damit der Globus Platz hat */
+@media (max-height:560px){
+  .cg-schueler .epbar,.cg-schueler .ticks{display:none}
+  .cg-schueler .timeline{padding-top:6px;padding-bottom:6px}
+  .cg-schueler .tl-head{margin-bottom:0}
+  .cg-schueler .year{font-size:20px}
+  .cg-schueler .cg-badge{bottom:calc(var(--tlh,90px) + 14px);padding:4px 6px 4px 10px;font-size:12.5px}
+}

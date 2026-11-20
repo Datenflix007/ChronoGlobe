@@ -36,6 +36,12 @@ Wenn alles steht, löst `app.js` das Ereignis `chronoglobe:bereit` aus. Darauf s
   - `"art": "ersetzen"`: die Tafelbild-Datei statt der Kerndatei.
   - `"art": "ergaenzen"`: Objekte werden rekursiv gemischt, Listen angehängt; ein Eintrag mit gleicher `id` ersetzt den Kerneintrag.
 - **Freier Modus:** ein eingebautes Tafelbild ohne `id` (`FREI` in `js/tafelbild.js`).
+- **Relevanter Ausschnitt:** Ein Tafelbild lädt nur Reiche, deren Lebenszeit in seinen `zeitraum` fällt (`reicheFiltern` in `js/app.js`).
+  - Frühe Hochkulturen (`data/fruehe_reiche.json`, `meta.frueh`) kommen nur dazu, wenn der Zeitraum vor 300 v. Chr. beginnt oder das Tafelbild sie in `reiche.verfuegbar` ausdrücklich nennt.
+  - Der freie Modus lädt alles.
+- **Zeitleiste:** Abschnitte stehen in `SEGS`. Ein Abschnitt kann mehrere lineare Teile mit eigenem Maßstab haben (`teile`).
+  - Beispiel: Die frühen Hochkulturen sind ein Vorlauf des ersten Abschnitts; `zeitleisteEinrichten` legt ihn nur an, wenn solche Reiche geladen sind.
+  - `pct`/`yearAt` rechnen über alle Teile; zwischen nicht anschließenden Teilen liegt ein Zeitsprung.
 
 ## Zentraler Zustand (`js/app.js`)
 

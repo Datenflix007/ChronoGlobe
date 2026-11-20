@@ -32,7 +32,7 @@ Ein Tafelbild ist ein Ordner `tafelbilder/<id>/`. Er legt fest, was vom Kern (Gl
 | `kopf`, `untertitel` | `untertitel` ja | Kopfzeile im Globus, z. B. „Digitales Tafelbild“ und die Leitfrage |
 | `beschreibung` | ja | ein bis zwei Sätze für die Galerie |
 | `vorschaubild` | ja | Dateiname im Ordner |
-| `zeitraum` | ja | `{ von, bis, epochen }` in historischen Jahren ohne Jahr 0 (−44 = 44 v. Chr.). Die Zeitleiste lässt nur diesen Bereich zu. |
+| `zeitraum` | ja | `{ von, bis, epochen }` in historischen Jahren ohne Jahr 0 (−44 = 44 v. Chr.). Die Zeitleiste lässt nur diesen Bereich zu, und es werden nur Reiche geladen, die in diesen Zeitraum fallen. Beginnt er vor 300 v. Chr., erscheint links der Abschnitt „Frühe Hochkulturen“. |
 | `start` | ja | `{ jahr, ansicht: "sat" \| "schem", kamera: <Fokuspunkt-id> \| {lat, lng, alt}, drehen }` |
 | `reiche` | ja | `{ verfuegbar: "alle" \| [ids], aktiv: [ids] }`; IDs aus `data/reiche.json` → `meta` |
 | `ebenen` | ja | `{ verfuegbar: "alle" \| [ebenen], aktiv: { ebene: true/false } }`, siehe unten |

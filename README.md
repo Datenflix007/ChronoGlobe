@@ -7,9 +7,13 @@ Veröffentlicht unter **https://datenflix007.github.io/ChronoGlobe/**.
 
 ## Modi
 Die Startseite (`index.html`) bietet vier Wege:
-- **Freies Nutzen – Menschheitsgeschichte** (`app.html?modus=frei`): der ganze Globus mit allen Daten und vollem Menü.
+- **Freies Nutzen – Menschheitsgeschichte** (`app.html?modus=frei`): der ganze Globus mit allen Daten und vollem Menü, dazu links auf der Zeitleiste der Abschnitt **Frühe Hochkulturen** (3500–300 v. Chr.: Mesopotamien, Ägypten, Indus-Kultur, Hethiter, Shang/Zhou, Perserreich; nur angedeutet, `data/fruehe_reiche.json` aus `build_fruehe_kulturen.py`).
 - **Session erstellen** (Lehrkraft): Tafelbild wählen und starten. Es erscheinen Code, Link, QR-Code und Lehrer-Schlüssel; „Session fortsetzen“ listet frühere Sessions dieses Browsers.
 - **Session beitreten** (Schüler:innen): Code eingeben oder QR-Code scannen (`index.html?code=XXXXXX`). Ohne Menü; man folgt der Lehrkraft je nach Freigabe.
+  - Auf Handy und Tablet ist die Schüleransicht reduziert:
+    - keine Ereignisspuren in der Zeitleiste, Statusanzeige über der Zeitleiste;
+    - im Querformat nur Jahr und Schieber;
+    - bei gesperrtem Zeitriegel ohne Abspiel- und ±10-Knöpfe.
 - **Tafelbilder ansehen**: Galerie aus `tafelbilder/index.json`, jedes Tafelbild einzeln (`app.html?tafelbild=<id>`).
 
 Live-Sessions brauchen ein eigenes Supabase-Projekt (`docs/SETUP.md`). Ohne Einrichtung funktionieren freier Modus und Tafelbilder weiter; die Session-Kacheln zeigen dann „Supabase nicht eingerichtet“.

@@ -107,8 +107,25 @@ if AUFNEHMEN:
     sys.exit(0)
 
 basis = json.load(open(BASIS, encoding='utf-8'))
+# Frühe Hochkulturen (data/fruehe_reiche.json) kamen nach dem Ausgangszustand hinzu: im Vergleich herausrechnen
+try: NEU = set(json.load(open(os.path.join(ROOT, 'data', 'fruehe_reiche.json'), encoding='utf-8'))['meta'])
+except Exception: NEU = set()
+# Häfen des Zheng He erscheinen, sobald die Zeichenanimation sie erreicht – zeitabhängig, daher nicht verglichen
+try: HAEFEN = {o['name'] for o in json.load(open(os.path.join(ROOT, 'data', 'zhenghe.json'), encoding='utf-8'))['orte']}
+except Exception: HAEFEN = set()
+def ohne_haefen(e):
+    if isinstance(e, dict) and isinstance(e.get('labels'), str):
+        t = e['labels']
+        for n in sorted(HAEFEN, key=len, reverse=True): t = t.replace(n, '')   # Namen können Kommas enthalten
+        e['labels'] = ','.join(x for x in t.split(',') if x)
+    return e
+def ohne_neue(e):
+    if not isinstance(e, dict): return e
+    if 'gedrueckt' in e: e['gedrueckt'] = [x for x in e['gedrueckt'] if x.split('=')[0] not in NEU]
+    if 'state' in e and isinstance(e['state'].get('on'), dict): e['state']['on'] = {k: v for k, v in e['state']['on'].items() if k not in NEU}
+    return e
 for (n1, a), (n2, e) in zip(basis, schritte):
-    e = json.loads(json.dumps(e))
+    e = ohne_haefen(ohne_neue(json.loads(json.dumps(e)))); a = ohne_haefen(a)
     if e is None: print('  --   ' + n1 + ' (in diesem Modus nicht vorhanden)'); continue
     if a == e: ok += 1; print('  ok   ' + n1)
     else:

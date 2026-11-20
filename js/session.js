@@ -296,6 +296,7 @@
       var st = CGL.getState();
       if (st.fenster && st.fenster.modal === 'lehrer') st.fenster.modal = null;   // Lehrerhinweise nie mitsenden
       if (!L.mitsenden) delete st.fenster;
+      st.kamera.ref = CGL.homeAlt();   // Bezug für Geräte mit anderem Bildformat (Handy, Tablet)
       return st;
     }
     function senden(modus) {
@@ -420,7 +421,11 @@
       var t = {};
       ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau'].forEach(function (k) { if (k in st) t[k] = st[k]; });
       if (alles || R.zeit !== 'selbst' || !abw.zeit) t.jahr = st.jahr;
-      if (alles || R.globus !== 'selbst' || !abw.globus) { t.kamera = st.kamera; t.drehen = false; }
+      if (alles || R.globus !== 'selbst' || !abw.globus) {
+        // gleicher Bildausschnitt auf anderem Format: Abstand im Verhältnis der Standardabstände umrechnen
+        var k = st.kamera || {}, f = k.ref ? CGL.homeAlt() / k.ref : 1;
+        t.kamera = { lat: k.lat, lng: k.lng, alt: Math.max(0.15, Math.min(6, (k.alt || CGL.homeAlt()) * f)) }; t.drehen = false;
+      }
       if (st.fenster && (mitsenden || alles)) {
         var jetzt = CGL.getState().fenster, af = (alt && alt.fenster) || {}, f = {};
         [['rolle', 'reiche'], ['info', 'routen'], ['waren', 'routen'], ['modal', null]].forEach(function (x) {

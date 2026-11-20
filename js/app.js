@@ -372,7 +372,7 @@
   function buildChips() {
     DATA.reihen.forEach(function (r) {
       var m = M(r); if (m.haupt) return;
-      var box = m.kontext ? $('#kxChips') : $('#nbChips');
+      var box = m.frueh ? $('#fruehChips') : m.kontext ? $('#kxChips') : $('#nbChips');
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip nb' + (m.kontext ? ' kx' : ''); b.dataset.r = r;
       b.style.setProperty('--c', m.farbe); b.style.setProperty('--cbg', rgba(m.farbe, 0.28));
       b.setAttribute('aria-pressed', 'false');
@@ -398,18 +398,31 @@
 
   /* ---------- Zeitleiste (Abschnitte je Epoche, dazwischen Zeitsprung) ---------- */
   function segOf(y) { return y >= SEGS[1].von ? SEGS[1] : SEGS[0]; }
+  /* Lineare Teile der Leiste: ein Abschnitt kann mehrere Teile mit eigenem Maßstab haben (frühe Hochkulturen) */
+  function teile() { var T = []; SEGS.forEach(function (S) { (S.teile || [S]).forEach(function (t) { T.push(t); }); }); return T; }
+  function teilVon(y) { return teile().filter(function (t) { return y >= t.von && y <= t.bis; })[0] || segOf(y); }
   function pct(y) {
-    var s = SEGS[0], t = SEGS[1];
-    if (y <= s.bis) return (s.a + (y - s.von) / (s.bis - s.von) * (s.b - s.a)) * 100;
-    if (y >= t.von) return (t.a + (y - t.von) / (t.bis - t.von) * (t.b - t.a)) * 100;
-    return (s.b + (y - s.bis) / (t.von - s.bis) * (t.a - s.b)) * 100;
+    var T = teile();
+    if (y <= T[0].von) return T[0].a * 100;
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i];
+      if (y > t.bis) continue;
+      if (y >= t.von) return (t.a + (y - t.von) / (t.bis - t.von) * (t.b - t.a)) * 100;
+      var p = T[i - 1]; return (p.b + (y - p.bis) / (t.von - p.bis) * (t.a - p.b)) * 100;   // im Zeitsprung
+    }
+    return T[T.length - 1].b * 100;
   }
   /* Anteil 0..1 auf der Leiste -> Jahr; im Zeitsprung rastet es am näheren Rand ein */
   function yearAt(f) {
-    var s = SEGS[0], t = SEGS[1];
-    if (f <= s.b) return Math.round(s.von + Math.max(0, f - s.a) / (s.b - s.a) * (s.bis - s.von));
-    if (f >= t.a) return Math.round(t.von + Math.min(1, (f - t.a) / (t.b - t.a)) * (t.bis - t.von));
-    return f - s.b < t.a - f ? s.bis : t.von;
+    var T = teile();
+    if (f <= T[0].a) return T[0].von;
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i];
+      if (f > t.b) continue;
+      if (f >= t.a) return Math.round(t.von + (f - t.a) / (t.b - t.a) * (t.bis - t.von));
+      var p = T[i - 1]; return f - p.b < t.a - f ? p.bis : t.von;
+    }
+    return T[T.length - 1].bis;
   }
   /* Jahre im Zeitsprung gibt es nicht: vorwärts -> Anfang des nächsten Abschnitts, rückwärts -> Ende des vorigen */
   /* Jahre addieren ohne Jahr 0: 1 v. Chr. + 10 Jahre = 10 n. Chr. (Rechnung in astronomischen Jahren) */
@@ -425,31 +438,31 @@
   }
   function buildTicks() {
     var ticks = $('#ticks'); ticks.innerHTML = '';
-    SEGS.forEach(function (S, si) {
-      for (var y = S.von; y <= S.bis; y += S.tick) {
+    SEGS.forEach(function (S0, si) { (S0.teile || [S0]).forEach(function (S, ti, alle) {
+      for (var y = S.von; ti < alle.length - 1 ? y < S.bis : y <= S.bis; y += S.tick) {
         var t = document.createElement('div'); t.style.left = pct(y) + '%';
         if (y % S.major) { t.className = 'tick minor'; }
         else {
           t.className = 'tick' + (y % S.alt ? ' odd' : '');
-          var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
+          var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : S.kurz ? shortYear(y) : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
           t.appendChild(l); t.appendChild(sh);
         }
         ticks.appendChild(t);
       }
-    });
+    }); });
     buildEpochs();
   }
   /* Epochen-Übersicht über der Zeitleiste: Name je Abschnitt, Zeitsprung dazwischen. Klick springt in den Abschnitt. */
   function buildEpochs() {
     var bar = $('#epbar'); bar.innerHTML = '';
-    SEGS.forEach(function (S) {
-      var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S.ep;
+    SEGS.forEach(function (S0) { (S0.teile || [S0]).forEach(function (S) {
+      var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S0.ep; d.dataset.von = S.von; d.dataset.bis = S.bis;
       d.style.left = S.a * 100 + '%'; d.style.width = (S.b - S.a) * 100 + '%';
       d.appendChild(el('b', null, S.name)); d.appendChild(el('span', null, S.sub));
       d.title = S.name + ' (' + fmtYear(S.von) + ' bis ' + fmtYear(S.bis) + '), ' + S.sub;
-      d.addEventListener('click', function () { if (segOf(state.year) !== S) setYear(S.start); });
+      d.addEventListener('click', function () { if (!(state.year >= S.von && state.year <= S.bis)) setYear(S.start); });
       bar.appendChild(d);
-    });
+    }); });
     var g = el('div', 'epgap', '≈'); g.style.left = SEGS[0].b * 100 + '%'; g.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%';
     g.title = 'Zeitsprung: ' + fmtYear(SEGS[0].bis) + ' bis ' + fmtYear(SEGS[1].von) + ' ist nicht dargestellt';
     bar.appendChild(g);
@@ -518,7 +531,7 @@
       var d = state.year - b.dataset.y; b.classList.toggle('on', d >= 0 && d <= SCHLACHT_JAHRE);
     });
     updateMarkersMing();
-    document.querySelectorAll('#epbar .ep').forEach(function (b) { b.classList.toggle('on', b.dataset.ep === state.epoche); });
+    document.querySelectorAll('#epbar .ep').forEach(function (b) { b.classList.toggle('on', state.year >= +b.dataset.von && state.year <= +b.dataset.bis); });
     $('#lanes').classList.toggle('ming', state.epoche === 'ming');   // Spätmittelalter: antike Nachbarspuren ausblenden
   }
   function stateKey(y) {
@@ -581,7 +594,7 @@
     $('#play').textContent = '❚❚';
     (function step() {
       // am Ende der Antike kurz anhalten, dann über den Zeitsprung
-      var t = state.year === ANTIKE_ENDE ? 1500 : segOf(state.year).takt;
+      var t = state.year === ANTIKE_ENDE ? 1500 : teilVon(state.year).takt || segOf(state.year).takt;
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
         if (PENS.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
@@ -2570,6 +2583,49 @@
   }
 
 
+
+  /* ---------- Frühe Hochkulturen und Zeitraum ----------
+     data/fruehe_reiche.json (build_fruehe_kulturen.py) wird zu den Kerndaten hinzugefügt. Ein Tafelbild lädt nur Reiche,
+     deren Lebenszeit in seinen Zeitraum fällt („relevanter Ausschnitt“); der freie Modus zeigt alles. */
+  function reicheErgaenzen(f) {
+    if (!f || !f.meta) return;
+    Object.keys(f.meta).forEach(function (r) { DATA.meta[r] = Object.assign({ frueh: true }, f.meta[r]); });
+    DATA.reihen = DATA.reihen.concat(f.reihen || Object.keys(f.meta));
+    ['regionen', 'ereignisse', 'schlachten', 'orte'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
+  }
+  function reicheFiltern(tb) {
+    var z = tb && tb.zeitraum; if (!z) return;
+    var weg = {}, liste = tb.reiche && Array.isArray(tb.reiche.verfuegbar) ? tb.reiche.verfuegbar : null;
+    DATA.reihen.forEach(function (r) {
+      var m = DATA.meta[r];
+      if (m.bis <= z.von || m.von >= z.bis) weg[r] = 1;
+      // frühe Hochkulturen nur, wenn das Tafelbild in diese Zeit reicht oder sie ausdrücklich nennt
+      else if (m.frueh && z.von >= SEGS[0].von && !(liste && liste.indexOf(r) >= 0)) weg[r] = 1;
+    });
+    if (!Object.keys(weg).length) return;
+    DATA.reihen = DATA.reihen.filter(function (r) { return !weg[r]; });
+    Object.keys(weg).forEach(function (r) { delete DATA.meta[r]; });
+    DATA.regionen = DATA.regionen.filter(function (f) { return !weg[f.properties.reich]; });
+    DATA.ereignisse = DATA.ereignisse.filter(function (e) { return !weg[e.reich]; });
+    DATA.orte = DATA.orte.filter(function (o) { return !weg[o.reich]; });
+    DATA.schlachten = DATA.schlachten.filter(function (s) { return s.reiche.some(function (r) { return !weg[r]; }); });
+  }
+  /* Reichen geladene Reiche vor 300 v. Chr. zurück, bekommt der erste Abschnitt einen Vorlauf mit eigenem Maßstab */
+  function zeitleisteEinrichten() {
+    var frueh = Math.min.apply(null, DATA.reihen.map(function (r) { return DATA.meta[r].von; }));
+    var tb = window.CG && CG.tafelbild;
+    if (tb && tb.zeitraum) frueh = Math.max(frueh, tb.zeitraum.von);
+    $('#fruehSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].frueh; });
+    if (frueh >= SEGS[0].von) return;
+    var von = Math.floor(frueh / 500) * 500, S = SEGS[0];
+    S.teile = [
+      { von: von, bis: S.von, a: 0, b: 0.2, takt: 12, tick: 500, major: 1000, alt: 1000, start: -2560, kurz: true,
+        name: 'Frühe Hochkulturen', sub: 'Ägypten, Mesopotamien, Indus, China' },
+      { von: S.von, bis: S.bis, a: 0.2, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }
+    ];
+    S.von = von; YMIN = Math.min(YMIN, von);
+  }
+
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
@@ -2679,10 +2735,12 @@
   (window.CG && CG.bereit ? CG.bereit : Promise.resolve(null)).then(function () { return Promise.all([daten('reiche', 'data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), daten('handel', 'data/handel.json'), daten('zhenghe', 'data/zhenghe.json'),
     daten('texte', 'data/texte.json'), daten('literatur', 'data/literatur.json'), daten('roemerstrassen', 'data/roemerstrassen.json'),
     daten('orbis_schiff', 'data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
+    daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[10];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[11];
+    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
