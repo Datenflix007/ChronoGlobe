@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101a27">
+<title>ChronoGlobe</title>
+<meta name="description" content="ChronoGlobe: interaktiver Globus mit Zeitleiste für den Geschichtsunterricht – frei nutzen, Tafelbilder ansehen oder als Live-Session mit der Klasse.">
+<link rel="icon" href="img/icons/favicon.png" type="image/png">
+<link rel="stylesheet" href="css/landing.css">
+<script>
+  // Altlasten und QR-Links: index.html?vignetten=demo → Globus; index.html?code=XXXXXX → direkt beitreten
+  (function () {
+    var q = new URLSearchParams(location.search), lokal = q.get('sync') === 'lokal' ? '&sync=lokal' : '';
+    if (q.get('vignetten')) location.replace('app.html?modus=frei&vignetten=' + encodeURIComponent(q.get('vignetten')));
+    var c = (q.get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (c.length >= 4) location.replace('app.html?session=' + c + '&rolle=schueler' + lokal);
+  })();
+</script>
+</head>
+<body>
+<header class="kopf">
+  <div class="marke">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="24" cy="24" rx="9" ry="20" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 18h38M5 30h38" stroke="currentColor" stroke-width="2"/><path d="M24 4v6M24 38v6" stroke="var(--acc)" stroke-width="3" stroke-linecap="round"/></svg>
+    <div>
+      <h1>ChronoGlobe</h1>
+      <p class="sub">Ein interaktiver Globus mit Zeitleiste für den Geschichtsunterricht</p>
+    </div>
+  </div>
+</header>
+
+<main class="raster">
+  <section class="kachel frei">
+    <h2>Freies Nutzen</h2>
+    <p class="art">Menschheitsgeschichte</p>
+    <p>Der ganze Globus mit allen Daten und dem vollen Menü: Reiche, Handelswege, Römerstraßen, Völkerwanderung, Zheng He. Frei durchklickbar.</p>
+    <a class="knopf prim" href="app.html?modus=frei">Globus öffnen</a>
+  </section>
+
+  <section class="kachel lehrer" aria-labelledby="hLehrer">
+    <h2 id="hLehrer">Session erstellen</h2>
+    <p class="art">für Lehrkräfte</p>
+    <p>Tafelbild wählen und eine Live-Session starten. Die Klasse tritt mit Code, Link oder QR-Code bei und folgt deiner Ansicht.</p>
+    <div class="nur-mit-db">
+      <label class="feld">Tafelbild
+        <select id="tbWahl"></select>
+      </label>
+      <button id="btnStarten" class="knopf prim" type="button">Session starten</button>
+      <div id="neueSession" class="neu" hidden>
+        <div class="code-zeile"><span>Code</span><b id="nsCode"></b></div>
+        <div id="nsQr" class="qr" aria-label="QR-Code zum Beitreten"></div>
+        <p class="klein">Link für Schüler:innen: <a id="nsLink" href="#"></a></p>
+        <p class="klein schluessel">Lehrer-Schlüssel (für einen anderen Rechner notieren): <code id="nsToken"></code></p>
+        <a id="nsOeffnen" class="knopf prim" href="#">Als Lehrkraft öffnen</a>
+      </div>
+      <div id="alteSessions" class="alte" hidden>
+        <h3>Session fortsetzen</h3>
+        <ul id="alteListe"></ul>
+      </div>
+    </div>
+    <p class="hinweis-db" hidden>Supabase ist nicht eingerichtet. Live-Sessions brauchen ein eigenes Supabase-Projekt (siehe <code>docs/SETUP.md</code>). Freies Nutzen und Tafelbilder funktionieren auch ohne.</p>
+  </section>
+
+  <section class="kachel schueler" aria-labelledby="hSchueler">
+    <h2 id="hSchueler">Session beitreten</h2>
+    <p class="art">für Schüler:innen</p>
+    <p>Gib den Code ein, den deine Lehrkraft zeigt – oder scanne den QR-Code.</p>
+    <form id="beitreten" class="nur-mit-db" autocomplete="off">
+      <label class="feld">Code
+        <input id="codeFeld" type="text" inputmode="text" maxlength="12" placeholder="z. B. K7QH3M" aria-describedby="codeHinweis" required>
+      </label>
+      <button class="knopf prim" type="submit">Beitreten</button>
+      <p id="codeHinweis" class="klein">Es werden keine Namen und keine Daten von dir gespeichert.</p>
+    </form>
+    <p class="hinweis-db" hidden>Live-Sessions sind auf dieser Seite noch nicht eingerichtet.</p>
+  </section>
+
+  <section class="kachel galerie" aria-labelledby="hGalerie">
+    <h2 id="hGalerie">Tafelbilder ansehen</h2>
+    <p class="art">Galerie</p>
+    <div id="galerie" class="karten" aria-live="polite"><p class="klein">Tafelbilder werden geladen …</p></div>
+  </section>
+</main>
+
+<footer class="fuss">
+  <span>ChronoGlobe · ein Projekt von Felix Staacke</span>
+  <a href="lehrkraft.html">Lehrkraft-Ansicht der Schülertexte</a>
+  <a href="app.html?modus=frei#hilfe">Hinweise &amp; Lizenzen</a>
+</footer>
+
+<script src="js/session.js"></script>
+<script src="js/landing.js"></script>
+</body>
+</html>

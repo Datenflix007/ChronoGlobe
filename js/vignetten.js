@@ -8,6 +8,8 @@
   var PLATZHALTER = 5;                 // so viele leere Vignetten, wenn für ein Reich nichts eingetragen ist
   var FORTSCHRITT = {};                // reich -> vignetten-index -> block-index -> true/false
   var ANSICHT = {};                    // reich -> 'liste' | index der geöffneten Vignette
+  var BEI_WECHSEL = null;              // Rückmeldung an den zentralen Zustand (js/app.js)
+  function wechsel(r) { if (BEI_WECHSEL) BEI_WECHSEL(r, ANSICHT[r] == null ? 'liste' : ANSICHT[r]); }
   var uid = 0;
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -355,7 +357,7 @@
         add(t, el('small', null, Object.keys(arten).map(function (a) { return sym[a]; }).filter(Boolean).join(' · ')));
         if (s.gesamt) add(b, el('span', 'vg-stand' + (s.richtig === s.gesamt ? ' fertig' : ''), (s.richtig === s.gesamt ? '✓ ' : '') + s.richtig + '/' + s.gesamt));
       }
-      b.addEventListener('click', function () { ANSICHT[ctx.reich] = i; render(box, daten, ctx); box.scrollTop = 0; fokus(box); });
+      b.addEventListener('click', function () { ANSICHT[ctx.reich] = i; wechsel(ctx.reich); render(box, daten, ctx); box.scrollTop = 0; fokus(box); });
     });
   }
   function fokus(box) { var h = box.querySelector('h2,h3'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
@@ -364,9 +366,9 @@
     var v = cfg.vignetten[i], n = cfg.vignetten.length;
     var nav = add(box, el('nav', 'vg-nav'));
     var zur = add(nav, el('button', 'vg-btn', '← Übersicht')); zur.type = 'button';
-    zur.addEventListener('click', function () { ANSICHT[ctx.reich] = 'liste'; render(box, daten, ctx); box.scrollTop = 0; fokus(box); });
+    zur.addEventListener('click', function () { ANSICHT[ctx.reich] = 'liste'; wechsel(ctx.reich); render(box, daten, ctx); box.scrollTop = 0; fokus(box); });
     add(nav, el('span', 'vg-pos', etikett(cfg) + ' ' + (i + 1) + ' von ' + n));
-    function geh(j) { ANSICHT[ctx.reich] = j; render(box, daten, ctx); box.scrollTop = 0; fokus(box); }
+    function geh(j) { ANSICHT[ctx.reich] = j; wechsel(ctx.reich); render(box, daten, ctx); box.scrollTop = 0; fokus(box); }
     var vor = add(nav, el('button', 'vg-btn', '‹')), nach = add(nav, el('button', 'vg-btn', '›'));
     vor.type = nach.type = 'button'; vor.title = 'Vorherige'; nach.title = 'Nächste';
     vor.disabled = i === 0; nach.disabled = i === n - 1;
@@ -405,5 +407,8 @@
   function modus(daten, reich) { return config(daten, reich).modus; }
   function zuruecksetzen(reich) { if (reich) ANSICHT[reich] = 'liste'; }
 
-  window.Vignetten = { render: render, modus: modus, zuruecksetzen: zuruecksetzen, typen: { bloecke: Object.keys(BLOCK), quiz: Object.keys(QUIZ) } };
+  function ansicht(reich) { return ANSICHT[reich] == null ? 'liste' : ANSICHT[reich]; }
+  function setzen(reich, wo) { if (reich) ANSICHT[reich] = wo; }
+  window.Vignetten = { render: render, modus: modus, zuruecksetzen: zuruecksetzen, ansicht: ansicht, setzen: setzen,
+    beiWechsel: function (fn) { BEI_WECHSEL = fn; }, typen: { bloecke: Object.keys(BLOCK), quiz: Object.keys(QUIZ) } };
 })();

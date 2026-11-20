@@ -11,7 +11,7 @@ Die Dateien in diesem Ordner erscheinen im Tafelbild im Fenster **Lehrerhinweise
 | Methodisch-didaktische Analyse | `05_methodisch_didaktische_analyse.md` |
 | Verlaufsplan | `06_verlaufsplan.md` |
 
-Reiter und Dateien sind in `index.html` festgelegt (Block `#lmodal`: je Reiter ein `<section … data-md="lehrerhinweise/…">`).
+Reiter und Dateien sind in `../tafelbild.json` unter `lehrerhinweise` festgelegt (`ordner`, `reiter`: `id`, `titel`, `datei`).
 
 Unterstütztes Markdown (eigener kleiner Leser, keine externe Bibliothek):
 - Überschriften `#`, `##`, `###` (die erste `#`-Überschrift wird nicht angezeigt, der Reiter trägt den Titel)

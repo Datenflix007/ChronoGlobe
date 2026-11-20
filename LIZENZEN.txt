@@ -37,6 +37,9 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
   Verändert: nur Schiffsstrecken (Küste, Hochsee, Fähre, Fluss), vereinfacht, mit Sichtbarkeitszeiten aus den
   römischen Flächen dieses Tafelbilds (build_orbis.py).
+- vendor/supabase.min.js: supabase-js 2.118.0 (UMD-Build von @supabase/supabase-js), Lizenz MIT, Copyright Supabase.
+  Nur in Live-Session-Seiten nachgeladen.
+- vendor/qrcode.min.js: qrcodejs 1.0.0 (davidshimjs), Lizenz MIT. Für QR-Codes zum Beitreten.
 - Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen
   der verwendeten Literatur: data/literatur.json, Regeln: docs/GRUNDREGELN.md.
 - Quellenseiten in quellen/oeffentlich/: gemeinfreie Werke (Plinius d. Ä., Hirth 1885, Schoff 1912; OCR von archive.org

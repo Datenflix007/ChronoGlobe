@@ -739,3 +739,51 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .str-opt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;padding:6px;border:1px dashed var(--line);border-radius:10px;transition:opacity .2s}
 .str-opt.off{display:none}
 .str-opt .str-hint{grid-column:1/-1;font-size:12px}
+
+/* ChronoGlobe: Titel als Link zur Startseite, Fokus-Knöpfe aus dem Tafelbild */
+.h1home{color:inherit;text-decoration:none}
+.h1home:hover,.h1home:focus-visible{text-decoration:underline;text-underline-offset:4px}
+.fokus-btns{display:contents}
+
+/* ---------- Live-Sessions (js/session.js) ---------- */
+/* Schüler:innen: kein Menü, keine Lehrerhinweise; nur Globus, Zeitleiste, Infoband und Fenster */
+.cg-schueler #panel,.cg-schueler #btnLehrer,.cg-schueler #lmodal{display:none!important}
+.cg-zeit-aus #year,.cg-zeit-aus #play,.cg-zeit-aus #yMinus,.cg-zeit-aus #yPlus,.cg-zeit-aus #lanes button,.cg-zeit-aus .epoch{pointer-events:none;opacity:.55}
+.cg-globus-aus #globe{cursor:default}
+.cg-badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font:600 13px var(--ui);box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:calc(100vw - 24px)}
+.cg-punkt{width:9px;height:9px;border-radius:50%;background:#e0a40c;flex:none}
+.cg-badge[data-s="live"] .cg-punkt{background:#3bd17a}
+.cg-badge[data-s="abfrage"] .cg-punkt,.cg-badge[data-s="aus"] .cg-punkt{background:#e0503c}
+.cg-btext{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cg-zurueck{border:0;border-radius:999px;padding:5px 11px;background:var(--acc);color:#05213a;font:700 12.5px var(--ui)}
+.cg-lehrkraft .top h1{margin-right:auto}
+.cg-lehrer{border:1px solid rgba(92,194,255,.45);border-radius:14px;padding:10px 12px;margin:0 0 14px;background:rgba(92,194,255,.07)}
+.cg-lehrer h2{margin-top:0}
+.cg-kopf{display:flex;flex-direction:column;gap:4px;margin:2px 0 10px}
+.cg-code{font:800 26px/1 var(--ui);letter-spacing:3px}
+.cg-anzahl{font-size:13px;color:var(--mut)}
+.cg-lehrer .row{display:flex;gap:6px;margin:0 0 6px}
+.cg-lehrer .cg-wrap{flex-wrap:wrap}
+.cg-lehrer .cg-wrap .small{flex:1 1 40%}
+.cg-lehrer .small.prim{background:rgba(92,194,255,.22);border-color:rgba(92,194,255,.6)}
+.cg-lehrer .small.warn{border-color:rgba(224,80,60,.6)}
+.cg-lehrer .small.on{background:rgba(224,164,12,.25)}
+.cg-lehrer .small.voll{width:100%;flex:none;display:block;margin:2px 0 6px}
+.cg-h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+.cg-recht{margin:0 0 8px}
+.cg-rname{display:block;font-size:13px;margin:0 0 4px}
+.cg-seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.cg-seg button{flex:1;border:0;background:transparent;padding:6px 4px;font-size:12.5px}
+.cg-seg button.on{background:rgba(92,194,255,.28);font-weight:700}
+.cg-check{display:flex;align-items:center;gap:6px;font-size:13.5px;margin:6px 0 0}
+.cg-sperre{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(6,11,18,.78);padding:16px}
+.cg-sperre-box{width:min(460px,100%);background:#162233;border:1px solid var(--line);border-radius:16px;padding:22px 24px}
+.cg-sperre-box h2{margin:0 0 8px}
+.cg-sperre-box p{color:#dbe5ef;line-height:1.5}
+.cg-sperre-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.cg-knopf{display:inline-block;padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--txt);text-decoration:none;font:600 14px var(--ui)}
+.cg-knopf.prim{background:var(--acc);color:#05213a;border-color:var(--acc)}
+.cg-eingabe{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0e1826;color:var(--txt);font:15px var(--ui)}
+.cg-qr-box{text-align:center}
+.cg-qr{display:inline-block;padding:10px;background:#fff;border-radius:12px;margin:6px 0}
+.cg-link{font-size:13px;word-break:break-all;color:var(--mut)}
