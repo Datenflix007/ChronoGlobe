@@ -51,10 +51,20 @@ with sync_playwright() as p:
     check('10b. ohne Handel ebenfalls gleich (Flächen/Beschriftungen)', vorher['poly'] == mit['poly'])
     if OUT: pg.screenshot(path=os.path.join(OUT, 'str_117.png'))
 
-    jahr(-250); a = st()['aufGlobus']; jahr(-100); b1 = st()['aufGlobus']; jahr(100); c = st()['aufGlobus']
-    check('2./3. Ausbau: wenige Linien 250 v. Chr., mehr 100 v. Chr., alle 100 n. Chr.', a < b1 < c == 819, '%d < %d < %d' % (a, b1, c))
+    jahr(-250); a = st()['aufGlobus']; jahr(-100); b1 = st()['aufGlobus']; jahr(200); c = st()['aufGlobus']
+    check('2./3. Netz wächst: wenige Linien 250 v. Chr., mehr 100 v. Chr., alle 200 n. Chr.', a < b1 < c == 819, '%d < %d < %d' % (a, b1, c))
     jahr(-100); check('3b. Ausbauphase zeigt teils eingeblendete Linien', 'ausbau' in st()['stile'], str(st()['stile']))
     if OUT: pg.screenshot(path=os.path.join(OUT, 'str_-100.png'))
+
+    # Zeichenfeder: neu erscheinende Straßen wachsen vom Anfang her, die Geometrie springt nicht
+    jahr(-250); pg.wait_for_timeout(2000)
+    feder = "(() => { const d = %s.globe.pathsData().filter(d => d.strasse && d.__threeObjPath); return d.filter(x => !x.__alt).map(x => ({ g: x.gez, u: x.__threeObjPath.children[0].material.uniforms.dashSize.value, k: (x.__threeObjPath.__currentTargetD || {}).interpolK })); })()" % T
+    pg.evaluate("%s.globe.pathsData().filter(d => d.strasse).forEach(d => d.__alt = 1); %s.setYear(-150); 0" % (T, T)); pg.wait_for_timeout(450)
+    frueh = pg.evaluate(feder); pg.wait_for_timeout(1800); spaet = pg.evaluate(feder)
+    check('Feder: neue Straßen werden gezeichnet (Anteil wächst)', frueh and spaet and sum(x['u'] for x in frueh) < sum(x['u'] for x in spaet) and all(0 < x['u'] < 1 for x in frueh[:20]),
+          '%d neu, Anteil %.2f -> %.2f' % (len(spaet), sum(x['u'] for x in frueh) / max(1, len(frueh)), sum(x['u'] for x in spaet) / max(1, len(spaet))))
+    check('Feder: kein Umherfliegen (Geometrie sofort am Ziel)', all(x['k'] == 1 for x in frueh), str([x['k'] for x in frueh[:5]]))
+    pg.evaluate("%s.globe.pathsData().forEach(d => delete d.__alt); 0" % T)
 
     zust = []
     for y in (-200, -50, 50, 150, 300, 450): jahr(y); zust.append(st()['aufGlobus'])

@@ -28,6 +28,7 @@ Zuordnung (räumlich, dokumentierte Toleranzen):
 Die ursprünglichen Regionalwerte bleiben in zeit.regional erhalten. Koordinaten (p), s und id bleiben unverändert.
 
     python build_strassen_zeit.py <pfad/zu/itinere_roads.geojson>
+    python build_strassen_zeit.py --netz        # nur das Wachstumsnetz (zeit.netz) neu berechnen
 """
 import io, json, math, os, re, sys
 from shapely.geometry import LineString, MultiLineString
@@ -205,7 +206,8 @@ def main(pfad):
                                  if z['datierung'] == 'itinere_belegt' else
                                  'teilweise Itiner-e-Belege (%d %% der zugeordneten Länge); übrige Teile regional modelliert' % round(anteil * 100))
         stat[z['datierung']] += 1
-    daten['_zeitmodell_version'] = '1.1'
+    netz(daten)
+    daten['_zeitmodell_version'] = '1.2'
     daten['zeitliche_einordnung']['anreicherung'] = (
         'build_strassen_zeit.py: räumliche Zuordnung zu Itiner-e-Hauptstraßensegmenten (Toleranz %.2f°, Segmentanteil ≥ %d %%, '
         'Abdeckung ≥ %d %%). Belegte Daten (Lower_Date, Cons_per_e) senken beginn_max höchstens; beginn_min bleibt regional. '
@@ -215,5 +217,122 @@ def main(pfad):
     print('Linien:', len(daten['linien']), stat, 'Region korrigiert:', korr)
 
 
+ROM = (12.48, 41.89)
+LANDWEG = 0.15   # Grad: Abstand, bis zu dem eine Linie als an die Elternlinie angeschlossen gilt
+
+
+def astro(j): return j + 1 if j < 0 else j
+def hist(a): return a - 1 if a <= 0 else a
+
+
+def netz(daten):
+    """Wachstumsnetz für die Zeichenanimation (zeit.netz): Jede Linie setzt an einer schon gezeichneten Linie an.
+
+    - Linien mit gleichem beginn_min bilden eine Gruppe; Gruppen werden zeitlich nacheinander verarbeitet.
+    - Innerhalb der Gruppe wächst das Netz wie ein Baum (Prim): Als nächste kommt immer die Linie, die dem schon
+      gezeichneten Netz (frühere Gruppen + bereits verarbeitete Linien) am nächsten liegt. Die allererste Linie
+      ist die Rom am nächsten gelegene.
+    - Anschlusspunkt: nächster Punkt der Linie zum Netz, als Anteil u ∈ [0, 1] der Linienlänge. Von dort wird die
+      Linie in beide Richtungen gezeichnet.
+    - Zeit: Das Netz wächst mit gleichmäßiger Geschwindigkeit entlang der Netzentfernung vom Gruppenstart; die
+      Gruppe ist zum spätesten beginn_modell ihrer Linien fertig. Eine Linie beginnt frühestens, wenn ihr Anschlusspunkt
+      auf der Elternlinie gezeichnet ist (nur bei Landanschluss ≤ LANDWEG; über See nicht), und ist spätestens zu ihrem eigenen beginn_max fertig.
+    Didaktische Animation, keine Baudaten. Ergebnis: zeit.netz = {u, von, bis, anschluss}.
+    """
+    from shapely.geometry import Point
+    from shapely.ops import nearest_points
+    L = daten['linien']
+    geo = [LineString(l['p']) for l in L]
+    gruppen = {}
+    for i, l in enumerate(L): gruppen.setdefault(astro(l['zeit']['beginn_min']), []).append(i)
+    info = {}   # i -> dict(u, s, e, m, len)  (s/e astronomisch)
+
+    def ankunft(j, pt):
+        """Zeitpunkt, zu dem Linie j am Punkt pt gezeichnet ist"""
+        q = info[j]; t = geo[j].project(pt, normalized=True)
+        return q['s'] + (q['e'] - q['s']) * (abs(t - q['u']) / q['m'] if q['m'] > 0 else 1)
+
+    fertig, alle = [], []   # bereits verarbeitete Linien (Indizes), Gesamtreihenfolge
+    for A in sorted(gruppen):
+        G = gruppen[A]
+        Bg = max(A + 1, max(astro(L[i]['zeit']['beginn_modell']) for i in G))   # Gruppe fertig zum spätesten Modelljahr
+        best = {}
+        frueher = STRtree([geo[j] for j in fertig]) if fertig else None
+        for i in G:
+            if frueher is not None:
+                k, d = frueher.query_nearest(geo[i], return_distance=True, all_matches=False)
+                best[i] = (float(d[0]), fertig[int(k[0])])
+            else:
+                best[i] = (geo[i].distance(Point(ROM)), None)
+        offen, reihe, D, best_d = set(G), [], {}, {}
+        while offen:
+            i = min(offen, key=lambda x: (best[x][0], x))
+            offen.discard(i)
+            d, par = best[i]; best_d[i] = d
+            if par is None:
+                pt = Point(ROM); dstart = 0.0
+            else:
+                pt = nearest_points(geo[i], geo[par])[1]   # Anschlusspunkt auf der Elternlinie
+                if par in D:   # Elternlinie in derselben Gruppe: Netzentfernung fortsetzen
+                    q = info[par]; t = geo[par].project(pt, normalized=True)
+                    dstart = D[par] + abs(t - q['u']) * q['len'] + d
+                else:
+                    dstart = d
+            u = geo[i].project(pt, normalized=True)
+            m = max(u, 1 - u)
+            D[i] = dstart
+            info[i] = dict(u=u, m=m, len=geo[i].length, par=par, pt=pt, d0=dstart, d1=dstart + m * geo[i].length, land=par is not None and d <= LANDWEG, A=A)
+            reihe.append(i)
+            for k in offen:
+                dk = geo[k].distance(geo[i])
+                if dk < best[k][0]: best[k] = (dk, i)
+        Dmax = max(info[i]['d1'] for i in G) or 1.0
+        zeit = lambda x: A + (Bg - A) * x / Dmax
+        for i in reihe:
+            q = info[i]
+            s0, e0 = zeit(q['d0']), zeit(q['d1'])
+            if q['par'] is not None and 's' in info[q['par']] and best_d[i] <= LANDWEG:   # über See: nicht warten
+                verz = max(0.0, ankunft(q['par'], q['pt']) - s0)   # warten, bis der Anschlusspunkt gezeichnet ist
+                s0 += verz; e0 += verz
+                e0 = min(e0, max(Bg, s0 + 1))   # nach dem Warten schneller zeichnen: Gruppe bleibt möglichst im Zeitrahmen
+            Bi = astro(L[i]['zeit']['beginn_max'])
+            if e0 > Bi: e0 = Bi
+            s0 = max(A, min(s0, e0 - 1))
+            q['s'], q['e'] = s0, max(e0, s0 + 1)
+        fertig.extend(G)
+        alle.extend(reihe)
+    # Rückwärts: Hat eine Linie wegen eines Itiner-e-Belegs ein frühes Ende, muss ihre Elternlinie den Anschlusspunkt
+    # rechtzeitig erreichen – sonst erschiene die Linie losgelöst. Elternlinie früher bzw. schneller zeichnen.
+    for i in reversed(alle):
+        q = info[i]
+        if not q['land']: continue
+        p = info[q['par']]
+        frac = abs(geo[q['par']].project(q['pt'], normalized=True) - p['u']) / p['m'] if p['m'] > 0 else 1
+        ank = p['s'] + (p['e'] - p['s']) * frac
+        if ank <= q['s']: continue
+        verschub = min(ank - q['s'], p['s'] - p['A'])
+        p['s'] -= verschub; p['e'] -= verschub
+        ank = p['s'] + (p['e'] - p['s']) * frac
+        if ank > q['s'] and frac > 0:
+            p['e'] = max(p['s'] + 1, p['s'] + (q['s'] - p['s']) / frac)
+            if p['s'] + (p['e'] - p['s']) * frac > q['s']: q['s'] = min(q['e'] - 1, p['s'] + (p['e'] - p['s']) * frac)
+    for i, l in enumerate(L):
+        q = info[i]
+        s0, e0 = int(math.floor(q['s'])), int(math.ceil(q['e']))
+        if e0 <= s0: e0 = s0 + 1
+        l['zeit']['netz'] = {'u': round(q['u'], 3), 'von': hist(s0), 'bis': hist(e0),
+                             'anschluss': L[q['par']]['id'] if q['par'] is not None else None}
+        if q['par'] is not None and not q['land']: l['zeit']['netz']['ueber_see'] = True
+    daten['zeitliche_einordnung']['netz'] = (
+        'zeit.netz (build_strassen_zeit.py, Funktion netz): didaktische Zeichenreihenfolge. Jede Linie setzt am '
+        'nächstgelegenen schon gezeichneten Netzteil an (u = Anschlusspunkt als Anteil der Länge) und wächst von dort '
+        'in beide Richtungen; von/bis = Zeitfenster des Zeichnens innerhalb von beginn_min … beginn_max. Keine Baudaten.')
+
+
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if sys.argv[1:] == ['--netz']:   # nur das Wachstumsnetz neu berechnen (ohne Itiner-e-Rohdaten)
+        d = json.load(open(ZIEL, encoding='utf-8')); netz(d); d['_zeitmodell_version'] = '1.2'
+        with io.open(ZIEL, 'w', encoding='utf-8', newline='\n') as f: json.dump(d, f, ensure_ascii=False, separators=(',', ':'))
+        print('Netz berechnet:', len(d['linien']), 'Linien')
+    else:
+        main(sys.argv[1])

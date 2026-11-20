@@ -31,15 +31,30 @@ test('2. vor der modellierten Entstehung unsichtbar', function () {
     var z = SZ.zustand(l, vorher, REF);
     assert.strictEqual(z.phase, 'vor'); assert.strictEqual(z.stil, null);
   });
-  assert.strictEqual(SZ.zaehlen(L, -300, STD).sichtbar, L.filter(function (l) { return SZ.astro(l.bmin) <= SZ.astro(-300); }).length);
+  assert.ok(SZ.zaehlen(L, -300, STD).sichtbar <= L.filter(function (l) { return SZ.astro(l.bmin) <= SZ.astro(-300); }).length);
 });
 
-test('3. Einblendung im Entstehungsintervall: wachsend, zwischen 0 und 1', function () {
-  var l = L.filter(function (x) { return SZ.astro(x.bmax) - SZ.astro(x.bmin) > 40; })[0];
-  var a = SZ.zustand(l, l.bmin, STD), m = SZ.zustand(l, SZ.historisch(Math.round((SZ.astro(l.bmin) + SZ.astro(l.bmax)) / 2)), STD),
-      e = SZ.zustand(l, SZ.historisch(SZ.astro(l.bmax) - 1), STD);
-  [a, m, e].forEach(function (z) { assert.strictEqual(z.phase, 'ausbau'); assert.ok(z.anteil > 0 && z.anteil <= 1); });
-  assert.ok(a.anteil <= m.anteil && m.anteil <= e.anteil, 'Anteil steigt');
+test('3. Wachstumsnetz: Linie wird im Zeichenfenster vom Anschlusspunkt aus gezeichnet (Anteil 0 → 1)', function () {
+  var mitNetz = L.filter(function (x) { return x.netz; });
+  assert.ok(mitNetz.length > 780, 'fast alle Linien haben ein Zeichenfenster (' + mitNetz.length + ')');
+  mitNetz.forEach(function (l) {
+    assert.ok(l.netz.von >= SZ.astro(l.bmin) && l.netz.bis <= SZ.astro(l.bmax), l.id + ': Fenster im Ausbauzeitraum');
+    assert.ok(l.netz.u >= 0 && l.netz.u <= 1);
+  });
+  var l = mitNetz.filter(function (x) { return x.netz.bis - x.netz.von > 20 && x.netz.von > SZ.astro(x.bmin); })[0];
+  var v = SZ.zustand(l, SZ.historisch(l.netz.von - 1), STD), a = SZ.zustand(l, SZ.historisch(l.netz.von), STD),
+      m = SZ.zustand(l, SZ.historisch(Math.round((l.netz.von + l.netz.bis) / 2)), STD), e = SZ.zustand(l, SZ.historisch(l.netz.bis), STD);
+  assert.strictEqual(v.phase, 'ausbau'); assert.strictEqual(v.stil, null, 'vor dem Anschluss noch nicht gezeichnet');
+  [a, m].forEach(function (z) { assert.strictEqual(z.stil, 'ausbau'); assert.ok(z.anteil > 0 && z.anteil < 1); });
+  assert.ok(a.anteil < m.anteil && m.anteil <= e.anteil && e.anteil === 1, 'Anteil steigt bis 1');
+  // jede Linie (außer der ersten) hängt an einer Linie, die zu ihrem Start schon begonnen hat (über Land; Inseln/Überfahrten ausgenommen)
+  var byId = {}; L.forEach(function (x) { byId[x.id] = x; });
+  var ohne = mitNetz.filter(function (x) { return !x.netz.anschluss; });
+  assert.strictEqual(ohne.length, 1, 'genau ein Startpunkt (bei Rom)');
+  mitNetz.forEach(function (x) {
+    var p = x.netz.anschluss && byId[x.netz.anschluss];
+    if (p && p.netz && !x.zeit.netz.ueber_see) assert.ok(p.netz.von <= x.netz.von, x.id + ' beginnt nicht vor ' + p.id);
+  });
   // ohne Animation: ganz sichtbar ab beginn_modell
   assert.strictEqual(SZ.zustand(l, l.modell, { animieren: false }).stil, 'aktiv');
 });

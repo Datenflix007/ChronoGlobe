@@ -13,7 +13,7 @@ Der Layer „Römerstraßen anzeigen“ (Menü → Handel & Austausch) zeigt die
 | Verlauf (`p`), räumliche Sicherheit (`s`: S = gesichert/erschlossen, H = vermutet) | Itiner-e, vereinfacht und verkettet | **belegt** (Rekonstruktion des Datensatzes) |
 | `beginn_min`, `beginn_max`, `beginn_modell`, `roemische_nutzung_bis_modell` | regionales Szenariomodell (`regionen_modell`) | **modelliert**, keine Bau- oder Aufgabejahre |
 | `zeit.itinere.belege` (Lower_Date, Upper_Date, Bauphase `Cons_per_e`) | Itiner-e-Originalsegmente, räumlich zugeordnet | **belegt** für die zugeordneten Segmente |
-| schrittweise Einblendung | Interpolation zwischen `beginn_min` und `beginn_max` | **didaktische Animation** |
+| Wachstum des Netzes (`zeit.netz`: Anschluss, Zeichenfenster) | berechnet aus Lage und Modellzeiten (`build_strassen_zeit.py --netz`) | **didaktische Animation**, keine Baudaten |
 | `historischer_fortbestand` | — | für alle Linien „unbekannt“ |
 
 ## Phasen (Funktion `StrassenZeit.zustand`)
@@ -21,7 +21,7 @@ Der Layer „Römerstraßen anzeigen“ (Menü → Handel & Austausch) zeigt die
 | Phase | Bedingung (Jahr j) | Hauptmodus | Referenzmodus „Ehemalige Trassen“ |
 |---|---|---|---|
 | A vor | j < `beginn_min` | unsichtbar | unsichtbar |
-| B Ausbau | `beginn_min` ≤ j < `beginn_max` | in Viertelschritten eingeblendet; ohne „Ausbau animieren“ voll ab `beginn_modell` | wie Hauptmodus |
+| B Ausbau | `beginn_min` ≤ j < `beginn_max` | wächst als Netz: ab `netz.von` vom Anschlusspunkt aus gezeichnet, bis `netz.bis` ganz; ohne „Ausbau animieren“ ganz ab `beginn_modell` | wie Hauptmodus |
 | C römisch | `beginn_max` ≤ j ≤ `roemische_nutzung_bis_modell` | voll sichtbar | voll sichtbar |
 | D nachrömisch | danach | **unsichtbar** | blass, gestrichelt: „ehemalige römische Trasse – mittelalterliche Nutzung nicht allgemein belegt“ |
 | undatiert | Ausbauzeitraum fehlt oder ist ungültig | unsichtbar | nur mit „Datierung zeigen“: grau gepunktet |
@@ -36,7 +36,7 @@ Der Layer „Römerstraßen anzeigen“ (Menü → Handel & Austausch) zeigt die
 
 **Darstellung:**
 - Gesichert oder erschlossen: kräftig. Vermutet: blass.
-- Im Ausbau ist die Deckkraft entsprechend verringert.
+- **Zeichenfeder:** Eine Straße wird wie die Schiffsrouten gezeichnet (ca. 1,6 s je Schritt), und zwar vom Anschlusspunkt an das schon gezeichnete Netz aus in beide Richtungen; im Ausbau nur bis zum Anteil des Jahres. Die Geometrie bleibt fest, es wächst nur der sichtbare Strich (Shader-Werte `dashSize`/`dashOffset`). Übergangsanimationen von globe.gl sind abgeschaltet, damit keine Linie aus ihrem ersten Punkt heraus „fliegt“. Beim Zurückspulen gilt der neue Zustand sofort; bei „Bewegung reduzieren“ entfällt die Feder.
 - Mit „Datierung zeigen“: grün = mit Itiner-e-Belegen eingegrenzt, gelb = teilweise, sonst Farbe des Regionalmodells.
 - Ein Klick auf eine Straße öffnet eine Infokarte. Sie zeigt räumliche Sicherheit, Modellzeiten, Quellenlage, Itiner-e-Belege und Zuordnung.
 - Auf der flachen Rom-Karte gelten dieselben Zustände.
@@ -74,6 +74,19 @@ Quelle der Rohdaten: Zenodo, DOI 10.5281/zenodo.17122148, Datei `itinere_roads.g
 
 **Ergebnis (819 Linien):** 200 belegt, 181 teilweise belegt, 438 nur regional, 8 ohne Zuordnung. Die ursprünglichen Werte stehen in `zeit.regional`. Koordinaten, `s` und `id` bleiben unverändert. Das Skript lässt sich wiederholt ausführen und liefert dasselbe Ergebnis.
 
+## Wachstumsnetz (`zeit.netz`)
+
+    python build_strassen_zeit.py --netz      # ohne Itiner-e-Rohdaten; läuft auch am Ende der Anreicherung
+
+Damit das Netz von den schon gezeichneten Straßen aus wächst und keine Linie losgelöst „in der Mitte“ beginnt:
+- Linien mit gleichem `beginn_min` bilden eine Gruppe; die Gruppen werden zeitlich nacheinander verarbeitet.
+- In einer Gruppe kommt als Nächstes immer die Linie, die dem schon gezeichneten Netz am nächsten liegt (frühere Gruppen eingeschlossen). Die erste Linie überhaupt ist die Rom am nächsten gelegene.
+- `u`: Anschlusspunkt als Anteil der Linienlänge (0 = erster Punkt). Von dort wächst die Linie in beide Richtungen.
+- `von`/`bis`: Zeichenfenster. Das Netz einer Gruppe wächst gleichmäßig entlang der Netzentfernung und ist zum spätesten `beginn_modell` der Gruppe fertig.
+- Eine Linie beginnt erst, wenn ihr Anschlusspunkt auf der Elternlinie gezeichnet ist (Landanschluss ≤ 0,15°). Liegt ein Itiner-e-Beleg früher, wird die Elternlinie entsprechend früher gezeichnet.
+- `ueber_see: true`: Anschluss über das Meer (Inseln, Überfahrten). Hier wird nicht auf die Elternlinie gewartet.
+- `anschluss`: id der Elternlinie. 4 Linien ohne Ausbauzeitraum (`beginn_min` = `beginn_max`) erscheinen ohne Fenster.
+
 ## Genauere Datierungen ergänzen
 
 - Direkt in `data/roemerstrassen.json` je Linie `zeit.beginn_min`/`beginn_max` setzen und `zeit.datierung` sowie `zeit.quelle_datierung` mit Beleg angeben. Achtung: `build_strassen_zeit.py` setzt diese Werte aus `zeit.regional` neu. Dauerhafte Einzelbelege gehören deshalb in eine eigene Liste im Skript.
@@ -89,4 +102,4 @@ Quelle der Rohdaten: Zenodo, DOI 10.5281/zenodo.17122148, Datei `itinere_roads.g
 ## Tests
 
     node tests/strassenzeit.test.js                    # Rechenlogik mit den echten Daten (11 Tests)
-    python tests/test_strassen_browser.py [ordner]     # App im Browser (18 Prüfungen, benötigt playwright + Edge/Chromium)
+    python tests/test_strassen_browser.py [ordner]     # App im Browser (20 Prüfungen, benötigt playwright + Edge/Chromium)

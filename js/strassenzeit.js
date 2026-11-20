@@ -6,7 +6,8 @@
 
    Phasen einer Linie im Jahr j:
      A „vor“         j < beginn_min                       → nicht sichtbar
-     B „ausbau“      beginn_min ≤ j < beginn_max          → schrittweise eingeblendet (didaktische Interpolation)
+     B „ausbau“      beginn_min ≤ j < beginn_max          → schrittweise gezeichnet (didaktische Interpolation); mit
+                                                            zeit.netz erst ab netz.von, vom Anschlusspunkt aus wachsend
      C „roemisch“    beginn_max ≤ j ≤ roemische_nutzung_bis_modell → voll sichtbar
      D „nachroemisch“ danach                              → Hauptmodus unsichtbar; Referenzmodus blass gestrichelt
    Ohne gültigen Ausbauzeitraum: „undatiert“ (nur mit Option „Unsicherheit“ sichtbar).
@@ -54,9 +55,15 @@
       if (datierbar && astro(bmin) > astro(bmax)) { fehler.push(id + ': beginn_min > beginn_max, vertauscht'); var t = bmin; bmin = bmax; bmax = t; }
       if (datierbar && (mod === null || astro(mod) < astro(bmin) || astro(mod) > astro(bmax))) mod = historisch(Math.round((astro(bmin) + astro(bmax)) / 2));
       if (l.zeit && ende === null) fehler.push(id + ': Ende der römischen Nutzung unbekannt');
+      // Wachstumsnetz (build_strassen_zeit.py → zeit.netz): Anschlusspunkt u und Zeichenfenster von … bis
+      var n = z.netz && typeof z.netz === 'object' ? z.netz : null, netz = null;
+      if (datierbar && n && zahl(n.u) !== null && jahrOk(n.von) !== null && jahrOk(n.bis) !== null) {
+        var nv = Math.max(astro(bmin), astro(jahrOk(n.von))), nb = Math.min(astro(bmax), astro(jahrOk(n.bis)));
+        if (nb > nv) netz = { u: Math.max(0, Math.min(1, n.u)), von: nv, bis: nb, anschluss: n.anschluss || null };
+      }
       linien.push({
         id: id, s: s, p: p, laenge: gradLaenge(p), datierbar: datierbar,
-        bmin: bmin, bmax: bmax, modell: mod, ende: ende, endeUnbekannt: ende === null,
+        bmin: bmin, bmax: bmax, modell: mod, ende: ende, endeUnbekannt: ende === null, netz: netz,
         datierung: z.datierung || 'unbekannt', region: z.region || null, zeit: z
       });
     });
@@ -75,6 +82,10 @@
         var da = a >= astro(L.modell);
         return { phase: 'ausbau', stil: da ? 'aktiv' : null, anteil: da ? 1 : 0 };
       }
+      if (L.netz) {   // Netz wächst: erst wenn der Anschlusspunkt gezeichnet ist, dann gleichmäßig bis netz.bis
+        if (a < L.netz.von) return { phase: 'ausbau', stil: null, anteil: 0 };
+        return { phase: 'ausbau', stil: 'ausbau', anteil: Math.min(1, (a - L.netz.von + 1) / (L.netz.bis - L.netz.von + 1)) };
+      }
       var f = (a - amin + 1) / (amax - amin + 1);
       var q = Math.max(1, Math.ceil(f * STUFEN)) / STUFEN;
       return { phase: 'ausbau', stil: 'ausbau', anteil: q };
@@ -84,11 +95,11 @@
   }
 
   /* Kurzschlüssel aller sichtbaren Zustände: ändert sich nur, wenn neu gezeichnet werden muss */
-  function schluessel(linien, j, opt) {
+  function schluessel(linien, j, opt, nurStil) {
     var out = '';
     for (var i = 0; i < linien.length; i++) {
       var z = zustand(linien[i], j, opt);
-      out += z.stil ? z.stil.charAt(0) + Math.round(z.anteil * STUFEN) : '-';
+      out += z.stil ? z.stil.charAt(0) + (nurStil ? '' : Math.round(z.anteil * STUFEN)) : '-';
     }
     return out;
   }

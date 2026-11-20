@@ -13,9 +13,10 @@
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
-  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true, strassen: false };
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false };
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau, Datierungsqualität
   var ZH = { on: true, fahrt: {} }, ZHD = null;
+  var BILDER = { an: false };   // Abbildungen statt Symbole (nur wo eine Abbildung vorliegt, z. B. Zheng Hes Schatzschiff)
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
 
@@ -209,7 +210,7 @@
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
     refreshHtml();
-    globe.pathsData(tradeGlobePaths(tv).concat(vwPaths()));
+    pfadeSetzen(tradeGlobePaths(tv).concat(vwPaths()));
     karUpdate();
     setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
@@ -546,6 +547,7 @@
       lastKey = key; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
       if (mapOpen) drawMap(mapReich, true);
     }
+    else strassenAnteile(y);   // gleicher Stil, aber Netz wächst weiter
     visibleBattles(y).forEach(function (b) { if (b.__el) b.__el.classList.toggle('fresh', y - b.jahr <= 4); });
   }
   /* Wechsel zwischen den Abschnitten (über Zeitleiste, Play, ±10, Tastatur) */
@@ -1065,27 +1067,99 @@
   function strassenSichtbar(y) { return !!STRASSEN && TRADE.on && TRADE.strassen && !!state.on.rom; }
   function strassenSchluessel(y) {
     if (!strassenSichtbar(y)) return 'aus';
-    return [STR_OPT.ehemals, STR_OPT.animieren, STR_OPT.unsicherheit, state.mode].join('') + StrassenZeit.schluessel(STRASSEN.linien, y, STR_OPT);
+    // nur Sichtbarkeit und Stil: der gezeichnete Anteil ändert sich über die Feder, ohne die Linien neu zu übergeben
+    return [STR_OPT.ehemals, STR_OPT.animieren, STR_OPT.unsicherheit, state.mode].join('') + StrassenZeit.schluessel(STRASSEN.linien, y, STR_OPT, true);
   }
+  /* Linie gleichmäßig unterteilen (≈ 0,03°): Der Shader misst die Strichlänge in Punkten, nicht in Kilometern –
+     bei gleichen Abständen entspricht der gezeichnete Anteil der Länge. */
+  function gleichmaessig(p, schritt) {
+    var out = [p[0]];
+    for (var i = 1; i < p.length; i++) {
+      var a = p[i - 1], b = p[i], d = Math.hypot((b[0] - a[0]) * Math.cos(a[1] * Math.PI / 180), b[1] - a[1]), n = Math.max(1, Math.round(d / schritt));
+      for (var k = 1; k <= n; k++) out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+    }
+    return out;
+  }
+  var ROM_MITTE = [12.48, 41.89];
   function strassenPaths(y) {
-    if (!strassenSichtbar(y)) return [];
-    if (!STR_OBJ) STR_OBJ = STRASSEN.linien.map(function (L, i) { return { id: 'str' + i, strasse: true, s: L.s, L: L, pts: L.p }; });
-    var key = strassenSchluessel(y);
-    if (key === STR_CACHE.key) return STR_CACHE.list;
-    var list = [];
-    STR_OBJ.forEach(function (o) {
-      var z = StrassenZeit.zustand(o.L, y, STR_OPT);
-      o.stil = z.stil; o.anteil = z.anteil; o.phase = z.phase;
-      if (z.stil) list.push(o);
+    if (!strassenSichtbar(y)) {
+      if (STR_OBJ && STR_CACHE.key !== 'aus') { STR_OBJ.forEach(function (o) { o.gez = 0; o.ziel = 0; }); STR_PEN.list = []; STR_CACHE = { key: 'aus', list: [] }; }
+      return [];
+    }
+    if (!STR_OBJ) STR_OBJ = STRASSEN.linien.map(function (L, i) {
+      // Anschlusspunkt u (Anteil der Länge ab dem ersten Punkt): dort setzt die Linie am schon gezeichneten Netz an
+      var u = L.netz ? L.netz.u : d3.geoDistance(L.p[L.p.length - 1], ROM_MITTE) < d3.geoDistance(L.p[0], ROM_MITTE) ? 1 : 0;
+      return { id: 'str' + i, strasse: true, s: L.s, L: L, pts: gleichmaessig(L.p, 0.03), gez: 0, ziel: 0, u: u };
     });
+    var key = strassenSchluessel(y);
+    if (key === STR_CACHE.key) { strassenAnteile(y); return STR_CACHE.list; }
+    var list = [];
+    STR_OBJ.forEach(function (o) { strassenZiel(o, y); if (o.stil) list.push(o); });
     STR_CACHE = { key: key, list: list };
     return list;
+  }
+  /* Zustand und Ziel-Anteil einer Linie; vorwärts zeichnet die Feder, rückwärts gilt der neue Stand sofort */
+  function strassenZiel(o, y) {
+    var z = StrassenZeit.zustand(o.L, y, STR_OPT);
+    o.stil = z.stil; o.anteil = z.anteil; o.phase = z.phase;
+    var ziel = !z.stil ? 0 : z.stil === 'ausbau' ? z.anteil : 1;
+    if (z.stil === 'ehemals' || z.stil === 'undatiert') o.gez = ziel;   // ehemalige/undatierte Trassen ohne Feder
+    else if (ziel < o.gez || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { o.gez = ziel; strassenUniform(o); }
+    else if (ziel > o.gez && ziel !== o.ziel) strassenFeder(o, ziel);
+    o.ziel = ziel;
+  }
+  /* bei jedem Jahreswechsel: gezeichnete Anteile nachführen (auch wenn sich kein Stil ändert) */
+  function strassenAnteile(y) {
+    if (!STR_OBJ || !strassenSichtbar(y)) return;
+    STR_CACHE.list.forEach(function (o) { strassenZiel(o, y); });
+  }
+  /* Zeichenfeder für Straßen: wie bei den Schiffsrouten wächst nur der sichtbare Abschnitt der Linie (Shader-Werte),
+     die Geometrie bleibt fest. Vom Anschlusspunkt u aus wächst die Linie in beide Richtungen gleich schnell. */
+  var STR_PEN = { list: [], raf: 0, dauer: 1600 };
+  function strassenFeder(o, ziel) {
+    var q = STR_PEN.list.filter(function (x) { return x.o === o; })[0];
+    if (q) { q.von = o.gez; q.nach = ziel; q.t0 = performance.now(); }
+    else STR_PEN.list.push({ o: o, von: o.gez, nach: ziel, t0: performance.now() });
+    if (!STR_PEN.raf) STR_PEN.raf = requestAnimationFrame(strassenFederLauf);
+  }
+  /* sichtbarer Abschnitt als Shader-Werte [dashOffset, dashSize, gapSize]. Im Shader trägt Punkt i (von n) den Wert
+     (n − i) / n: 1 am ersten Punkt, fallend zum letzten. Sichtbar ist dashOffset … dashOffset + dashSize. */
+  function strassenFenster(o) {
+    if (o.gez >= 1) return [0, 1, 0];
+    var f = Math.max(o.gez, 0), u = o.u, m = Math.max(u, 1 - u);
+    var lo = Math.max(0, u - f * m), hi = Math.min(1, u + f * m), n = o.pts.length;
+    var r = function (s) { return (n - s * (n - 1)) / n; }, e = 0.5 / n;
+    if (f <= 0) return [2, 0.00001, 3];   // noch nichts gezeichnet
+    return [r(hi) - e, r(lo) - r(hi) + 2 * e, 3];
+  }
+  function strassenGap(o) { return strassenFenster(o)[0]; }
+  function strassenUniform(o) {
+    var g = o.__threeObjPath, m = g && g.children[0] && g.children[0].material, u = m && m.uniforms;
+    if (!u || !u.dashSize || o.stil === 'ehemals' || o.stil === 'undatiert') return;
+    var w = strassenFenster(o);
+    u.dashOffset.value = w[0]; u.dashSize.value = w[1]; u.gapSize.value = w[2];
+  }
+  function strassenFederLauf(now) {
+    STR_PEN.raf = STR_PEN.list.length ? requestAnimationFrame(strassenFederLauf) : 0;
+    STR_PEN.list = STR_PEN.list.filter(function (q) {
+      if (q.o.ziel !== q.nach) return false;   // inzwischen zurückgespult oder neues Ziel
+      var t = Math.min(1, (now - q.t0) / STR_PEN.dauer), f = 1 - Math.pow(1 - t, 2);
+      q.o.gez = q.von + (q.nach - q.von) * f;
+      strassenUniform(q.o);
+      return t < 1;
+    });
+  }
+  /* Pfade an den Globus geben. globe.gl übernimmt sie erst beim nächsten Durchlauf; die Strichwerte kommen dann aus
+     pathDash/pathDashInitialGap (strassenFenster), laufende Federn setzen sie danach direkt. */
+  function pfadeSetzen(list) {
+    globe.pathsData(list);
+    list.forEach(function (d) { if (d.strasse) strassenUniform(d); });
   }
   function strassenFarbe(d) {
     var schem = state.mode === 'schem';
     if (d.stil === 'ehemals') return schem ? 'rgba(122,40,20,0.32)' : 'rgba(255,215,195,0.3)';
     if (d.stil === 'undatiert') return schem ? 'rgba(70,70,70,0.6)' : 'rgba(210,210,210,0.6)';
-    var a = (d.s === 'H' ? 0.4 : 0.85) * (d.stil === 'ausbau' ? d.anteil : 1), rgb = schem ? '122,40,20' : '255,205,185';
+    var a = d.s === 'H' ? 0.4 : 0.85, rgb = schem ? '122,40,20' : '255,205,185';
     if (STR_OPT.unsicherheit) {
       var dt = d.L.datierung;
       if (dt === 'itinere_belegt') rgb = schem ? '20,110,60' : '150,245,185';
@@ -1096,6 +1170,7 @@
   function strassenDash(d, i) {
     if (d.stil === 'ehemals') { var f = Math.min(0.45, 0.12 / Math.max(d.L.laenge, 0.01)); return [f, f][i]; }   // ≈ 0,12° Strich/Lücke
     if (d.stil === 'undatiert') { var g = Math.min(0.3, 0.04 / Math.max(d.L.laenge, 0.01)); return [g, g * 2][i]; }
+    if (d.gez < 1) return strassenFenster(d).slice(1)[i];   // Feder: gezeichneter Abschnitt
     return [1, 0][i];
   }
   var STR_TXT = { itinere_belegt: 'mit Itiner-e-Belegen eingegrenzt', itinere_teilweise: 'teilweise mit Itiner-e-Belegen', regionalmodell_nicht_einzelbelegt: 'nur regional modelliert (keine Einzelbelege)' };
@@ -1221,9 +1296,10 @@
       .pathStroke(pathStroke)
       .pathDashLength(function (d) { return pathDash(d, 0); })
       .pathDashGap(function (d) { return pathDash(d, 1); })
+      .pathDashInitialGap(function (d) { return d.strasse && d.stil !== 'ehemals' && d.stil !== 'undatiert' ? strassenGap(d) : 0; })
       .pathDashAnimateTime(function (d) { return d.vw ? 7000 : d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
       .pathResolution(1)
-      .pathTransitionDuration(600)
+      .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
         if (d.strasse) {
@@ -1639,7 +1715,7 @@
   function penStart(q) {
     q.t0 = performance.now(); q.f = 0; q.erreicht = -1;
     q.haupt.__pen = 0.00001; q.teile.forEach(function (a) { a.obj.__pen = 0.00001; });
-    var st = q.lauf.pts[0]; q.schiff = { kind: 'zhschiff', farbe: q.farbe, titel: q.titel, lng: st[0], lat: st[1] };
+    var st = q.lauf.pts[0]; q.schiff = { kind: 'zhschiff', farbe: q.farbe, titel: q.titel, bild: q.bild || null, lng: st[0], lat: st[1] };
     PENS.push(q);
     if (!PEN.raf) PEN.raf = requestAnimationFrame(penFrame);
   }
@@ -1654,7 +1730,9 @@
       q.f = f;
       setPen(q.haupt, f);
       q.teile.forEach(function (a) { setPen(a.obj, f <= a.f0 ? 0 : (f - a.f0) / (1 - a.f0)); });
-      var tip = punktBei(q.lauf, f); q.schiff.lng = tip[0]; q.schiff.lat = tip[1];
+      var tip = punktBei(q.lauf, f), vor = punktBei(q.lauf, Math.min(1, f + 0.004)); q.schiff.lng = tip[0]; q.schiff.lat = tip[1];
+      if (Math.abs(vor[0] - tip[0]) > 1e-4) q.schiff.ost = vor[0] > tip[0];   // Fahrtrichtung: Bug voraus
+      zhSchiffStil(q.schiff);
       if (q.schritt) q.schritt(q, f);
       if (t >= 1) fertig.push(q);
     });
@@ -1663,7 +1741,7 @@
     if (fertig.length) {
       fertig.forEach(penEnde);
       PENS = PENS.filter(function (q) { return fertig.indexOf(q) < 0; });
-      globe.pathsData(zhPaths(zv)); globe.htmlElementsData(zhHtml(zv)); refreshLabels(); zhErzUpdate();
+      pfadeSetzen(zhPaths(zv)); globe.htmlElementsData(zhHtml(zv)); refreshLabels(); zhErzUpdate();
     }
   }
   /* neue Fahrten (Zheng He: Startjahr erreicht; Europa: Ereignisjahr erreicht) bekommen eine Feder */
@@ -1677,7 +1755,7 @@
     PEN.prevAkt = akt; PEN.prevEu = eu;
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     neu.forEach(function (v) {
-      penStart({ ziel: v, haupt: v.__p, lauf: v.__lauf, dur: 7000, farbe: ZH_COL[v.nr - 1], titel: v.name + ': Flotte unterwegs',
+      penStart({ ziel: v, haupt: v.__p, lauf: v.__lauf, dur: 7000, farbe: ZH_COL[v.nr - 1], titel: v.name + ': Flotte unterwegs', bild: 'zhenghe',
         teile: v.__ab.map(function (a) { return { obj: a, f0: a.__f0 }; }),
         sichtbar: function (z) { return z.sichtbar.indexOf(v) >= 0; },
         schritt: function (q, f) {
@@ -1712,11 +1790,23 @@
     return orte.concat(haupt);
   }
   var JUNKE = '<svg viewBox="0 0 32 28" aria-hidden="true"><path d="M3 18h26l-3.5 6.5H7.5z" fill="currentColor"/><path d="M15 3v14M15 4l-8 12h8zM16 6l7 10h-7z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M2 26.5c3 1.3 5 1.3 8 0s5-1.3 8 0 5 1.3 8 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+  /* Abbildungen (Option „Abbildungen statt Symbole“): nur wo eine vorliegt; je Darstellung eine Fassung */
+  var ABB = { zhenghe: { sat: 'img/icons/zhenghe_schiff_detail.png', schem: 'img/icons/zhenghe_schiff_schema.png', bugLinks: true } };
+  /* Schiff: Das Element hat die Größe 0 und sitzt genau auf der Spitze der gezeichneten Linie;
+     das Symbol bzw. die Abbildung steht mit dem Kiel darauf. */
   function zhSchiffEl(d) {
     if (d.__el) return d.__el;
-    var e = el('div', 'zhschiff'); e.innerHTML = JUNKE; e.style.setProperty('--c', d.farbe);
-    e.title = d.titel;
-    d.__el = e; return e;
+    var e = el('div', 'zhschiff'), s = el('span', 'zhs-sym'); s.innerHTML = JUNKE; e.appendChild(s);
+    var img = document.createElement('img'); img.className = 'zhs-bild'; img.alt = ''; img.decoding = 'async'; e.appendChild(img);
+    e.style.setProperty('--c', d.farbe); e.title = d.titel;
+    d.__el = e; zhSchiffStil(d); return e;
+  }
+  function zhSchiffStil(d) {
+    var e = d.__el; if (!e) return;
+    var a = BILDER.an && d.bild && ABB[d.bild], src = a ? a[state.mode === 'schem' ? 'schem' : 'sat'] : '';
+    e.classList.toggle('bild', !!a);
+    if (a && e.lastChild.getAttribute('src') !== src) e.lastChild.setAttribute('src', src);
+    e.classList.toggle('flip', !!a && !!d.ost === !!a.bugLinks);   // Bug in Fahrtrichtung
   }
   function europaEl(d) {
     if (d.__el) return d.__el;
@@ -1754,7 +1844,7 @@
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
     globe.pathColor(pathColor).pathStroke(pathStroke);
-    globe.pathsData(zhPaths(zv));
+    pfadeSetzen(zhPaths(zv));
     zv.aktiv.forEach(function (v, i) { if (v.__flag.__el) v.__flag.__el.style.setProperty('--dy', (-14 - i * 28) + 'px'); });
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -2197,6 +2287,10 @@
       lastKey = ''; setYear(state.year);
     });
     $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
+    $('#tglBilder').addEventListener('click', function () {
+      BILDER.an = !BILDER.an; this.classList.toggle('on', BILDER.an); this.setAttribute('aria-pressed', BILDER.an);
+      PENS.forEach(function (q) { zhSchiffStil(q.schiff); });
+    });
     $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); $('#strOpt').classList.toggle('off', !TRADE.strassen); });
     [['#tglStrEhem', 'ehemals'], ['#tglStrAnim', 'animieren'], ['#tglStrUns', 'unsicherheit']].forEach(function (x) {
       $(x[0]).addEventListener('click', function () {

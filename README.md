@@ -37,13 +37,14 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - Klick (oder Tab + Enter) auf Route, Ort, Waren-Chips oder Gesandtschaft öffnet eine Infokarte mit Zeitraum, Waren (mit Richtung),
     Vermittlern, Sicherheitsstufe, Quelle und Hinweisen. Die Liste im Menü bietet denselben Zugang per Tastatur.
   - „Warenübersicht“: Tabelle Ost→West / West→Ost, Anmerkung zum Handelsdefizit (Plinius) und umstrittene Thesen.
-  - **Karawanenhandel** (Schalter im Handelsmenü): Kamel-Symbole ziehen auf kurzen Etappen zwischen Nachbarorten hin und her,
+  - **Karawanenhandel** (Schalter im Handelsmenü, standardmäßig aus): Kamel-Symbole ziehen auf kurzen Etappen zwischen Nachbarorten hin und her,
     keine Karawane läuft durch. Bis 220 n. Chr. auf den Etappen der Mittelroute, danach regional verteilt (alle 12 Jahre neu);
     die durchgehende Mittelroute wird ab 220 blass und gestrichelt. Pause: langsames Ziehen, Play: schneller, ±10/Schieber: Sprung.
   - **Entdeckungsfahrten des Zheng He** (im Handelsmenü, Schalter für alle und jede einzelne Fahrt; Waren über den
     gemeinsamen Schalter „Waren anzeigen“):
   - Sieben Flottenfahrten (1405–1433) in Grüntönen, zu sehen im Zeitleisten-Abschnitt „Europäisches Spätmittelalter“.
   - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist (ca. 7 s). Das Schiff zeichnet die Linie wie eine Feder, Häfen erscheinen beim Erreichen. Die wandernden Striche anderer Linien laufen dabei weiter, denn nur die Strichlänge im Material wächst. Ebenso zeichnen portugiesische Karavellen ihre Fahrten nach Ceuta, Madeira, zu den Azoren und nach Kap Bojador. Beim Abspielen wartet die Zeitleiste, bis die Fahrt gezeichnet ist.
+  - **Abbildungen statt Symbole** (Schalter bei Zheng He): Wo eine Abbildung vorliegt (bisher Zheng Hes Schatzschiff, `img/icons/zhenghe_schiff_*.png`, je eine Fassung für Satellit und Schematisch), ersetzt sie das Symbol; das Schiff zeigt mit dem Bug in Fahrtrichtung. Symbol bzw. Abbildung stehen mit dem Kiel genau auf der Spitze der gezeichneten Linie.
   - Danach ist die laufende Fahrt hell mit wanderndem Strich, frühere sind blass.
   - Infoband: erzählende Karte zur laufenden Fahrt (Häfen in Reihenfolge, erreichte abgehakt), Karte „China · Ming-Dynastie“ (Hauptstadt Nanjing, ab 1421 Peking; Jiaozhi 1407–1427) und „Zur gleichen Zeit in Europa“ (Ceuta 1415, Madeira 1419, Azoren 1427, Kap Bojador 1434; auch als Marker auf Globus und Zeitleiste).
   - Das Ming-Reich (vereinfacht) erscheint, wenn das Han-Reich (China) eingeblendet ist.
@@ -57,7 +58,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
   - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
 - **Römerstraßen** (Schalter im Handelsmenü): 819 Hauptstraßen aus Itiner-e (CC BY 4.0) auf dem Globus und auf der Rom-Karte, sichtbar, wenn das Römische Reich eingeblendet ist. Das Netz verändert sich mit der Zeitleiste:
-  - Straßen erscheinen in ihrer modellierten Ausbauphase (schrittweise eingeblendet, didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.
+  - Straßen erscheinen in ihrer modellierten Ausbauphase (gezeichnet wie die Schiffsrouten; jede Straße setzt am schon gezeichneten Netz an und wächst von dort weiter, ausgehend von Rom; didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.
   - Danach sind sie im Hauptmodus ausgeblendet. Ab 1400 ist keine Straße aktiv.
   - Optionen: „Ehemalige Trassen“ (blass gestrichelt, mittelalterliche Nutzung nicht allgemein belegt), „Ausbau animieren“ und „Datierung zeigen“ (grün belegt, gelb teilweise, sonst Regionalmodell).
   - Ein Klick auf eine Straße zeigt räumliche Sicherheit, Modellzeiten und Itiner-e-Belege.
