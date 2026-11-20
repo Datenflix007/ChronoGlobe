@@ -680,4 +680,22 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .lane.thin.kx{height:8px}
 .lane.thin.kx .era{border-style:dashed;opacity:.8}
 .lane.thin.kx .era .nm{font-size:8px;font-style:italic}
-.lanes.ming .lane.thin{display:none}
+.lanes.ming .lane.thin:not(.mittel){display:none}
+
+/* ----- Ortsnamen auf dem Globus: heller Text mit dünnem dunklem Rand (lesbar über weißen Straßen) ----- */
+.ort{position:relative;width:0;height:0;pointer-events:none}
+.ort i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px rgba(0,0,0,.85)}
+.ort span{position:absolute;left:6px;top:-9px;white-space:nowrap;font:600 12px/1.2 var(--ui);color:var(--c);letter-spacing:.2px;
+  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 -1px 0 #000,0 1px 0 #000,-1px 0 0 #000,1px 0 0 #000,0 0 4px rgba(0,0,0,.8)}
+.ort.st1 i{width:9px;height:9px;left:-4.5px;top:-4.5px;box-shadow:0 0 0 2px rgba(0,0,0,.85)}
+.ort.st1 span{left:9px;top:-12px;font-size:18px;font-weight:700}
+.ort.st2 span{font-size:14px}
+.ort.st3 span{font-size:12.5px;font-weight:500}
+.ort.st4 i{width:5px;height:5px;left:-2.5px;top:-2.5px}
+.ort.st4 span{font-size:11.5px;font-weight:500;top:-8px}
+
+/* ----- Völkerwanderung: Schild am Zugende ----- */
+.vwtag{display:flex;align-items:center;gap:5px;margin:-11px 0 0 -8px;padding:2px 8px 2px 3px;border-radius:999px;border:1.5px solid var(--c);
+  background:rgba(20,16,12,.85);color:#fff;font:600 11.5px var(--ui);white-space:nowrap;cursor:pointer}
+.vwtag b{padding:1px 7px;border-radius:9px;background:var(--c);color:#fff;font-size:11px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
+.era.era-mittel{opacity:.9}

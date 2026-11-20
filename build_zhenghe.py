@@ -249,7 +249,7 @@ except ImportError:
 # Ming-Reich um 1405–1440, grob von Hand gezeichnet (ohne Tibet, Mongolei, Tarimbecken; Grenze etwa entlang der Großen Mauer,
 # Liaodong bis zum Yalu, Yunnan einschließlich der Grenz-Tusi). Jiaozhi (Nordvietnam) war 1407–1427 Ming-Provinz.
 MING = [
-    dict(name='Ming-Reich (vereinfacht)', von=1400, bis=1441, pts=[
+    dict(name='Ming-Reich (vereinfacht)', von=1400, bis=1454, pts=[
         (98.2,39.8),(102.5,38.4),(104.0,37.6),(105.9,39.0),(106.7,38.9),(108.5,37.9),(110.6,38.9),(111.5,40.3),(114.0,40.8),
         (116.5,40.8),(118.5,40.5),(119.8,40.1),(121.0,41.8),(123.5,42.5),(124.8,40.6),(124.3,39.6),(122.5,38.8),(122.8,37.0),
         (123.0,31.0),(122.0,28.0),(119.0,24.0),(117.0,22.8),(114.0,21.5),(111.0,20.6),(111.5,18.0),(108.5,17.8),(108.0,20.0),
@@ -286,22 +286,26 @@ DATA['ming'] = {
     'regionen': ming_regionen(),
     'hauptstaedte': [
         dict(name='Nanjing (Hauptstadt bis 1421)', lng=118.78, lat=32.06, von=1400, bis=1420),
-        dict(name='Peking (Hauptstadt ab 1421)', lng=116.40, lat=39.90, von=1421, bis=1440),
+        dict(name='Peking (Hauptstadt ab 1421)', lng=116.40, lat=39.90, von=1421, bis=1453),
     ],
     'hinweis': 'Fläche stark vereinfacht. Die Ming beherrschten weder Tibet noch die Mongolei; die Nordgrenze verlief etwa entlang der Großen Mauer.',
 }
-# Europa zur gleichen Zeit: portugiesische Entdeckungsfahrten (zum Vergleich)
+# Europa zur gleichen Zeit: portugiesische Entdeckungsfahrten (zum Vergleich); route = schematischer Seeweg ab Lissabon bzw. Lagos
 DATA['europa'] = [
     dict(jahr=1415, titel='Portugal erobert Ceuta', ort='Ceuta', lng=-5.32, lat=35.89, belegt='belegt',
+         route=[[-9.14,38.69],[-9.55,38.55],[-9.3,37.4],[-9.0,36.95],[-7.6,36.8],[-6.4,36.3],[-5.7,35.97],[-5.32,35.91]],
          text='Ein portugiesisches Heer erobert die Hafenstadt Ceuta in Nordafrika. Prinz Heinrich („der Seefahrer“) ist dabei. Danach beginnen die Fahrten an der afrikanischen Küste entlang.',
          quelle='Gomes Eanes de Zurara, Crónica da Tomada de Ceuta (um 1450)'),
     dict(jahr=1419, titel='Madeira wird erreicht', ort='Madeira', lng=-16.92, lat=32.65, belegt='belegt',
+         route=[[-8.67,37.08],[-9.4,36.6],[-11.5,35.3],[-14.3,33.8],[-16.25,33.12],[-16.7,32.8],[-16.9,32.66]],
          text='Portugiesische Seefahrer (João Gonçalves Zarco, Tristão Vaz Teixeira) erreichen Porto Santo und Madeira. Ab etwa 1420/25 werden die Inseln besiedelt.',
          quelle='Zurara, Crónica dos feitos da Guiné (1453)'),
     dict(jahr=1427, titel='Azoren entdeckt', ort='Azoren', lng=-25.67, lat=37.74, belegt='umstritten',
+         route=[[-9.14,38.69],[-9.6,38.6],[-13.0,38.4],[-18.0,38.1],[-22.5,37.9],[-25.4,37.76]],
          text='Ein portugiesischer Seefahrer (Diogo de Silves) sichtet die Azoren mitten im Atlantik. Das Jahr stammt aus einer Seekarte von 1439 und ist nicht ganz sicher; besiedelt wurden die Inseln ab etwa 1432/39.',
          quelle='Seekarte des Gabriel de Vallseca (1439)'),
     dict(jahr=1434, titel='Gil Eanes umsegelt Kap Bojador', ort='Kap Bojador', lng=-14.48, lat=26.13, belegt='belegt',
+         route=[[-8.67,37.08],[-9.4,36.4],[-9.8,34.5],[-10.3,31.6],[-10.6,30.0],[-11.9,28.6],[-13.4,27.6],[-14.3,26.9],[-14.75,26.13]],
          text='Gil Eanes fährt als erster Europäer an Kap Bojador vorbei, das lange als Grenze des befahrbaren Meeres galt. Seine Schiffe sind viel kleiner als die Flotte des Zheng He.',
          quelle='Zurara, Crónica dos feitos da Guiné (1453)'),
 ]

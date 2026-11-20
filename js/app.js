@@ -3,16 +3,16 @@
 (function () {
   'use strict';
 
-  var YMIN = -300, YMAX = 1440, ANTIKE_ENDE = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
+  var YMIN = -300, YMAX = 1453, ANTIKE_ENDE = 480, TEILUNG = 395, OSTROM = '#7b3fa0', SCHLACHT_JAHRE = 25;
   /* Zeitleiste in Epochen-Abschnitten, getrennt durch einen Zeitsprung (die Achse wird nicht gestreckt).
      a/b = Anteil der Leistenbreite; takt = ms pro Jahr beim Abspielen. */
   var SEGS = [
     { ep: 'antike', von: -300, bis: 480, a: 0, b: 0.76, takt: 70, tick: 50, major: 100, alt: 200, start: 117,
       name: 'Europäische Antike', sub: 'China: Qin, Han und Zeit der Teilung' },
-    { ep: 'ming', von: 1400, bis: 1440, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
-      name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He)' }
+    { ep: 'ming', von: 1400, bis: 1453, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
+      name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, year: 117, epoche: 'antike' };
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true, strassen: false };
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
@@ -36,9 +36,9 @@
   /* ---------- Daten ---------- */
   function M(r) { return DATA.meta[r]; }
   // Reichsdaten gelten nur für den antiken Abschnitt (Rom hat in den Daten bis 1453, gezeichnet ist aber nur bis 480)
-  function exists(r, y) { return y <= ANTIKE_ENDE && y >= M(r).von && y < M(r).bis; }
+  var MITTEL = {};   // Reiche mit Gebieten im Spätmittelalter (Byzanz, Osmanen); gefüllt beim Laden
+  function exists(r, y) { return y >= M(r).von && y < M(r).bis && (y <= ANTIKE_ENDE || !!MITTEL[r]); }
   function regionsAt(r, y) {
-    if (y > ANTIKE_ENDE) return [];
     return DATA.regionen.filter(function (f) { var p = f.properties; return p.reich === r && p.von <= y && y < p.bis; });
   }
   function activeEvent(r, y) {
@@ -169,7 +169,7 @@
     if (key === LBL.key) return;
     LBL.stufe = stufe; LBL.s = s; LBL.key = key;
     globe.labelSize(labelSize).labelDotRadius(labelDot);
-    refreshLabels();
+    refreshLabels(); refreshHtml();
   }
   function labelSize(d) {
     var b = d.kind === 'karawane' ? 0.75 : labelIsTrade(d) ? 1.0 : d.stufe ? [0, 1.45, 0.84, 0.72, 0.62][d.stufe] : 0.9;
@@ -182,7 +182,13 @@
   function refreshLabels() {
     if (state.epoche === 'ming') { var zv = CUR_ZV || zhVisible(state.year); globe.labelsData(zhLabels(zv)); return; }
     var tv = CUR_TV || tradeVisible(state.year);
-    globe.labelsData(visibleCities().concat(tv.places, karNodeLabels(tv)));
+    globe.labelsData(tv.places.concat(karNodeLabels(tv)));
+  }
+  /* HTML-Ebene: Ortsnamen (mit dunklem Rand, gut lesbar über Straßen), Schlachten, Gesandtschaften, Waren, Standort */
+  function refreshHtml() {
+    if (state.epoche === 'ming') { globe.htmlElementsData(zhHtml(CUR_ZV || zhVisible(state.year))); return; }
+    var tv = CUR_TV || tradeVisible(state.year);
+    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), [STANDORT || JENA]));
   }
   function battleEl(d) {
     if (d.__el) return d.__el;
@@ -201,8 +207,8 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    globe.htmlElementsData(visibleBattles(state.year).concat(tv.kontakte, wareTags(tv), [STANDORT || JENA]));
-    globe.pathsData(tradeGlobePaths(tv));
+    refreshHtml();
+    globe.pathsData(tradeGlobePaths(tv).concat(vwPaths()));
     karUpdate();
     setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
@@ -235,7 +241,8 @@
   }
   function polyLabel(f) {
     var p = f.properties; if (p.kind === 'land') return '';
-    var reich = (p.reich === 'rom' && state.year >= TEILUNG) ? (p.seite === 'o' ? 'Ostrom' : 'Westrom') : M(p.reich).name;
+    var reich = (p.reich === 'rom' && state.year > ANTIKE_ENDE) ? 'Byzantinisches Reich (Ostrom)'
+      : (p.reich === 'rom' && state.year >= TEILUNG) ? (p.seite === 'o' ? 'Ostrom' : 'Westrom') : M(p.reich).name;
     var d = document.createElement('div');
     var b = document.createElement('b'); b.textContent = p.name; d.appendChild(b);
     d.appendChild(document.createElement('br'));
@@ -274,7 +281,7 @@
         var t = el('div', 'gtip'); t.appendChild(el('b', null, d.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode((d.kind === 'karawane' ? d.hinweis : d.vermittler) + ' · Klick für Infos')); return t.outerHTML;
       })
-      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.0015 : 0.0016; }).htmlElement(htmlEl).htmlTransitionDuration(0);
+      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.zeiten ? 0.0013 : d.kind === 'waren' ? 0.0015 : 0.0016; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
@@ -447,12 +454,15 @@
       lane.className = 'lane' + (m.haupt ? '' : ' thin') + (m.kontext ? ' kx' : ''); lane.dataset.r = r;
       lane.style.setProperty('--c', m.farbe); lane.style.setProperty('--cs', rgba(m.farbe, 0.2));
       lane.style.setProperty('--cb', rgba(m.farbe, 0.6)); lane.style.setProperty('--ct', mix(m.farbe, '#ffffff', 0.55));
-      var a = Math.max(YMIN, m.von), b = Math.min(ANTIKE_ENDE, m.bis);
-      var era = document.createElement('div'); era.className = 'era';
-      era.style.left = pct(a) + '%'; era.style.width = (pct(b) - pct(a)) + '%';
-      var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = m.name; era.appendChild(nm);
-      era.title = m.name + ': ' + fmtYear(m.von) + ' bis ' + fmtYear(m.bis);
-      lane.appendChild(era);
+      if (MITTEL[r]) lane.classList.add('mittel');
+      [[Math.max(YMIN, m.von), Math.min(ANTIKE_ENDE, m.bis)], MITTEL[r] ? [Math.max(SEGS[1].von, m.von), Math.min(YMAX, m.bis)] : null].forEach(function (ab, k) {
+        if (!ab || ab[1] <= ab[0]) return;
+        var era = document.createElement('div'); era.className = 'era' + (k ? ' era-mittel' : '');
+        era.style.left = pct(ab[0]) + '%'; era.style.width = (pct(ab[1]) - pct(ab[0])) + '%';
+        var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = k && r === 'rom' ? 'Byzanz' : m.name; era.appendChild(nm);
+        era.title = (k && r === 'rom' ? 'Byzantinisches Reich (Ostrom)' : m.name) + ': ' + fmtYear(m.von) + ' bis ' + fmtYear(m.bis);
+        lane.appendChild(era);
+      });
       if (r === 'rom') {   // ab 395: Ostrom
         var ost = document.createElement('div'); ost.className = 'era-ost';
         ost.style.left = pct(TEILUNG) + '%'; ost.style.width = (pct(ANTIKE_ENDE) - pct(TEILUNG)) + '%';
@@ -515,7 +525,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key;
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + (state.vw ? '|vw' + y : '');
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -539,7 +549,7 @@
     state.epoche = ep;
     $('#sideTitle').textContent = ep === 'ming' ? 'Infos zu den Fahrten' : 'Infos zu den Reichen';
     globe.pathTransitionDuration(ep === 'ming' ? 0 : 600);   // Ming: keine Verformung; neue Fahrten zeichnen sich selbst ein (zhAnim)
-    zhAnimStop(); ZA.prevAkt = {};
+    penStopAlle(); PEN.prevAkt = {}; PEN.prevEu = {};
     if (mapOpen) finishClose();
     KAR.prevY = null;
     if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
@@ -553,7 +563,7 @@
       var t = state.year === ANTIKE_ENDE ? 1500 : segOf(state.year).takt;
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
-        if (ZA.v) { step(); return; }   // Zheng He: erst weiter, wenn die laufende Fahrt fertig gezeichnet ist
+        if (PENS.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
         setYear(state.year + 1); step();
       }, t);
     })();
@@ -967,7 +977,39 @@
     });
   }
   function scheduleTagSides() { if (!tagSideRaf) tagSideRaf = requestAnimationFrame(updateTagSides); }
-  function htmlEl(d) { return d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function ortEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('div', 'ort st' + d.stufe); e.style.setProperty('--c', mix(M(d.reich).farbe, '#ffffff', 0.78));
+    e.appendChild(el('i')); e.appendChild(el('span', null, d.name));
+    d.__el = e; return e;
+  }
+  /* Völkerwanderung: Züge wachsen mit der Zeitleiste (von/bis), Schild am Zugende solange der Zug läuft */
+  function vwAnteil(w, y) { return y < w.von ? -1 : Math.min(1, (y - w.von + 1) / (w.bis - w.von + 1)); }
+  function vwPaths() {
+    if (!state.vw || state.epoche !== 'antike') return [];
+    var y = state.year;
+    return (DATA.wanderungen || []).filter(function (w) { return vwAnteil(w, y) > 0; }).map(function (w) {
+      w.__p.pts = schnitt(w.__lauf, vwAnteil(w, y)); return w.__p;
+    });
+  }
+  function vwTags() {
+    if (!state.vw || state.epoche !== 'antike') return [];
+    var y = state.year;
+    var je = {};   // je Volk nur ein Schild: am jüngsten Zug, solange er läuft (und 2 Jahre danach)
+    (DATA.wanderungen || []).forEach(function (w) { if (y >= w.von && y <= w.bis + 2 && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
+    return Object.keys(je).map(function (k) {
+      var w = je[k], t = punktBei(w.__lauf, vwAnteil(w, y)); w.__tag.lng = t[0]; w.__tag.lat = t[1]; return w.__tag;
+    });
+  }
+  function vwEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('button', 'vwtag'); e.type = 'button'; e.style.setProperty('--c', d.w.farbe);
+    e.appendChild(el('b', null, d.w.volk)); e.appendChild(el('span', null, shortYear(d.w.bis)));
+    e.title = d.w.text + ' (schematisch)';
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); toast(d.w.volk + ': ' + d.w.text + ' (Weg schematisch)'); });
+    d.__el = e; return e;
+  }
+  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
 
   /* ---------- Eigener Standort (Pin) ---------- */
   // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
@@ -1066,6 +1108,8 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.vw) return state.mode === 'schem' ? mix(d.vw.farbe, '#000000', 0.35) : mix(d.vw.farbe, '#ffffff', 0.25);
+    if (d.eu) return state.mode === 'schem' ? '#1d4f8a' : '#8fc3ff';
     if (d.strasse) return state.mode === 'schem' ? (d.s === 'H' ? 'rgba(122,40,20,0.4)' : 'rgba(122,40,20,0.85)') : (d.s === 'H' ? 'rgba(255,205,185,0.4)' : 'rgba(255,205,185,0.85)');
     if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
     if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
@@ -1074,6 +1118,9 @@
     return tradeCol(d.route.art);
   }
   function pathDash(d, i) {
+    if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.vw) return [0.03, 0.012][i];   // Zeichenfeder: sichtbarer Anteil, dahinter Lücke
+    if (d.eu) return [1, 0][i];
     if (d.strasse) return [1, 0][i];
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
@@ -1085,6 +1132,8 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.vw) return 2.6;
+    if (d.eu) return 2;
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
     if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
     if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
@@ -1098,7 +1147,7 @@
       .pathStroke(pathStroke)
       .pathDashLength(function (d) { return pathDash(d, 0); })
       .pathDashGap(function (d) { return pathDash(d, 1); })
-      .pathDashAnimateTime(function (d) { return d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
+      .pathDashAnimateTime(function (d) { return d.vw ? 7000 : d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
       .pathResolution(1)
       .pathTransitionDuration(600)
       .pathLabel(function (d) {
@@ -1114,6 +1163,8 @@
           return t.outerHTML;
         }
         if (d.kontakt) { t.appendChild(el('b', null, d.kontakt.name + ' (' + fmtYear(d.kontakt.jahr) + ')')); return t.outerHTML; }
+        if (d.vw) { t.appendChild(el('b', null, d.vw.volk + ' (' + d.vw.von + '–' + d.vw.bis + ')')); t.appendChild(el('br')); t.appendChild(document.createTextNode(d.vw.text + ' · Weg schematisch')); return t.outerHTML; }
+        if (d.eu) { t.appendChild(el('b', null, d.eu.jahr + ': ' + d.eu.titel)); t.appendChild(el('br')); t.appendChild(document.createTextNode('Portugal · Weg schematisch')); return t.outerHTML; }
         t.appendChild(el('b', null, d.route.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(TEIL_TXT[d.teil] + ': ' + BELEGT_TXT[PARTS[d.route.id][d.teil].belegt] + ' · Klick für Infos'));
         return t.outerHTML;
@@ -1468,7 +1519,7 @@
     });
     DATA.meta.ming = { name: ZHD.ming.name, farbe: ZHD.ming.farbe, von: 1368, bis: 1644, ohneRolle: true, kurz: ZHD.ming.hinweis };
     ZHD.ming.hauptstaedte.forEach(function (h) { h.kind = 'mingstadt'; });
-    ZHD.europa.forEach(function (e) { e.kind = 'europa'; });
+    ZHD.europa.forEach(function (e) { e.kind = 'europa'; e.__p = { id: 'eu' + e.jahr, eu: e, pts: e.route }; e.__lauf = lauf(e.route); });
   }
   /* Pfad mit Längenparameter: pts (verdichtet), cum (kumulierte Länge), len */
   function lauf(pfad) {
@@ -1492,77 +1543,87 @@
     return L.pts.slice(0, i).concat([spitze]);
   }
 
-  /* ---------- Zheng He: Fahrt zeichnet sich ein, Schiff an der Spitze, Häfen erscheinen beim Erreichen ---------- */
-  var ZA = { v: null, t0: 0, dur: 7000, prog: 1, raf: 0, last: 0, prevAkt: {}, schiff: null, erreicht: -1 };
-  function zhAnimStop() {
-    cancelAnimationFrame(ZA.raf); ZA.raf = 0;
-    if (ZA.v) zhSetzeVoll(ZA.v);
-    ZA.v = null; ZA.prog = 1; ZA.schiff = null;
+  /* ---------- Zeichenfeder: Schiffe zeichnen ihre Route live (Zheng He, portugiesische Fahrten) ----------
+     Die Linie wird nur EINMAL an globe.gl übergeben. Danach wächst allein die Strichlänge im Material dieser einen Linie
+     (dashSize = gezeichneter Anteil, Lücke dahinter). globe.gl setzt bei jeder neuen Datenübergabe die wandernden Striche
+     aller Linien zurück – so laufen die Animationen der übrigen Fahrten ungestört weiter. */
+  var PENS = [], PEN = { raf: 0, last: 0, prevAkt: {}, prevEu: {} };
+  function penVon(ziel) { return PENS.filter(function (q) { return q.ziel === ziel; })[0]; }
+  function penMat(d) { var g = d && d.__threeObjPath, m = g && g.children[0] && g.children[0].material; return m && 'dashSize' in m ? m : null; }
+  function setPen(d, f) { d.__pen = Math.max(0.00001, f); var m = penMat(d); if (m) m.dashSize = d.__pen; }
+  function penEnde(q) { q.haupt.__pen = null; q.teile.forEach(function (a) { a.obj.__pen = null; }); }
+  function penStopAlle() { PENS.forEach(penEnde); PENS = []; cancelAnimationFrame(PEN.raf); PEN.raf = 0; }
+  function punktBei(L, f) { var x = schnitt(L, f); return x[x.length - 1]; }
+  function penStart(q) {
+    q.t0 = performance.now(); q.f = 0; q.erreicht = -1;
+    q.haupt.__pen = 0.00001; q.teile.forEach(function (a) { a.obj.__pen = 0.00001; });
+    var st = q.lauf.pts[0]; q.schiff = { kind: 'zhschiff', farbe: q.farbe, titel: q.titel, lng: st[0], lat: st[1] };
+    PENS.push(q);
+    if (!PEN.raf) PEN.raf = requestAnimationFrame(penFrame);
   }
-  function zhSetzeVoll(v) {
-    v.__p.pts = v.pfad; v.__flow.pts = v.pfad;
-    v.__ab.forEach(function (a) { a.pts = a.ab.pfad; });
-  }
-  function zhAnimPruefen(zv) {
-    var akt = {};
-    zv.aktiv.forEach(function (v) { akt[v.id] = 1; });
-    if (ZA.v && zv.sichtbar.indexOf(ZA.v) < 0) zhAnimStop();   // ausgeblendet oder Jahr zurückgesetzt
-    var neu = zv.aktiv.filter(function (v) { return !ZA.prevAkt[v.id]; });
-    ZA.prevAkt = akt;
-    if (!neu.length) return;
-    var v = neu[neu.length - 1];
-    if (ZA.v && ZA.v !== v) zhAnimStop();
-    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-    ZA.v = v; ZA.t0 = performance.now(); ZA.prog = 0; ZA.erreicht = -1;
-    ZA.schiff = { kind: 'zhschiff', zh: v, lng: v.pfad[0][0], lat: v.pfad[0][1] };
-    zhAnimSchritt(0);
-    cancelAnimationFrame(ZA.raf);
-    ZA.raf = requestAnimationFrame(zhAnimFrame);
-  }
-  function zhAnimSchritt(f) {
-    var v = ZA.v; ZA.prog = f;
-    v.__p.pts = schnitt(v.__lauf, f);
-    v.__ab.forEach(function (a) { a.pts = f <= a.__f0 ? null : schnitt(a.__lauf, (f - a.__f0) / (1 - a.__f0)); });
-    var tip = v.__p.pts[v.__p.pts.length - 1];
-    ZA.schiff.lng = tip[0]; ZA.schiff.lat = tip[1];
-  }
-  function zhAnimFrame(now) {
-    if (!ZA.v) return;
-    ZA.raf = requestAnimationFrame(zhAnimFrame);
-    if (now - ZA.last < 45) return;   // ~20 Bilder/s genügen
-    ZA.last = now;
-    var t = Math.min(1, (now - ZA.t0) / ZA.dur), f = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;   // sanft an- und auslaufen
-    zhAnimSchritt(f);
+  function penFrame(now) {
+    if (!PENS.length) { PEN.raf = 0; return; }
+    PEN.raf = requestAnimationFrame(penFrame);
+    if (now - PEN.last < 40) return;
+    PEN.last = now;
+    var fertig = [];
+    PENS.forEach(function (q) {
+      var t = Math.min(1, (now - q.t0) / q.dur), f = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;   // sanft an- und auslaufen
+      q.f = f;
+      setPen(q.haupt, f);
+      q.teile.forEach(function (a) { setPen(a.obj, f <= a.f0 ? 0 : (f - a.f0) / (1 - a.f0)); });
+      var tip = punktBei(q.lauf, f); q.schiff.lng = tip[0]; q.schiff.lat = tip[1];
+      if (q.schritt) q.schritt(q, f);
+      if (t >= 1) fertig.push(q);
+    });
     var zv = CUR_ZV || zhVisible(state.year);
-    var n = ZA.v.__reihe.filter(function (o) { return ZA.v.__hafen[o.id] <= f + 0.002; }).length;
-    if (n !== ZA.erreicht) { ZA.erreicht = n; refreshLabels(); zhErzUpdate(); }
-    globe.pathsData(zhPaths(zv));
-    globe.htmlElementsData(zhHtml(zv));
-    if (t >= 1) {
-      var v = ZA.v; cancelAnimationFrame(ZA.raf); ZA.raf = 0; ZA.v = null; ZA.prog = 1; ZA.schiff = null;
-      zhSetzeVoll(v);
+    globe.htmlElementsData(zhHtml(zv));   // nur die HTML-Ebene (Schiffe) – die Linien bleiben unberührt
+    if (fertig.length) {
+      fertig.forEach(penEnde);
+      PENS = PENS.filter(function (q) { return fertig.indexOf(q) < 0; });
       globe.pathsData(zhPaths(zv)); globe.htmlElementsData(zhHtml(zv)); refreshLabels(); zhErzUpdate();
     }
   }
-  /* Pfade für den Globus: während des Zeichnens ohne wandernden Strich und ohne noch nicht erreichte Teilflotten */
-  function zhPaths(zv) {
-    return zv.paths.filter(function (d) {
-      if (!ZA.v || d.zh !== ZA.v) return true;
-      if (d.flow) return false;
-      return !!d.pts;
+  /* neue Fahrten (Zheng He: Startjahr erreicht; Europa: Ereignisjahr erreicht) bekommen eine Feder */
+  function zhAnimPruefen(zv) {
+    PENS = PENS.filter(function (q) { var ok = q.sichtbar(zv); if (!ok) penEnde(q); return ok; });
+    var akt = {}, eu = {};
+    zv.aktiv.forEach(function (v) { akt[v.id] = 1; });
+    (zv.europa || []).forEach(function (e) { eu[e.jahr] = 1; });
+    var neu = zv.aktiv.filter(function (v) { return !PEN.prevAkt[v.id]; });
+    var euNeu = (zv.europa || []).filter(function (e) { return !PEN.prevEu[e.jahr]; });
+    PEN.prevAkt = akt; PEN.prevEu = eu;
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    neu.forEach(function (v) {
+      penStart({ ziel: v, haupt: v.__p, lauf: v.__lauf, dur: 7000, farbe: ZH_COL[v.nr - 1], titel: v.name + ': Flotte unterwegs',
+        teile: v.__ab.map(function (a) { return { obj: a, f0: a.__f0 }; }),
+        sichtbar: function (z) { return z.sichtbar.indexOf(v) >= 0; },
+        schritt: function (q, f) {
+          var n = v.__reihe.filter(function (o) { return v.__hafen[o.id] <= f + 0.002; }).length;
+          if (n !== q.erreicht) { q.erreicht = n; refreshLabels(); zhErzUpdate(); }
+        } });
+    });
+    euNeu.forEach(function (e) {
+      penStart({ ziel: e, haupt: e.__p, lauf: e.__lauf, dur: 5000, farbe: '#8fc3ff', titel: 'Portugiesische Karavelle: ' + e.titel, teile: [],
+        sichtbar: function (z) { return (z.europa || []).indexOf(e) >= 0; } });
     });
   }
+  /* Pfade für den Globus: während des Zeichnens ohne wandernden Strich */
+  function zhPaths(zv) {
+    var p = zv.paths.filter(function (d) { return !(d.flow && d.zh && penVon(d.zh)); });
+    return p.concat((zv.europa || []).map(function (e) { return e.__p; }));
+  }
   function zhHtml(zv) {
-    var t = zv.tags.filter(function (d) { return !ZA.v || d.route !== ZA.v; });   // Waren-Etikett erst nach dem Zeichnen
-    if (ZA.schiff) t = t.concat([ZA.schiff]);
-    return t.concat(zv.europa || [], [STANDORT || JENA]);
+    var t = zv.tags.filter(function (d) { return !penVon(d.route); });   // Waren-Etikett erst nach dem Zeichnen
+    PENS.forEach(function (q) { t.push(q.schiff); });
+    return visibleCities().concat(t, (zv.europa || []).filter(function (e) { return !penVon(e); }), [STANDORT || JENA]);   // Europa-Marker erst bei Ankunft
   }
   function zhLabels(zv) {
     var y = state.year;
     var orte = zv.places.filter(function (o) {
       return o.__fahrten.some(function (v) {
-        return ZH.fahrt[v.nr] && y >= v.von && (v !== ZA.v || v.__hafen[o.id] <= ZA.prog + 0.002);
+        var q = penVon(v);
+        return ZH.fahrt[v.nr] && y >= v.von && (!q || v.__hafen[o.id] <= q.f + 0.002);
       });
     });
     var haupt = state.on.han ? ZHD.ming.hauptstaedte.filter(function (h) { return y >= h.von && y <= h.bis; }) : [];
@@ -1571,8 +1632,8 @@
   var JUNKE = '<svg viewBox="0 0 32 28" aria-hidden="true"><path d="M3 18h26l-3.5 6.5H7.5z" fill="currentColor"/><path d="M15 3v14M15 4l-8 12h8zM16 6l7 10h-7z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M2 26.5c3 1.3 5 1.3 8 0s5-1.3 8 0 5 1.3 8 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
   function zhSchiffEl(d) {
     if (d.__el) return d.__el;
-    var e = el('div', 'zhschiff'); e.innerHTML = JUNKE; e.style.setProperty('--c', ZH_COL[d.zh.nr - 1]);
-    e.title = d.zh.name + ': Flotte unterwegs';
+    var e = el('div', 'zhschiff'); e.innerHTML = JUNKE; e.style.setProperty('--c', d.farbe);
+    e.title = d.titel;
     d.__el = e; return e;
   }
   function europaEl(d) {
@@ -1606,7 +1667,7 @@
   function refreshGlobeMing() {
     var zv = CUR_ZV || zhVisible(state.year);
     CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
-    globe.polygonsData(state.on.han ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []);
+    globe.polygonsData(visiblePolys().concat(state.on.han ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
     zhAnimPruefen(zv);
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
@@ -1690,6 +1751,8 @@
     }
     var ev = null; ZHD.ereignisse.forEach(function (e) { if (e.jahr <= y) ev = e; });
     if (ev) zhCard(box, '#5fdc8a', 'Ereignis · ' + ev.jahr + (ev.belegt === 'umstritten' ? ' · teils umstritten' : ''), ev.titel, ev.text);
+    var byz = state.on.rom ? activeEvent('rom', y) : null;
+    if (byz) zhCard(box, OSTROM, 'Byzantinisches Reich (Ostrom) · ' + byz.label, byz.titel, byz.note, null, null);
     var hs = ZHD.ming.hauptstaedte.filter(function (h) { return y >= h.von && y <= h.bis; })[0];
     zhCard(box, ZHD.ming.farbe, 'China · Ming-Dynastie', hs ? 'Hauptstadt: ' + hs.name.replace(/ \(.*\)/, '') : 'Ming-Reich',
       [y < 1421 ? 'Kaiser Yongle verlegt die Hauptstadt 1421 von Nanjing nach Peking.' : 'Seit 1421 ist Peking die Hauptstadt; Nanjing bleibt Nebenhauptstadt.',
@@ -1716,7 +1779,7 @@
   }
   function zhErzUpdate() {
     document.querySelectorAll('.card.zherz').forEach(function (d) {
-      var v = zhById('zh' + d.dataset.nr), f = ZA.v === v ? ZA.prog : 1, ziel = false;
+      var v = zhById('zh' + d.dataset.nr), q = penVon(v), f = q ? q.f : 1, ziel = false;
       d.querySelectorAll('.zhstat li').forEach(function (li) {
         var da = v.__hafen[li.dataset.id] <= f + 0.002;
         li.classList.toggle('da', da);
@@ -2019,6 +2082,10 @@
     $('#tglOrte').addEventListener('click', function () {
       state.orte = !state.orte; this.classList.toggle('on', state.orte); this.setAttribute('aria-pressed', state.orte); lastKey = ''; setYear(state.year);
     });
+    $('#tglVw').addEventListener('click', function () {
+      state.vw = !state.vw; this.classList.toggle('on', state.vw); this.setAttribute('aria-pressed', state.vw); lastKey = ''; setYear(state.year);
+      if (state.vw && state.epoche === 'antike' && (state.year < 370 || state.year > 480)) toast('Völkerwanderung: Die Züge laufen vor allem 375–456 n. Chr. Spiel die Zeitleiste ab 370 ab.');
+    });
     $('#tglSchl').addEventListener('click', function () {
       state.schlachten = !state.schlachten; this.classList.toggle('on', state.schlachten); this.setAttribute('aria-pressed', state.schlachten);
       $('#lanes').classList.toggle('noschl', !state.schlachten); lastKey = ''; setYear(state.year);
@@ -2108,7 +2175,8 @@
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
-    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; });
+    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.von >= SEGS[1].von) MITTEL[f.properties.reich] = 1; });
+    (DATA.wanderungen || []).forEach(function (w, i) { w.__lauf = lauf(w.pfad); w.__p = { id: 'vw' + i, vw: w, pts: w.pfad }; w.__tag = { kind: 'vw', w: w }; });
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);

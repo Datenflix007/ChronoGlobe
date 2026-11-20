@@ -3342,7 +3342,7 @@
      "reich": "ming",
      "name": "Ming-Reich (vereinfacht)",
      "von": 1400,
-     "bis": 1441,
+     "bis": 1454,
      "art": "kern"
     },
     "geometry": {
@@ -5525,7 +5525,7 @@
     "lng": 116.4,
     "lat": 39.9,
     "von": 1421,
-    "bis": 1440
+    "bis": 1453
    }
   ],
   "hinweis": "Fläche stark vereinfacht. Die Ming beherrschten weder Tibet noch die Mongolei; die Nordgrenze verlief etwa entlang der Großen Mauer."
@@ -5538,6 +5538,40 @@
    "lng": -5.32,
    "lat": 35.89,
    "belegt": "belegt",
+   "route": [
+    [
+     -9.14,
+     38.69
+    ],
+    [
+     -9.55,
+     38.55
+    ],
+    [
+     -9.3,
+     37.4
+    ],
+    [
+     -9.0,
+     36.95
+    ],
+    [
+     -7.6,
+     36.8
+    ],
+    [
+     -6.4,
+     36.3
+    ],
+    [
+     -5.7,
+     35.97
+    ],
+    [
+     -5.32,
+     35.91
+    ]
+   ],
    "text": "Ein portugiesisches Heer erobert die Hafenstadt Ceuta in Nordafrika. Prinz Heinrich („der Seefahrer“) ist dabei. Danach beginnen die Fahrten an der afrikanischen Küste entlang.",
    "quelle": "Gomes Eanes de Zurara, Crónica da Tomada de Ceuta (um 1450)"
   },
@@ -5548,6 +5582,36 @@
    "lng": -16.92,
    "lat": 32.65,
    "belegt": "belegt",
+   "route": [
+    [
+     -8.67,
+     37.08
+    ],
+    [
+     -9.4,
+     36.6
+    ],
+    [
+     -11.5,
+     35.3
+    ],
+    [
+     -14.3,
+     33.8
+    ],
+    [
+     -16.25,
+     33.12
+    ],
+    [
+     -16.7,
+     32.8
+    ],
+    [
+     -16.9,
+     32.66
+    ]
+   ],
    "text": "Portugiesische Seefahrer (João Gonçalves Zarco, Tristão Vaz Teixeira) erreichen Porto Santo und Madeira. Ab etwa 1420/25 werden die Inseln besiedelt.",
    "quelle": "Zurara, Crónica dos feitos da Guiné (1453)"
   },
@@ -5558,6 +5622,32 @@
    "lng": -25.67,
    "lat": 37.74,
    "belegt": "umstritten",
+   "route": [
+    [
+     -9.14,
+     38.69
+    ],
+    [
+     -9.6,
+     38.6
+    ],
+    [
+     -13.0,
+     38.4
+    ],
+    [
+     -18.0,
+     38.1
+    ],
+    [
+     -22.5,
+     37.9
+    ],
+    [
+     -25.4,
+     37.76
+    ]
+   ],
    "text": "Ein portugiesischer Seefahrer (Diogo de Silves) sichtet die Azoren mitten im Atlantik. Das Jahr stammt aus einer Seekarte von 1439 und ist nicht ganz sicher; besiedelt wurden die Inseln ab etwa 1432/39.",
    "quelle": "Seekarte des Gabriel de Vallseca (1439)"
   },
@@ -5568,6 +5658,44 @@
    "lng": -14.48,
    "lat": 26.13,
    "belegt": "belegt",
+   "route": [
+    [
+     -8.67,
+     37.08
+    ],
+    [
+     -9.4,
+     36.4
+    ],
+    [
+     -9.8,
+     34.5
+    ],
+    [
+     -10.3,
+     31.6
+    ],
+    [
+     -10.6,
+     30.0
+    ],
+    [
+     -11.9,
+     28.6
+    ],
+    [
+     -13.4,
+     27.6
+    ],
+    [
+     -14.3,
+     26.9
+    ],
+    [
+     -14.75,
+     26.13
+    ]
+   ],
    "text": "Gil Eanes fährt als erster Europäer an Kap Bojador vorbei, das lange als Grenze des befahrbaren Meeres galt. Seine Schiffe sind viel kleiner als die Flotte des Zheng He.",
    "quelle": "Zurara, Crónica dos feitos da Guiné (1453)"
   }

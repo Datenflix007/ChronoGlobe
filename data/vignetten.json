@@ -461,7 +461,7 @@
       "schriftrolle": false
     },
     "vandal": {
-      "name": "Vandalenreich",
+      "name": "Vandalen",
       "schriftrolle": false
     },
     "burgund": {
@@ -474,6 +474,14 @@
     },
     "ostgot": {
       "name": "Ostgoten",
+      "schriftrolle": false
+    },
+    "syagrius": {
+      "name": "Reich von Soissons",
+      "schriftrolle": false
+    },
+    "osman": {
+      "name": "Osmanisches Reich",
       "schriftrolle": false
     },
     "angels": {

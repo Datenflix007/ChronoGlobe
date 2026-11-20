@@ -60,21 +60,25 @@ META = {
               kurz='418 als Föderaten in Aquitanien angesiedelt (Hauptstadt Toulouse); unter Eurich (466–484) größtes Reich im Westen.'),
  'sueben': dict(name='Suebenreich', von=411, bis=585, farbe='#6f8a8a', zentrum=[-8, 42.5], kontext=True,
               kurz='Germanisches Königreich in Gallaecia (Nordwesten Hispaniens), Hauptort Bracara.'),
- 'vandal': dict(name='Vandalenreich', von=429, bis=534, farbe='#5f7a99', zentrum=[9.5, 35.5], kontext=True,
-              kurz='Die Vandalen setzen 429 nach Afrika über und erobern 439 Karthago; 455 plündern sie Rom.'),
+ 'vandal': dict(name='Vandalen', von=406, bis=534, farbe='#5f7a99', zentrum=[9.5, 35.5], kontext=True,
+              kurz='Überschreiten 406 den Rhein, ziehen 409 nach Hispanien (Baetica), setzen 429 nach Afrika über und erobern 439 Karthago; 455 plündern sie Rom.'),
  'burgund': dict(name='Burgunderreich', von=413, bis=534, farbe='#a07a6a', zentrum=[5.6, 46.2], kontext=True,
               kurz='413–436 Reich um Worms (Zerstörung durch hunnische Truppen), ab 443 in der Sapaudia um Genf neu angesiedelt.'),
  'odoaker': dict(name='Reich des Odoaker', von=476, bis=493, farbe='#7a7a92', zentrum=[12, 43], kontext=True,
               kurz='Odoaker setzt 476 den letzten weströmischen Kaiser ab und herrscht als König in Italien.'),
  'ostgot': dict(name='Ostgoten', von=456, bis=553, farbe='#6d7f6d', zentrum=[18, 46.5], kontext=True,
               kurz='Nach dem Zerfall des Hunnenreichs 456–473 als Föderaten in Pannonien; ab 493 Reich in Italien.'),
+ 'syagrius': dict(name='Reich von Soissons', von=461, bis=487, farbe='#9a8a7a', zentrum=[2.5, 48.8], kontext=True,
+              kurz='Gallorömischer Reststaat in Nordgallien unter Aegidius und seinem Sohn Syagrius; 486/87 von Chlodwig I. erobert. Ausdehnung unsicher.'),
+ 'osman': dict(name='Osmanisches Reich', von=1299, bis=1922, farbe='#8e6f50', zentrum=[30, 40.5], kontext=True,
+              kurz='Beherrscht um 1400 den Balkan und den Westen Kleinasiens; erobert 1453 Konstantinopel.'),
  'angels': dict(name='Angelsachsen', von=449, bis=927, farbe='#8c7f6a', zentrum=[0.3, 52.3], kontext=True,
               kurz='Nach dem Abzug Roms (410) siedeln Angeln, Sachsen und Jüten im Osten Britanniens; Kleinkönigreiche entstehen.'),
 }
 ORDER = list(META.keys())
 # Bei Überlappung gewinnt das frühere Reich. Die Nachfolgestaaten stehen VOR Rom: Sie nehmen Westrom die Gebiete ab,
 # auch wenn das formale Ende einer weströmischen Provinz später datiert ist.
-KONTEXT = ['sueben', 'vandal', 'burgund', 'odoaker', 'ostgot', 'angels', 'franken', 'alaman', 'westgot']   # Westgoten zuletzt: ihre großen Flächen füllen nur, was frei ist
+KONTEXT = ['osman', 'syagrius', 'sueben', 'vandal', 'burgund', 'odoaker', 'ostgot', 'angels', 'franken', 'alaman', 'westgot']   # Westgoten zuletzt: ihre großen Flächen füllen nur, was frei ist
 PRIO = KONTEXT + [k for k in ORDER if k not in KONTEXT]
 
 # ======================================================================
@@ -199,50 +203,109 @@ R = []
 def reg(reich, name, g, von, bis=None, art='kern', seite=None):
     R.append(dict(reich=reich, name=name, g=g, von=von, bis=bis, art=art, seite=seite))
 
-# ---- Rom (W = Westrom, O = Ostrom ab 395) ----
-reg('rom','Mittelitalien',italia_c,-300,476,seite='w')
-reg('rom','Süditalien (nach dem Krieg gegen Pyrrhos)',italia_s,-272,476,seite='w')
-reg('rom','Sicilia',sicilia,-241,476,seite='w')
-reg('rom','Sardinia et Corsica',sardinia,-238,476,seite='w')
-reg('rom','Gallia Cisalpina (Poebene)',cisalpina,-222,476,seite='w')
-reg('rom','Hispania (Küste)',hisp_early,-206,456,seite='w')
-reg('rom','Illyricum (Küste)',illyria,-167,476,seite='w')
-reg('rom','Macedonia und Achaia',greece,-146,seite='o')
-reg('rom','Africa',africa,-146,439,seite='w')
-reg('rom','Hispania (Inneres)',hisp_mid,-133,456,seite='w')
-reg('rom','Asia (Erbe von Pergamon)',asia,-133,seite='o')
-reg('rom','Gallia Narbonensis',narb,-121,462,seite='w')
-reg('rom','Cyrenaica',cyrenaica,-74,seite='o')
-reg('rom','Bithynia',bithynia,-74,seite='o')
-reg('rom','Creta',creta,-67,seite='o')
-reg('rom','Pontus',pontus,-64,seite='o')
-reg('rom','Cilicia',cilicia,-64,seite='o')
-reg('rom','Syria',syria,-64,seite='o')
-reg('rom','Cyprus',cyprus,-58,seite='o')
-reg('rom','Gallia (Eroberung durch Caesar)',gallia,-50,460,seite='w')
-reg('rom','Africa Nova und Tripolitanien',africa_ext,-46,439,seite='w')
-reg('rom','Aegyptus',aegyptus,-30,seite='o')
-reg('rom','Galatia',galatia,-25,seite='o')
-reg('rom','Hispania (Nordwesten)',hisp_all,-19,456,seite='w')
-reg('rom','Raetia und Noricum',raetia,-15,476,seite='w')
-reg('rom','Helvetien (Schweizer Mittelland)',helvetia,-50,455,seite='w')
-reg('rom','Alpenprovinzen (Westalpen)',alpen_w,-15,476,seite='w')
-reg('rom','Ostalpen und Julische Alpen',alpen_o,-15,476,seite='w')
-reg('rom','Iudaea',judaea,6,seite='o')
-reg('rom','Moesia',moesia,6,seite='o')
-reg('rom','Pannonia und Dalmatia',pannonia,9,433,seite='w')
-reg('rom','Cappadocia',cappadocia,17,seite='o')
-reg('rom','Palmyrene (zu Syria)',palmyrene,17,seite='o')
-reg('rom','Mauretania',mauretania,42,429,seite='w')
+# ---- Rom: Provinzen (Stand um 117 n. Chr., Namen und Einrichtungsjahre nach der Liste der Provinzen des Römischen
+#      Reichs, de.wikipedia). Flächen grob von Hand gezeichnet. von = Erwerb des Gebiets, Provinzjahr im Namen.
+#      seite: w = Westrom, o = Ostrom ab 395 (Teilung nach dem Tod Theodosius' I.).
+#      bis Westrom: Verlustjahr; Nachfolgestaaten (Europa, Kontext) haben bei Überlappung Vorrang.
+#      Ostrom: Gebiete reichen bis zum Ende der dargestellten Antike (481); Byzanz um 1400–1453 steht gesondert unten.
+OST_ENDE = 481
+baetica    = P((-7.5,37.2),(-7.4,38.2),(-5.5,38.6),(-4.3,38.4),(-3.0,38.0),(-2.3,37.4),(-1.7,37.0),(-2.2,36.6),(-5.6,35.9),(-6.5,36.8))
+lusitania  = P((-9.9,36.95),(-9.9,41.15),(-6.8,41.0),(-6.2,41.2),(-4.6,40.9),(-4.4,40.2),(-5.0,39.3),(-5.5,38.6),(-7.4,38.2),(-7.5,37.2))
+narbonensis= P((3.25,42.45),(1.75,42.45),(1.3,43.3),(2.1,43.7),(2.9,44.2),(3.9,44.9),(4.5,45.7),(5.2,46.2),(6.1,46.35),(6.8,46.05),(6.9,45.6),(6.6,45.1),(6.6,44.5),(7.0,44.1),(7.0,43.55))
+aquitania  = P((-1.8,43.35),(-1.3,44.6),(-1.2,46.2),(-2.2,47.25),(0.0,47.4),(1.5,47.4),(2.9,47.3),(3.4,46.4),(3.9,45.5),(3.9,44.9),(2.9,44.2),(2.1,43.7),(1.3,43.3),(1.75,42.45),(0.0,42.7))
+lugdunensis= P((-5.0,47.5),(-5.2,48.7),(-1.9,49.7),(0.2,49.5),(1.8,49.0),(3.0,48.6),(4.4,47.9),(5.0,47.2),(5.0,46.2),(5.3,46.25),(4.8,45.7),(4.5,45.7),(3.95,44.95),(3.9,45.5),(3.4,46.4),(2.9,47.3),(1.5,47.4),(0.0,47.4),(-2.2,47.25))
+belgica    = P((0.2,49.5),(1.6,50.9),(3.5,51.4),(4.3,51.3),(5.2,50.7),(6.0,50.0),(6.3,49.95),(7.1,50.25),(7.0,49.8),(6.3,49.4),(7.0,48.8),(6.7,47.9),(6.0,47.0),(5.2,46.4),(5.0,46.2),(5.0,47.2),(4.4,47.9),(3.0,48.6),(1.8,49.0))
+germ_sup   = P((6.3,49.4),(7.0,49.8),(7.1,50.25),(7.3,50.5),(7.7,50.5),(8.3,50.05),(7.8,48.6),(7.6,47.6),(9.5,47.6),(9.4,47.2),(8.4,46.6),(7.0,46.4),(6.1,46.35),(5.2,46.4),(6.0,47.0),(6.7,47.9),(7.0,48.8))
+germ_inf   = P((4.3,51.3),(4.5,51.9),(6.0,52.0),(6.7,51.9),(6.9,51.0),(7.3,50.5),(6.3,49.9),(6.0,50.0),(5.2,50.7))
+raetia_p   = raetia.intersection(box(5,40,12.95,50))
+noricum    = U(raetia.intersection(box(12.95,40,20,50)), box(12.95,46.35,16.0,47.0))
+pann_nord  = pannonia.intersection(box(14,45.05,21,49))
+pann_sup   = pann_nord.intersection(box(14,40,18.1,50))
+pann_inf   = pann_nord.difference(box(14,40,18.1,50))
+dalm_hint  = pannonia.difference(box(14,45.05,21,49))
+moes_sup   = moesia.intersection(box(18,40,23.0,46))
+moes_inf   = moesia.difference(box(18,40,23.0,46))
+epirus     = greece.intersection(P((19.2,38.8),(19.2,40.5),(20.6,40.6),(21.4,39.9),(21.4,38.8)))
+achaia     = greece.difference(epirus).intersection(box(19,35,27,39.05))
+macedonia  = greece.difference(epirus).difference(box(19,35,27,39.05))
+sic_ost    = sicilia.intersection(box(14.6,36.4,15.8,37.7))
+numidia    = africa_ext.intersection(box(5,30,8.3,38))
+tripolis   = africa_ext.intersection(box(11.2,28,26,38)).difference(africa)
+africa_nova= africa_ext.difference(numidia).difference(tripolis)
+maur_ting  = mauretania.intersection(box(-11,30,-1.8,37))
+maur_caes  = mauretania.difference(box(-11,30,-1.8,37))
+alpen_prov = alpen_w
+soissons   = P((1.5,50.1),(4.3,49.9),(4.6,49.0),(4.0,48.0),(2.5,47.3),(0.0,47.4),(-1.0,48.3),(0.2,49.5))
+
+reg('rom','Italia (Mittelitalien)',italia_c,-300,476,seite='w')
+reg('rom','Italia (Süditalien, nach dem Krieg gegen Pyrrhos)',italia_s,-272,476,seite='w')
+reg('rom','Sicilia (Syrakus, ganz römisch ab 210 v. Chr.)',sic_ost,-212,476,seite='w')
+reg('rom','Sicilia (erste Provinz, 241 v. Chr.)',sicilia,-241,476,seite='w')
+reg('rom','Sardinia et Corsica (Provinz 227 v. Chr.)',sardinia,-238,476,seite='w')
+reg('rom','Gallia cisalpina (Norditalien, ab 42 v. Chr. Teil Italiens)',cisalpina,-222,476,seite='w')
+reg('rom','Hispania Baetica (Hauptstadt Corduba)',baetica,-206,476,seite='w')
+reg('rom','Hispania Tarraconensis (Küste; Hauptstadt Tarraco)',hisp_early,-206,476,seite='w')
+reg('rom','Illyricum / Dalmatia (Küste)',illyria,-167,OST_ENDE,seite='w')
+reg('rom','Macedonia (Provinz 148 v. Chr.)',macedonia,-148,OST_ENDE,seite='o')
+reg('rom','Achaia (Hauptstadt Korinth, Provinz 27 v. Chr.)',achaia,-146,OST_ENDE,seite='o')
+reg('rom','Epirus (Hauptstadt Nikopolis, eigene Provinz vor 117)',epirus,-146,OST_ENDE,seite='o')
+reg('rom','Africa proconsularis (Africa vetus, Hauptstadt Karthago)',africa,-146,439,seite='w')
+reg('rom','Lusitania (Süden)',lusitania.intersection(hisp_mid),-138,476,seite='w')
+reg('rom','Hispania Tarraconensis (Inneres)',hisp_mid.difference(lusitania),-133,476,seite='w')
+reg('rom','Asia (Erbe von Pergamon, Provinz 129 v. Chr.; Hauptstadt Ephesos)',asia,-133,OST_ENDE,seite='o')
+reg('rom','Gallia Narbonensis',narbonensis,-121,476,seite='w')
+reg('rom','Creta et Cyrenaica (Kyrenaika)',cyrenaica,-74,OST_ENDE,seite='o')
+reg('rom','Bithynia et Pontus (Hauptstadt Nikomedia)',bithynia,-74,OST_ENDE,seite='o')
+reg('rom','Creta et Cyrenaica (Kreta; Hauptstadt Gortyn)',creta,-67,OST_ENDE,seite='o')
+reg('rom','Bithynia et Pontus (Pontus)',pontus,-64,OST_ENDE,seite='o')
+reg('rom','Cilicia (Hauptort Tarsos)',cilicia,-64,OST_ENDE,seite='o')
+reg('rom','Syria (Hauptstadt Antiochia, Provinz 63 v. Chr.)',syria,-64,OST_ENDE,seite='o')
+reg('rom','Lusitania (Norden)',lusitania,-61,476,seite='w')
+reg('rom','Cyprus',cyprus,-58,OST_ENDE,seite='o')
+reg('rom','Gallia Aquitania (Hauptstadt Burdigala, Provinz 16 v. Chr.)',aquitania,-50,476,seite='w')
+reg('rom','Gallia Lugdunensis (Hauptstadt Lugdunum)',lugdunensis,-50,476,seite='w')
+reg('rom','Gallia Belgica (Hauptstadt Durocortorum/Reims)',belgica,-50,476,seite='w')
+reg('rom','Germania inferior (eigene Provinz ab 90)',germ_inf,-50,476,seite='w')
+reg('rom','Germania superior (eigene Provinz ab 90; mit Helvetiern)',germ_sup,-50,476,seite='w')
+reg('rom','Numidia (Africa nova)',numidia,-46,439,seite='w')
+reg('rom','Africa proconsularis (Africa nova, Byzacena)',africa_nova,-46,439,seite='w')
+reg('rom','Tripolitanien (zu Africa proconsularis)',tripolis,-46,455,seite='w')
+reg('rom','Aegyptus (Hauptstadt Alexandria)',aegyptus,-30,OST_ENDE,seite='o')
+reg('rom','Galatia',galatia,-25,OST_ENDE,seite='o')
+reg('rom','Hispania Tarraconensis (Nordwesten: Gallaecia, Asturien, Kantabrien)',hisp_all,-19,476,seite='w')
+reg('rom','Raetia',raetia_p,-15,476,seite='w')
+reg('rom','Noricum',noricum,-15,476,seite='w')
+reg('rom','Alpenprovinzen (Alpes Maritimae, Cottiae, Graiae et Poeninae)',alpen_prov,-15,476,seite='w')
+reg('rom','Noricum und Ostalpen',alpen_o,-15,476,seite='w')
+reg('rom','Iudaea',judaea,6,OST_ENDE,seite='o')
+reg('rom','Moesia superior (Provinz Moesia, Teilung 86)',moes_sup,6,OST_ENDE,seite='o')
+reg('rom','Moesia inferior (Provinz Moesia, Teilung 86)',moes_inf,6,OST_ENDE,seite='o')
+reg('rom','Pannonia superior',pann_sup,9,433,seite='w')
+reg('rom','Pannonia inferior',pann_inf,9,433,seite='w')
+reg('rom','Dalmatia (Hinterland)',dalm_hint,9,OST_ENDE,seite='w')
+reg('rom','Cappadocia (Hauptstadt Caesarea)',cappadocia,18,OST_ENDE,seite='o')
+reg('rom','Palmyrene (zu Syria)',palmyrene,17,OST_ENDE,seite='o')
+reg('rom','Mauretania Tingitana',maur_ting,42,429,seite='w')
+reg('rom','Mauretania Caesariensis',maur_caes,42,429,seite='w')
 reg('rom','Britannia (Süden)',brit_s,43,410,seite='w')
-reg('rom','Lycia et Pamphylia',lycia,43,seite='o')
-reg('rom','Thracia',thracia,46,seite='o')
-reg('rom','Pontus Polemoniacus',pontus_o,64,seite='o')
-reg('rom','Commagene (zu Syria)',commagene,72,seite='o')
-reg('rom','Agri decumates',agri_dec,74,260,seite='w')
+reg('rom','Lycia et Pamphylia',lycia,43,OST_ENDE,seite='o')
+reg('rom','Thracia',thracia,46,OST_ENDE,seite='o')
+reg('rom','Pontus Polemoniacus',pontus_o,64,OST_ENDE,seite='o')
+reg('rom','Commagene (zu Syria)',commagene,72,OST_ENDE,seite='o')
+reg('rom','Agri decumates (zu Germania superior und Raetia)',agri_dec,74,260,seite='w')
 reg('rom','Britannia (Norden und Wales)',brit_n,78,410,seite='w')
 reg('rom','Dacia',dacia_mm,106,271,seite='o')
-reg('rom','Arabia Petraea',arabia,106,seite='o')
+reg('rom','Arabia Petraea (Hauptstadt Bostra)',arabia,106,OST_ENDE,seite='o')
+
+# ---- Byzanz (Ostrom) im Spätmittelalter, Abschnitt 1400–1453 der Zeitleiste ----
+byz_konst  = P((27.9,40.95),(27.9,41.55),(29.1,41.25),(29.05,40.98))
+byz_thess  = P((22.6,40.5),(23.3,40.8),(24.0,40.4),(23.9,39.9),(22.9,40.1))
+byz_morea  = P((22.0,36.4),(21.9,37.3),(22.4,37.6),(23.2,37.6),(23.2,36.4))
+byz_achaia = P((21.1,37.4),(21.1,38.4),(22.9,38.3),(22.4,37.6),(21.9,37.3))
+reg('rom','Konstantinopel und Umland',byz_konst,1400,1453,seite='o')
+reg('rom','Thessalonike (1403 zurückgewonnen, 1423 an Venedig)',byz_thess,1403,1423,seite='o')
+reg('rom','Despotat Morea (Peloponnes)',byz_morea,1400,1460,seite='o')
+reg('rom','Nordwest-Peloponnes (ab 1430 byzantinisch)',byz_achaia,1430,1460,seite='o')
 
 # ---- Han ----
 reg('han','Kernland der Han',han_early,-206)
@@ -338,17 +401,25 @@ reg('westgot','Aquitanien (Föderatenvertrag)',wg_aquit,418)
 reg('westgot','Septimanien (Narbonne)',wg_sept,462)
 reg('westgot','Gallien bis zur Loire',wg_gall,470)
 reg('westgot','Hispanien (Eroberung unter Eurich)',hisp_all,472)
-reg('westgot','Provence (Arles, Marseille)',wg_prov,476)
+reg('westgot','Provence (Arles, Marseille)',wg_prov,474)
 reg('sueben','Gallaecia',sueb_core,411)
 reg('sueben','Lusitanien und Baetica',sueb_ext,439,456)
+reg('vandal','Baetica (Silingen und Hasdingen)',baetica,411,429)
 reg('vandal','Mauretanien',mauretania,429)
-reg('vandal','Africa (Karthago)',U(africa,africa_ext),439)
+reg('vandal','Africa und Numidien (Karthago)',U(africa,africa_nova,numidia),439)
+reg('vandal','Tripolitanien',tripolis,455)
 reg('vandal','Sardinien, Korsika, Balearen',U(sardinia,balearen),455)
 reg('burgund','Reich um Worms',burg_worms,413,436)
 reg('burgund','Sapaudia (Genf)',burg_sap,443)
 reg('burgund','Rhônetal und Lyon',burg_rhone,470)
 reg('odoaker','Italien',U(italia_c,italia_s,cisalpina,sicilia),476)
-reg('odoaker','Dalmatien',illyria,480)
+reg('odoaker','Dalmatien (nach dem Tod des Julius Nepos 480)',U(illyria,dalm_hint),481)
+reg('syagrius','Nordgallien zwischen Somme und Loire (Ausdehnung unsicher)',soissons,461,487)
+osm_balkan = P((19.8,41.8),(20.5,43.2),(22.4,44.6),(26,44.0),(28.6,43.8),(29.2,41.2),(28.0,40.9),(26.4,40.4),(24.0,40.7),(23.0,40.3),(22.4,39.5),(21.0,39.6),(20.0,40.0))
+osm_anatol = P((26.2,40.0),(28.0,40.6),(31.0,41.2),(34.0,41.8),(36.0,41.5),(36.5,38.5),(32.0,37.0),(29.0,36.6),(27.0,37.5))
+reg('osman','Balkan (Thrakien, Bulgarien, Makedonien, Thessalien)',osm_balkan.difference(byz_konst).difference(byz_thess),1400,1454)
+reg('osman','Westliches Kleinasien',osm_anatol,1400,1454)
+reg('osman','Thessalonike (1430 erobert)',byz_thess,1430,1454)
 reg('ostgot','Pannonien (Föderaten)',pannonia.intersection(box(16,44,20.5,48.5)),456,473)
 reg('angels','Ostengland (Siedlungsgebiet)',angl_ost,449)
 
@@ -423,7 +494,13 @@ E = [
  ('rom',395,'Reichsteilung in West- und Ostrom','Nach dem Tod Theodosius’ I. erben seine Söhne das Reich: Honorius den Westen (Westrom), Arcadius den Osten (Ostrom, Hauptstadt Konstantinopel).'),
  ('rom',410,'Plünderung Roms','Westgoten unter Alarich plündern Rom. Britannien wird aufgegeben.'),
  ('rom',439,'Vandalen erobern Karthago','Westrom verliert Nordafrika, seine reichste Provinz. Hispanien und Gallien gehen in den folgenden Jahrzehnten an germanische Reiche.'),
- ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Ostrom (Byzanz) besteht bis 1453 weiter.'),
+ ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Julius Nepos hält sich bis 480 in Dalmatien. Ostrom (Byzanz) besteht bis 1453 weiter.'),
+ ('rom',1400,'Byzanz um 1400','Vom Oströmischen Reich sind nur Konstantinopel, Teile der Peloponnes (Morea) und einige Inseln übrig. Die Osmanen beherrschen den Balkan und den Westen Kleinasiens.'),
+ ('rom',1403,'Thessalonike wieder byzantinisch','Nach der Niederlage der Osmanen gegen Timur bei Ankara (1402) erhält Byzanz Thessalonike zurück.'),
+ ('rom',1423,'Thessalonike an Venedig','Byzanz übergibt die von den Osmanen belagerte Stadt an Venedig. 1430 erobern die Osmanen sie.'),
+ ('rom',1430,'Osmanen erobern Thessalonike','Byzanz gewinnt im selben Jahr den Nordwesten der Peloponnes; die Morea ist fast ganz byzantinisch.'),
+ ('rom',1439,'Kirchenunion von Florenz','Kaiser Johannes VIII. sucht Hilfe im Westen gegen die Osmanen. Die Union von Ost- und Westkirche bleibt ohne Wirkung.'),
+ ('rom',1453,'Fall Konstantinopels','Sultan Mehmed II. erobert Konstantinopel am 29. Mai 1453. Das Byzantinische Reich, der Rest des Oströmischen Reichs, endet.'),
  ('han',-206,'Anfänge der Han-Dynastie','Liu Bang gründet die Dynastie (traditionell 206/202 v. Chr.). Im Norden sind die Xiongnu überlegen; 200 v. Chr. wird der Kaiser bei Baideng eingeschlossen.'),
  ('han',-127,'Gegenangriff auf die Xiongnu','Kaiser Wu (141–87 v. Chr.) lässt die Xiongnu angreifen. Das Ordos-Gebiet und 121 v. Chr. der Hexi-Korridor werden erobert.'),
  ('han',-111,'Expansion unter Kaiser Wu','Nanyue im Süden (111 v. Chr.), Dian (109 v. Chr.) und Nordkorea (Lelang, 108 v. Chr.) werden eingegliedert.'),
@@ -576,7 +653,32 @@ for r, n, x, y, v, b, st in cities:
     if not z: print('Ort ohne Gebiet:', r, n); continue
     orte.append({'reich': r, 'name': n, 'lng': x, 'lat': y, 'stufe': st, 'zeiten': z})
 
-out = {'meta': META, 'reihen': ORDER, 'regionen': feats, 'ereignisse': events, 'schlachten': battles, 'orte': orte}
+# ======================================================================
+#  Völkerwanderung: Züge als Linien [lng, lat], von/bis = Jahre, in denen der Zug gezeichnet wird (schematisch!)
+# ======================================================================
+WANDERUNGEN = [
+ dict(volk='Hunnen', farbe='#c08a5b', von=370, bis=376, pfad=[[50,47.5],[45,47.8],[40,47.5],[35,47.0],[31,46.6]], text='um 375: Hunnen überqueren den Don, besiegen Alanen und Ostgoten'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=395, bis=410, pfad=[[31,46.6],[27,46.5],[23,46.8],[20,47.0]], text='um 400: Hunnen in der Ungarischen Tiefebene'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=450, bis=451, pfad=[[20,47.0],[16,48.0],[12,48.6],[8.3,49.6],[4.4,48.9]], text='451: Attila zieht nach Gallien (Katalaunische Felder)'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=452, bis=453, pfad=[[20,47.0],[16,46.3],[13.37,45.77],[11.5,45.4],[10.8,45.2]], text='452: Attila in Italien (Aquileia zerstört)'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=376, bis=378, pfad=[[28.5,45.4],[27.4,44.1],[26.6,42.9],[26.56,41.68]], text='376: Westgoten überqueren die Donau, 378 Sieg bei Adrianopel'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=395, bis=401, pfad=[[26.56,41.68],[23.5,40.8],[22.4,39.5],[22.9,37.9],[21.6,38.6],[20.4,40.4],[19.6,42.0],[17.2,44.2],[14.5,45.7],[13.37,45.77]], text='395–401: Westgoten unter Alarich in Griechenland und Illyricum, dann Zug nach Italien'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=401, bis=410, pfad=[[13.37,45.77],[11.3,44.5],[12.5,43.1],[12.5,41.9]], text='410: Alarich plündert Rom'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=410, bis=418, pfad=[[12.5,41.9],[11.5,43.6],[8.5,44.3],[5.5,43.5],[3.0,43.2],[2.17,41.39],[1.44,43.6]], text='412–418: über Südgallien nach Hispanien; 418 Ansiedlung in Aquitanien (Toulouse)'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=401, bis=406, pfad=[[17,50.5],[13,50.5],[10,50.2],[8.27,50.0]], text='31.12.406: Vandalen, Sueben und Alanen überqueren den Rhein bei Mainz'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=406, bis=409, pfad=[[8.27,50.0],[5.5,49.3],[3.0,48.0],[1.2,46.0],[-0.5,44.5],[-1.5,43.2]], text='406–409: Zug durch Gallien bis zu den Pyrenäen'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=409, bis=422, pfad=[[-1.5,43.2],[-3.0,41.5],[-4.5,39.5],[-5.5,37.6]], text='409: Einfall in Hispanien; Vandalen in der Baetica'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=429, bis=439, pfad=[[-5.5,37.6],[-5.6,36.0],[-5.3,35.6],[-2.0,35.2],[2.0,36.4],[6.0,36.8],[8.5,36.8],[10.32,36.85]], text='429: Übergang nach Afrika; 439 Eroberung Karthagos'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=455, bis=456, pfad=[[10.32,36.85],[11.0,38.5],[12.0,40.5],[12.3,41.7]], text='455: Vandalen plündern Rom (über das Meer)'),
+ dict(volk='Sueben', farbe='#6f8a8a', von=409, bis=411, pfad=[[-1.5,43.2],[-4.5,42.6],[-7.0,42.2],[-8.43,41.55]], text='411: Sueben in Gallaecia (Hauptort Bracara)'),
+ dict(volk='Burgunder', farbe='#a07a6a', von=406, bis=413, pfad=[[11,50.3],[9.5,50.0],[8.36,49.63]], text='413: Burgunderreich um Worms'),
+ dict(volk='Burgunder', farbe='#a07a6a', von=436, bis=443, pfad=[[8.36,49.63],[7.6,48.3],[7.0,47.3],[6.14,46.2]], text='443: nach der Niederlage 436 Ansiedlung in der Sapaudia (Genf)'),
+ dict(volk='Angeln, Sachsen, Jüten', farbe='#8c7f6a', von=440, bis=455, pfad=[[9.5,54.8],[7.5,54.2],[4.5,53.3],[2.0,52.5],[1.2,51.4]], text='um 450: Angeln, Sachsen und Jüten setzen nach Britannien über'),
+ dict(volk='Alamannen', farbe='#8f7a5c', von=255, bis=260, pfad=[[10.8,50.2],[10.0,49.3],[9.0,48.6]], text='um 260: Alamannen besetzen das Dekumatland'),
+ dict(volk='Ostgoten', farbe='#6d7f6d', von=454, bis=456, pfad=[[31,46.6],[27,46.0],[22,46.2],[19,46.5]], text='456: Ostgoten als Föderaten in Pannonien'),
+]
+
+out = {'meta': META, 'reihen': ORDER, 'regionen': feats, 'ereignisse': events, 'schlachten': battles, 'orte': orte, 'wanderungen': WANDERUNGEN}
 path = os.path.join(HERE, 'data/reiche.json')
 json.dump(out, open(path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print('Regionen:', len(feats), ' Datei:', os.path.getsize(path), 'Bytes')

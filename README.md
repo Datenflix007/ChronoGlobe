@@ -12,6 +12,11 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 ## Bedienung
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
   - Bei vielen eingeblendeten Reichen werden die Spuren der Zeitleiste enger. Im Spätmittelalter sind die antiken Nachbarspuren ausgeblendet.
+- Provinzen: Die römischen Flächen folgen den Provinzen um 117 n. Chr. Namen, Einrichtungsjahre und Hauptstädte stammen aus der Liste der Provinzen des Römischen Reichs (de.wikipedia).
+  - Ab 395 ist das Reich in West- und Ostrom geteilt. Westrom verliert seine Gebiete an die Nachfolgestaaten: Britannien 410, Africa 429/439, Tripolitanien 455, Italien 476, Dalmatien 480/81.
+  - Ostrom reicht als Byzantinisches Reich in den Abschnitt Spätmittelalter. Dieser endet jetzt 1453 (Fall Konstantinopels); dazu kommt das Osmanische Reich als Kontext.
+- Völkerwanderung (Menü → Globus): Die Züge von Hunnen, Goten, Vandalen, Sueben, Burgundern, Alamannen, Angeln und Sachsen wachsen mit der Zeitleiste (255–456, schematisch). Daten: `wanderungen` in `data/reiche.json` (build_reiche.py).
+- Orte („Orte anzeigen“): Die Namen sind HTML-Beschriftungen mit dunklem Rand, damit sie auch über den Straßen lesbar bleiben.
 - Orte („Orte anzeigen“): Je näher man heranzoomt, desto mehr Orte erscheinen (ganz weit weg keine → Weltstädte → große Provinzzentren → weitere Hauptstädte und Wirtschaftszentren → erst ganz nah alle Orte). Die Schrift bleibt auf dem Bildschirm etwa gleich groß.
 - Zeitstrahl ziehen (Punkte = Ereignisse, Schwerter = Schlachten), ←/→ Jahr, Shift = 10 Jahre, Leertaste = Abspielen.
   Die Zeitleiste hat Epochen-Abschnitte („Europäische Antike“ −300 bis 480, „Europäisches Spätmittelalter“ 1400 bis 1440),
@@ -38,7 +43,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   - **Entdeckungsfahrten des Zheng He** (im Handelsmenü, Schalter für alle und jede einzelne Fahrt; Waren über den
     gemeinsamen Schalter „Waren anzeigen“):
   - Sieben Flottenfahrten (1405–1433) in Grüntönen, zu sehen im Zeitleisten-Abschnitt „Europäisches Spätmittelalter“.
-  - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist (ca. 7 s). Ein Schiff fährt an der Linienspitze mit, Häfen erscheinen beim Erreichen. Beim Abspielen wartet die Zeitleiste, bis die Fahrt gezeichnet ist.
+  - Eine Fahrt zeichnet sich ein, sobald ihr Startjahr erreicht ist (ca. 7 s). Das Schiff zeichnet die Linie wie eine Feder, Häfen erscheinen beim Erreichen. Die wandernden Striche anderer Linien laufen dabei weiter, denn nur die Strichlänge im Material wächst. Ebenso zeichnen portugiesische Karavellen ihre Fahrten nach Ceuta, Madeira, zu den Azoren und nach Kap Bojador. Beim Abspielen wartet die Zeitleiste, bis die Fahrt gezeichnet ist.
   - Danach ist die laufende Fahrt hell mit wanderndem Strich, frühere sind blass.
   - Infoband: erzählende Karte zur laufenden Fahrt (Häfen in Reihenfolge, erreichte abgehakt), Karte „China · Ming-Dynastie“ (Hauptstadt Nanjing, ab 1421 Peking; Jiaozhi 1407–1427) und „Zur gleichen Zeit in Europa“ (Ceuta 1415, Madeira 1419, Azoren 1427, Kap Bojador 1434; auch als Marker auf Globus und Zeitleiste).
   - Das Ming-Reich (vereinfacht) erscheint, wenn das Han-Reich (China) eingeblendet ist.
