@@ -56,8 +56,11 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
     Fahrten: „Die Reisen des Zheng He“.
   - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
   - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
-- **Römische Straßen** (Schalter im Handelsmenü): Hauptstraßen aus dem Datensatz Itiner-e (CC BY 4.0), auf dem Globus
-  und auf der Rom-Karte; sichtbar, wenn das Römische Reich eingeblendet ist.
+- **Römerstraßen** (Schalter im Handelsmenü): 819 Hauptstraßen aus Itiner-e (CC BY 4.0) auf dem Globus und auf der Rom-Karte, sichtbar, wenn das Römische Reich eingeblendet ist. Das Netz verändert sich mit der Zeitleiste:
+  - Straßen erscheinen in ihrer modellierten Ausbauphase (schrittweise eingeblendet, didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.
+  - Danach sind sie im Hauptmodus ausgeblendet. Ab 1400 ist keine Straße aktiv.
+  - Optionen: „Ehemalige Trassen“ (blass gestrichelt, mittelalterliche Nutzung nicht allgemein belegt), „Ausbau animieren“ und „Datierung zeigen“ (grün belegt, gelb teilweise, sonst Regionalmodell).
+  - Ein Klick auf eine Straße zeigt räumliche Sicherheit, Modellzeiten und Itiner-e-Belege.
 
 ## Daten ändern
 - `data/reiche.json` (Provinzen/Regionen, Ereignisse, Schlachten, Orte, Nachbarreiche): erzeugt mit `build_reiche.py` (Python, shapely).
@@ -81,7 +84,10 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 - `data/texte.json` (Schülertexte) und `data/literatur.json` (Literatur, Lizenz, Ablage): Regeln in `docs/GRUNDREGELN.md`.
   Prüfen mit `python tools/check_zitate.py`. Es vergleicht jede Belegstelle mit den Seitentexten in `quellen/oeffentlich/`
   (gemeinfrei, im Repo) und `quellen/lokal/` (geschützt, nur lokal, per `.gitignore` ausgeschlossen).
-- `data/roemerstrassen.json`: erzeugt mit `build_roemerstrassen.py` aus `itinere_roads.geojson` (Zenodo, CC BY 4.0).
+- `data/roemerstrassen.json`: Geometrie aus `build_roemerstrassen.py` (Itiner-e, Zenodo, CC BY 4.0). Dazu kommt ein Zeitmodell je Linie (`zeit`), angereichert mit `build_strassen_zeit.py` (Itiner-e-Belege, Regionskorrektur).
+  - Anzeige je Jahr: Ausbau, römische Nutzung, danach optional „ehemalige Trassen“.
+  - Einzelheiten und was belegt bzw. modelliert ist: `docs/STRASSEN_ZEITMODELL.md`.
+  - Tests: `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`.
 - Schematische Ansicht: `img/earth-schematic-8k.png` und Kacheln `img/tiles_schem/` aus Natural Earth 1:10 Mio. Die Abdeckung ist dieselbe wie bei den Satelliten-Kacheln. Neu erzeugen mit `python build_schema_kacheln.py <land-10m.json>` (world-atlas 2.0.2).
 - Satellitenbild:
   - `img/earth-blue-marble-8k.jpg` (8192×4096) ist die Grundkugel.

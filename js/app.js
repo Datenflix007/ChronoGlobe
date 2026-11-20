@@ -14,6 +14,7 @@
   ];
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: true, strassen: false };
+  var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau, Datierungsqualität
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
@@ -404,8 +405,11 @@
     return f - s.b < t.a - f ? s.bis : t.von;
   }
   /* Jahre im Zeitsprung gibt es nicht: vorwärts -> Anfang des nächsten Abschnitts, rückwärts -> Ende des vorigen */
+  /* Jahre addieren ohne Jahr 0: 1 v. Chr. + 10 Jahre = 10 n. Chr. (Rechnung in astronomischen Jahren) */
+  function plusJahre(y, d) { var a = (y < 0 ? y + 1 : y) + d; return a <= 0 ? a - 1 : a; }
   function normYear(y, prev) {
     y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
+    if (y === 0) y = prev != null && prev > 0 ? -1 : 1;   // historische Zählung: auf 1 v. Chr. folgt 1 n. Chr.
     if (y > ANTIKE_ENDE && y < SEGS[1].von) {
       if (prev != null && y !== prev) y = y > prev ? SEGS[1].von : ANTIKE_ENDE;
       else y = y - ANTIKE_ENDE < SEGS[1].von - y ? ANTIKE_ENDE : SEGS[1].von;
@@ -516,7 +520,7 @@
       var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
       var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
       stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
-      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key;
+      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + strassenSchluessel(y);
     }
     stateKey.zv = null;
     var ids = [];
@@ -564,7 +568,7 @@
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
         if (PENS.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
-        setYear(state.year + 1); step();
+        setYear(plusJahre(state.year, 1)); step();
       }, t);
     })();
   }
@@ -880,7 +884,8 @@
     });
     res.kar = karPlan(y, res);
     res.strassen = strassenSichtbar(y);
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' +
+    res.strKey = strassenSchluessel(y);
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' + res.strKey + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
       res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
@@ -1045,28 +1050,97 @@
   }
   function tradeGlobePaths(tv) {
     var a = [];
-    if (tv.strassen) a.push.apply(a, strassenPaths());
+    if (tv.strassen) a.push.apply(a, strassenPaths(state.year));
     tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
     tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
     return a;
   }
 
   /* ---------- Layer „Römische Straßen“ (Itiner-e, CC BY 4.0) ---------- */
-  var STRASSEN = null, STR_OBJ = null;
-  function strassenSichtbar(y) { return !!STRASSEN && TRADE.on && TRADE.strassen && state.epoche === 'antike' && reichAktiv('rom', y); }
-  function strassenPaths() {
-    if (!STR_OBJ) STR_OBJ = STRASSEN.linien.map(function (l, i) { return { id: 'str' + i, strasse: true, s: l.s, pts: l.p }; });
-    return STR_OBJ;
+  /* Zeitmodell (js/strassenzeit.js): Linien erscheinen in der modellierten Ausbauphase, sind in der römischen
+     Nutzungsphase voll sichtbar und danach nur im Referenzmodus als blasse, gestrichelte „ehemalige Trassen“.
+     Pfad-Objekte bleiben je Linie dieselben (kein Neuaufbau, keine Speicherlecks); neu gezeichnet wird nur,
+     wenn sich der Zustandsschlüssel ändert. */
+  var STRASSEN = null, STR_OBJ = null, STR_CACHE = { key: null, list: [] };
+  function strassenSichtbar(y) { return !!STRASSEN && TRADE.on && TRADE.strassen && !!state.on.rom; }
+  function strassenSchluessel(y) {
+    if (!strassenSichtbar(y)) return 'aus';
+    return [STR_OPT.ehemals, STR_OPT.animieren, STR_OPT.unsicherheit, state.mode].join('') + StrassenZeit.schluessel(STRASSEN.linien, y, STR_OPT);
+  }
+  function strassenPaths(y) {
+    if (!strassenSichtbar(y)) return [];
+    if (!STR_OBJ) STR_OBJ = STRASSEN.linien.map(function (L, i) { return { id: 'str' + i, strasse: true, s: L.s, L: L, pts: L.p }; });
+    var key = strassenSchluessel(y);
+    if (key === STR_CACHE.key) return STR_CACHE.list;
+    var list = [];
+    STR_OBJ.forEach(function (o) {
+      var z = StrassenZeit.zustand(o.L, y, STR_OPT);
+      o.stil = z.stil; o.anteil = z.anteil; o.phase = z.phase;
+      if (z.stil) list.push(o);
+    });
+    STR_CACHE = { key: key, list: list };
+    return list;
+  }
+  function strassenFarbe(d) {
+    var schem = state.mode === 'schem';
+    if (d.stil === 'ehemals') return schem ? 'rgba(122,40,20,0.32)' : 'rgba(255,215,195,0.3)';
+    if (d.stil === 'undatiert') return schem ? 'rgba(70,70,70,0.6)' : 'rgba(210,210,210,0.6)';
+    var a = (d.s === 'H' ? 0.4 : 0.85) * (d.stil === 'ausbau' ? d.anteil : 1), rgb = schem ? '122,40,20' : '255,205,185';
+    if (STR_OPT.unsicherheit) {
+      var dt = d.L.datierung;
+      if (dt === 'itinere_belegt') rgb = schem ? '20,110,60' : '150,245,185';
+      else if (dt === 'itinere_teilweise') rgb = schem ? '150,95,0' : '255,215,110';
+    }
+    return 'rgba(' + rgb + ',' + a.toFixed(2) + ')';
+  }
+  function strassenDash(d, i) {
+    if (d.stil === 'ehemals') { var f = Math.min(0.45, 0.12 / Math.max(d.L.laenge, 0.01)); return [f, f][i]; }   // ≈ 0,12° Strich/Lücke
+    if (d.stil === 'undatiert') { var g = Math.min(0.3, 0.04 / Math.max(d.L.laenge, 0.01)); return [g, g * 2][i]; }
+    return [1, 0][i];
+  }
+  var STR_TXT = { itinere_belegt: 'mit Itiner-e-Belegen eingegrenzt', itinere_teilweise: 'teilweise mit Itiner-e-Belegen', regionalmodell_nicht_einzelbelegt: 'nur regional modelliert (keine Einzelbelege)' };
+  var PHASE_TXT = { vor: 'noch nicht angelegt (Modell)', ausbau: 'in der modellierten Ausbauphase', roemisch: 'in römischer Nutzung (Modell)', nachroemisch: 'nach dem Ende der modellierten römischen Nutzung', undatiert: 'nicht datierbar' };
+  function openStrassenLinie(d) {
+    var L = d.L, z = L.zeit || {}, it = z.itinere;
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk str', 'Römische Straße · ' + L.id));
+      var h = el('h3', null, it && it.namen && it.namen.length ? it.namen.slice(0, 2).join(' · ') : 'Römische Straße'); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Im Jahr ' + fmtYear(state.year), PHASE_TXT[d.phase] || '–');
+      row(b, 'Räumliche Sicherheit', L.s === 'S' ? 'gesichert oder erschlossen (Itiner-e: Certain/Conjectured)' : 'vermutet (Itiner-e: Hypothetical)');
+      if (L.datierbar) {
+        row(b, 'Ausbau (Modell)', fmtYear(L.bmin) + ' bis ' + fmtYear(L.bmax) + (z.region ? ' · Region ' + z.region : ''));
+        row(b, 'Römische Nutzung (Modell)', L.endeUnbekannt ? 'Ende unbekannt' : 'bis ' + fmtYear(L.ende));
+      } else row(b, 'Datierung', 'keine gültigen Zeitangaben').classList.add('twarn');
+      row(b, 'Quellenlage', STR_TXT[L.datierung] || L.datierung);
+      if (it && it.belege && it.belege.length) {
+        var ul = el('ul', 'tparts');
+        it.belege.forEach(function (e) {
+          var t = (e.name || 'Abschnitt') + ': ' + [e.bauphase ? 'Bauphase ' + e.bauphase : null,
+            e.lower_date != null ? 'frühestens belegt ' + fmtYear(e.lower_date) + (e.lower_fehler ? ' (±' + e.lower_fehler + ')' : '') : null,
+            e.upper_date != null ? 'spätestens belegt ' + fmtYear(e.upper_date) + (e.upper_fehler ? ' (±' + e.upper_fehler + ')' : '') : null].filter(Boolean).join(', ');
+          ul.appendChild(el('li', null, t));
+        });
+        row(b, 'Belege (Itiner-e)', ul);
+        row(b, 'Zuordnung', it.zuordnung + '; ' + it.segmente + ' Segmente, ' + Math.round(it.datierter_anteil * 100) + ' % der Länge datiert');
+      }
+      if (z.region_korrektur) row(b, 'Region', z.region_korrektur);
+      row(b, 'Nachrömisch', 'Fortbestand ' + (z.historischer_fortbestand || 'unbekannt') + '. ' + (z.modellgrenze_hinweis || ''));
+      row(b, 'Hinweis', 'Die Jahreszahlen sind Modellwerte für die Darstellung, keine nachgewiesenen Bau- oder Aufgabejahre. Die schrittweise Einblendung ist eine didaktische Animation.').classList.add('twarn');
+      var mb = el('button', 'small tmore', 'Über den Straßen-Layer'); mb.type = 'button'; mb.addEventListener('click', openStrassenInfo); b.appendChild(mb);
+    });
   }
   function openStrassenInfo() {
     var L = LIT.itinere2025;
     showInfo(function (b) {
       b.appendChild(el('div', 'tk str', 'Kartenlayer'));
       var h = el('h3', null, 'Römische Straßen'); h.id = 'tinfoTitle'; b.appendChild(h);
-      row(b, 'Stand', STRASSEN.stand + ' (laut Datensatz)');
-      row(b, 'Darstellung', 'Nur Hauptstraßen, vereinfacht. Kräftig: gesicherter oder erschlossener Verlauf; blass: vermuteter Verlauf.');
-      row(b, 'Hinweis', 'Sichtbar, wenn das Römische Reich eingeblendet ist und im gewählten Jahr besteht. Das Netz zeigt einen einzigen Zeitstand; viele Straßen entstanden erst nach und nach.').classList.add('twarn');
-      row(b, 'Daten', L ? L.voll + '.' : STRASSEN._quelle);
+      var M = STRASSEN.meta, c = StrassenZeit.zaehlen(STRASSEN.linien, state.year, STR_OPT);
+      row(b, 'Im Jahr ' + fmtYear(state.year), c.ausbau + ' Linien im Ausbau, ' + c.roemisch + ' in römischer Nutzung, ' + c.nachroemisch + ' nachrömisch' + (c.undatiert ? ', ' + c.undatiert + ' undatiert' : '') + ' (von ' + STRASSEN.linien.length + ')');
+      row(b, 'Belegt', 'Verlauf und räumliche Sicherheit der Hauptstraßen (Itiner-e). Für einen Teil der Linien grenzen Itiner-e-Belege (frühestes Datum, Bauphasen meist nach Meilensteinen) den Ausbau ein.');
+      row(b, 'Modelliert', 'Ausbauzeitraum und Ende der römischen Nutzung je Region (regionales Szenariomodell). Die schrittweise Einblendung ist eine didaktische Animation, kein belegter Baufortschritt.');
+      row(b, 'Darstellung', 'Kräftig: gesicherter oder erschlossener Verlauf; blass: vermutet. Option „Ehemalige Trassen“: nach dem Ende der römischen Nutzung blass gestrichelt (mittelalterliche Nutzung nicht allgemein belegt). Option „Datierung zeigen“: grün mit Itiner-e-Belegen, gelb teilweise, sonst nur Regionalmodell.');
+      row(b, 'Nach 1400', 'Keine Linie gilt als aktiv: Für eine mittelalterliche Nutzung enthält der Datensatz keine Belege. Im Referenzmodus erscheinen die ehemaligen Trassen.').classList.add('twarn');
+      row(b, 'Daten', (L ? L.voll + '.' : M._quelle) + ' Zeitmodell ' + (M._zeitmodell_version || '') + ', angereichert mit build_strassen_zeit.py.');
       row(b, 'Lizenz', 'CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), Daten vereinfacht und auf Hauptstraßen reduziert');
     });
   }
@@ -1108,9 +1182,9 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.strasse) return strassenFarbe(d);
     if (d.vw) return state.mode === 'schem' ? mix(d.vw.farbe, '#000000', 0.35) : mix(d.vw.farbe, '#ffffff', 0.25);
     if (d.eu) return state.mode === 'schem' ? '#1d4f8a' : '#8fc3ff';
-    if (d.strasse) return state.mode === 'schem' ? (d.s === 'H' ? 'rgba(122,40,20,0.4)' : 'rgba(122,40,20,0.85)') : (d.s === 'H' ? 'rgba(255,205,185,0.4)' : 'rgba(255,205,185,0.85)');
     if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
     if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
     if (d.flow) return d.teil === 'spaet' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.9)';
@@ -1121,7 +1195,7 @@
     if (d.__pen != null) return [d.__pen, 3][i];
     if (d.vw) return [0.03, 0.012][i];   // Zeichenfeder: sichtbarer Anteil, dahinter Lücke
     if (d.eu) return [1, 0][i];
-    if (d.strasse) return [1, 0][i];
+    if (d.strasse) return strassenDash(d, i);
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
       if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
@@ -1153,8 +1227,10 @@
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
         if (d.strasse) {
-          t.appendChild(el('b', null, 'Römische Straße (Hauptstraße)')); t.appendChild(el('br'));
-          t.appendChild(document.createTextNode((d.s === 'H' ? 'Verlauf vermutet · ' : '') + 'Daten: Itiner-e (CC BY 4.0) · Klick für Infos'));
+          var nm = d.L.zeit && d.L.zeit.itinere && d.L.zeit.itinere.namen;
+          t.appendChild(el('b', null, d.stil === 'ehemals' ? 'Ehemalige römische Trasse' : 'Römische Straße' + (nm && nm.length ? ': ' + nm[0] : ''))); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode(d.stil === 'ehemals' ? 'mittelalterliche Nutzung nicht allgemein belegt · Klick für Infos'
+            : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
           return t.outerHTML;
         }
         if (d.zh) {
@@ -1170,7 +1246,7 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
-        if (d.strasse) openStrassenInfo();
+        if (d.strasse) openStrassenLinie(d);
         else if (d.zh) openText('zhenghe', { label: 'Daten zur ' + d.zh.nr + '. Fahrt', fn: function () { openZhInfo(d.zh); } });
         else if (d.kontakt) openKontaktInfo(d.kontakt);
         else openText(routeText(d.route), { label: 'Daten zur Route', fn: function () { openTradeInfo(d.route); } });
@@ -1354,8 +1430,14 @@
     var any = false, info = [], labels = g.append('g');
     var lines = g.insert('g', ':first-child');
     if (tv.strassen && r === 'rom') {   // Römische Straßen (Itiner-e, CC BY 4.0) unter den Handelsrouten
-      var sd = path({ type: 'MultiLineString', coordinates: STRASSEN.linien.map(function (l) { return l.p; }) });
-      if (sd) { g.insert('path', ':first-child').attr('d', sd).attr('fill', 'none').attr('stroke', '#7a2e1c').attr('stroke-width', 1.1).attr('stroke-opacity', 0.55).attr('pointer-events', 'none'); any = true; }
+      var gruppen = { aktiv: [], ausbau: [], ehemals: [], undatiert: [] };
+      strassenPaths(state.year).forEach(function (o) { gruppen[o.stil].push(o.L.p); });
+      [['ehemals', 0.3, '5 4'], ['undatiert', 0.45, '1 3'], ['ausbau', 0.32, null], ['aktiv', 0.6, null]].forEach(function (st) {
+        if (!gruppen[st[0]].length) return;
+        var sd = path({ type: 'MultiLineString', coordinates: gruppen[st[0]] });
+        if (sd) { g.insert('path', ':first-child').attr('d', sd).attr('fill', 'none').attr('stroke', st[0] === 'undatiert' ? '#555' : '#7a2e1c').attr('stroke-width', 1.1)
+          .attr('stroke-opacity', st[1]).attr('stroke-dasharray', st[2]).attr('pointer-events', 'none'); any = true; }
+      });
     }
     tv.routes.forEach(function (rt) {
       var v = rt.v, col = TRADE_MAP[v.art];
@@ -1611,7 +1693,7 @@
   /* Pfade für den Globus: während des Zeichnens ohne wandernden Strich */
   function zhPaths(zv) {
     var p = zv.paths.filter(function (d) { return !(d.flow && d.zh && penVon(d.zh)); });
-    return p.concat((zv.europa || []).map(function (e) { return e.__p; }));
+    return strassenPaths(state.year).concat(p, (zv.europa || []).map(function (e) { return e.__p; }));
   }
   function zhHtml(zv) {
     var t = zv.tags.filter(function (d) { return !penVon(d.route); });   // Waren-Etikett erst nach dem Zeichnen
@@ -2115,7 +2197,13 @@
       lastKey = ''; setYear(state.year);
     });
     $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
-    $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); });
+    $('#tglStr').addEventListener('click', function () { setTrade('strassen', !TRADE.strassen); $('#strOpt').classList.toggle('off', !TRADE.strassen); });
+    [['#tglStrEhem', 'ehemals'], ['#tglStrAnim', 'animieren'], ['#tglStrUns', 'unsicherheit']].forEach(function (x) {
+      $(x[0]).addEventListener('click', function () {
+        STR_OPT[x[1]] = !STR_OPT[x[1]]; this.classList.toggle('on', STR_OPT[x[1]]); this.setAttribute('aria-pressed', STR_OPT[x[1]]);
+        lastKey = ''; setYear(state.year);
+      });
+    });
     $('#btnZhWaren').addEventListener('click', function () { openWaren(ZHD); });
     $('#btnZhGo').addEventListener('click', function () { if (state.epoche !== 'ming') setYear(SEGS[1].start); else fly(8, 82, homeAlt()); });
     $('#year').addEventListener('change', function () { this.value = sliderPos(state.year); });   // Schieber im Zeitsprung einrasten
@@ -2133,8 +2221,8 @@
     $('#tglStandort').addEventListener('click', toggleStandort);
     $('#year').addEventListener('input', function (e) { setYear(yearAt(+e.target.value / 1000), true); });
     $('#play').addEventListener('click', togglePlay);
-    $('#yMinus').addEventListener('click', function () { setYear(state.year - 10); });
-    $('#yPlus').addEventListener('click', function () { setYear(state.year + 10); });
+    $('#yMinus').addEventListener('click', function () { setYear(plusJahre(state.year, -10)); });
+    $('#yPlus').addEventListener('click', function () { setYear(plusJahre(state.year, 10)); });
     $('#mapClose').addEventListener('click', closeMap);
     $('#tabVig').addEventListener('click', function () { setRollView('vig'); });
     $('#tabKarte').addEventListener('click', function () { setRollView('karte'); });
@@ -2156,8 +2244,8 @@
       }
       if (e.target && (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || (e.target.closest && e.target.closest('.troute,.tplace,.wchips-map,.roll-tabs')))) return;
       if (mapOpen && rollView === 'vig') return;   // in den Vignetten verstellen Pfeiltasten nicht das Jahr
-      if (e.key === 'ArrowLeft') setYear(state.year - (e.shiftKey ? 10 : 1));
-      if (e.key === 'ArrowRight') setYear(state.year + (e.shiftKey ? 10 : 1));
+      if (e.key === 'ArrowLeft') setYear(plusJahre(state.year, e.shiftKey ? -10 : -1));
+      if (e.key === 'ArrowRight') setYear(plusJahre(state.year, e.shiftKey ? 10 : 1));
       if (e.key === ' ' && !mapOpen && e.target.tagName !== 'BUTTON') { e.preventDefault(); togglePlay(); }
     });
   }
@@ -2169,7 +2257,8 @@
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     load(/[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = res[8]; VIG = res[9];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); VIG = res[9];
+    if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
@@ -2181,7 +2270,10 @@
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
     setTimeout(startIntro, 600);
-    window.__tafelbild = { state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
+    window.__tafelbild = { strOpt: STR_OPT, strassen: function () { return { geladen: STRASSEN.linien.length, fehler: STRASSEN.fehler.length,
+        sichtbar: strassenPaths(state.year).length, aufGlobus: globe.pathsData().filter(function (d) { return d.strasse; }).length,
+        stile: globe.pathsData().filter(function (d) { return d.strasse; }).reduce(function (a, d) { a[d.stil] = (a[d.stil] || 0) + 1; return a; }, {}) }; },
+      state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible };
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';
     m.textContent = 'Daten konnten nicht geladen werden. Bitte die Seite über einen Webserver öffnen (nicht per Doppelklick). ' + err.message;

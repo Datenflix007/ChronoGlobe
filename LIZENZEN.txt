@@ -24,7 +24,8 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
 - Römische Straßen (data/roemerstrassen.json): Itiner-e static version 2024 (de Soto, Pažout, Brughmans u. a.,
   Scientific Data 12, 2025, Nr. 1731), Zenodo DOI 10.5281/zenodo.17122148, Lizenz CC BY 4.0
   (https://creativecommons.org/licenses/by/4.0/). Verändert: nur Hauptstraßen, ohne Wasserwege, vereinfacht und
-  verkettet (build_roemerstrassen.py).
+  verkettet (build_roemerstrassen.py). Zeitmodell: regionales Szenariomodell (eigene Modellierung), angereichert mit
+  Datierungsfeldern derselben Itiner-e-Version (Lower_Date, Upper_Date, Cons_per_e; build_strassen_zeit.py).
 - Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen
   der verwendeten Literatur: data/literatur.json, Regeln: docs/GRUNDREGELN.md.
 - Quellenseiten in quellen/oeffentlich/: gemeinfreie Werke (Plinius d. Ä., Hirth 1885, Schoff 1912; OCR von archive.org

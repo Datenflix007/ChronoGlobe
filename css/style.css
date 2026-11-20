@@ -699,3 +699,8 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
   background:rgba(20,16,12,.85);color:#fff;font:600 11.5px var(--ui);white-space:nowrap;cursor:pointer}
 .vwtag b{padding:1px 7px;border-radius:9px;background:var(--c);color:#fff;font-size:11px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
 .era.era-mittel{opacity:.9}
+
+/* ----- Römerstraßen: Unteroptionen ----- */
+.str-opt{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;padding:6px;border:1px dashed var(--line);border-radius:10px;transition:opacity .2s}
+.str-opt.off{display:none}
+.str-opt .str-hint{grid-column:1/-1;font-size:12px}
