@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var PLATZHALTER = 3;                 // so viele leere Vignetten, wenn für ein Reich nichts eingetragen ist
+  var PLATZHALTER = 5;                 // so viele leere Vignetten, wenn für ein Reich nichts eingetragen ist
   var FORTSCHRITT = {};                // reich -> vignetten-index -> block-index -> true/false
   var ANSICHT = {};                    // reich -> 'liste' | index der geöffneten Vignette
   var uid = 0;

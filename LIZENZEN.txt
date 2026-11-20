@@ -15,12 +15,28 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
   Inhalte gestützt auf antike Quellen (u. a. Periplus Maris Erythraei, Plinius d. Ä., Strabon, Ptolemaios, Isidor von Charax,
   Shiji, Hanshu, Hou Hanshu); die Quellenangaben stehen bei jedem Eintrag. Keine Atlas- oder Kartendaten Dritter.
 - Symbole (Schwerter, Gesandtschaft): eigene SVG-Zeichnungen.
-- Schematische Globus-Textur img/earth-schematic.png: aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
+- Schematische Ansicht in hoher Auflösung: img/earth-schematic-8k.png und Kacheln img/tiles_schem/ aus Natural Earth 1:10 Mio.
+  (gemeinfrei) über world-atlas 2.0.2 (ISC), land-10m.json, gezeichnet mit build_schema_kacheln.py.
+- Ming-Reich und Vergleich Europa (data/zhenghe.json → ming, europa): eigene, vereinfachte Zeichnung bzw. eigene
+  Zusammenstellung; Quellenangaben stehen bei jedem Eintrag.
+- Schematische Globus-Textur img/earth-schematic.png (Rückfall): aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
   land-50m.json, gezeichnet mit d3 (build_schema_textur.py).
 - Römische Straßen (data/roemerstrassen.json): Itiner-e static version 2024 (de Soto, Pažout, Brughmans u. a.,
   Scientific Data 12, 2025, Nr. 1731), Zenodo DOI 10.5281/zenodo.17122148, Lizenz CC BY 4.0
   (https://creativecommons.org/licenses/by/4.0/). Verändert: nur Hauptstraßen, ohne Wasserwege, vereinfacht und
-  verkettet (build_roemerstrassen.py).
+  verkettet (build_roemerstrassen.py). Zeitmodell: regionales Szenariomodell (eigene Modellierung), angereichert mit
+  Datierungsfeldern derselben Itiner-e-Version (Lower_Date, Upper_Date, Cons_per_e; build_strassen_zeit.py).
+- Schiffsverkehr (data/orbis_schiff.json): ORBIS – The Stanford Geospatial Network Model of the Roman World
+  (Walter Scheidel, Elijah Meeks; https://orbis.stanford.edu/), Daten aus https://github.com/emeeks/orbis_v2
+  (base_routes.geojson, sites_extended.csv). Lizenz MIT, Copyright (c) 2013 Elijah Meeks:
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+    documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright
+    notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+  Verändert: nur Schiffsstrecken (Küste, Hochsee, Fähre, Fluss), vereinfacht, mit Sichtbarkeitszeiten aus den
+  römischen Flächen dieses Tafelbilds (build_orbis.py).
 - Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen
   der verwendeten Literatur: data/literatur.json, Regeln: docs/GRUNDREGELN.md.
 - Quellenseiten in quellen/oeffentlich/: gemeinfreie Werke (Plinius d. Ä., Hirth 1885, Schoff 1912; OCR von archive.org

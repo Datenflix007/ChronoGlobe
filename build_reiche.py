@@ -51,8 +51,35 @@ META = {
               kurz='Steppenvolk, das nach den Xiongnu die Mongolei beherrscht.'),
  'hunnen':dict(name='Hunnen', von=370, bis=469, farbe='#c08a5b', zentrum=[34, 47],
               kurz='Steppenvolk, das ab 375 n. Chr. die Völkerwanderung auslöst; unter Attila (434–453) auf dem Höhepunkt.'),
+ # --- Europa (Kontext): Nachfolgestaaten Westroms. kontext=True: grau im Menü, keine Schriftrolle ---
+ 'franken': dict(name='Franken', von=257, bis=843, farbe='#7d8a5a', zentrum=[5.5, 50.9], kontext=True,
+              kurz='Germanischer Verband am Niederrhein; Salfranken ab 358 in Toxandrien, ab etwa 457 Kleinkönigreich um Tournai (Childerich I.). Grundlage des späteren Frankenreichs.'),
+ 'alaman': dict(name='Alamannen', von=260, bis=506, farbe='#8f7a5c', zentrum=[8.6, 48.5], kontext=True,
+              kurz='Germanischer Verband; besetzt nach 260 das aufgegebene Dekumatland, nach 455 auch Elsass und Nordschweiz.'),
+ 'westgot': dict(name='Westgotenreich', von=418, bis=711, farbe='#8a6f8f', zentrum=[0.5, 43.5], kontext=True,
+              kurz='418 als Föderaten in Aquitanien angesiedelt (Hauptstadt Toulouse); unter Eurich (466–484) größtes Reich im Westen.'),
+ 'sueben': dict(name='Suebenreich', von=411, bis=585, farbe='#6f8a8a', zentrum=[-8, 42.5], kontext=True,
+              kurz='Germanisches Königreich in Gallaecia (Nordwesten Hispaniens), Hauptort Bracara.'),
+ 'vandal': dict(name='Vandalen', von=406, bis=534, farbe='#5f7a99', zentrum=[9.5, 35.5], kontext=True,
+              kurz='Überschreiten 406 den Rhein, ziehen 409 nach Hispanien (Baetica), setzen 429 nach Afrika über und erobern 439 Karthago; 455 plündern sie Rom.'),
+ 'burgund': dict(name='Burgunderreich', von=413, bis=534, farbe='#a07a6a', zentrum=[5.6, 46.2], kontext=True,
+              kurz='413–436 Reich um Worms (Zerstörung durch hunnische Truppen), ab 443 in der Sapaudia um Genf neu angesiedelt.'),
+ 'odoaker': dict(name='Reich des Odoaker', von=476, bis=493, farbe='#7a7a92', zentrum=[12, 43], kontext=True,
+              kurz='Odoaker setzt 476 den letzten weströmischen Kaiser ab und herrscht als König in Italien.'),
+ 'ostgot': dict(name='Ostgoten', von=456, bis=553, farbe='#6d7f6d', zentrum=[18, 46.5], kontext=True,
+              kurz='Nach dem Zerfall des Hunnenreichs 456–473 als Föderaten in Pannonien; ab 493 Reich in Italien.'),
+ 'syagrius': dict(name='Reich von Soissons', von=461, bis=487, farbe='#9a8a7a', zentrum=[2.5, 48.8], kontext=True,
+              kurz='Gallorömischer Reststaat in Nordgallien unter Aegidius und seinem Sohn Syagrius; 486/87 von Chlodwig I. erobert. Ausdehnung unsicher.'),
+ 'osman': dict(name='Osmanisches Reich', von=1299, bis=1922, farbe='#8e6f50', zentrum=[30, 40.5], kontext=True,
+              kurz='Beherrscht um 1400 den Balkan und den Westen Kleinasiens; erobert 1453 Konstantinopel.'),
+ 'angels': dict(name='Angelsachsen', von=449, bis=927, farbe='#8c7f6a', zentrum=[0.3, 52.3], kontext=True,
+              kurz='Nach dem Abzug Roms (410) siedeln Angeln, Sachsen und Jüten im Osten Britanniens; Kleinkönigreiche entstehen.'),
 }
 ORDER = list(META.keys())
+# Bei Überlappung gewinnt das frühere Reich. Die Nachfolgestaaten stehen VOR Rom: Sie nehmen Westrom die Gebiete ab,
+# auch wenn das formale Ende einer weströmischen Provinz später datiert ist.
+KONTEXT = ['osman', 'syagrius', 'sueben', 'vandal', 'burgund', 'odoaker', 'ostgot', 'angels', 'franken', 'alaman', 'westgot']   # Westgoten zuletzt: ihre großen Flächen füllen nur, was frei ist
+PRIO = KONTEXT + [k for k in ORDER if k not in KONTEXT]
 
 # ======================================================================
 #  Geometrien
@@ -77,7 +104,7 @@ karth_maur = P((-6,35.9),(-1,35.6),(3,36.9),(8.2,37.4),(8.2,36.3),(3,36.2),(-1,3
 mauretania = P((-10,31.5),(-10,36),(-5.5,36),(-1,35.6),(3,36.9),(5.5,37.1),(5.5,34.3),(3,35),(-1,34),(-5,33.8),(-7.5,33))
 illyria    = P((14.5,45.3),(16,45),(19.6,42.4),(19.8,40.4),(19.2,40.4),(18.5,42.3),(15.5,44),(13.8,45.6))
 greece     = P((19.3,42.2),(23.5,42.2),(23.5,40.6),(26,40.6),(24.5,38.3),(23,36.2),(21.5,36.3),(19.3,39.5))
-asia       = P((26.1,40.3),(30.7,40.2),(30.7,37.2),(27.3,36.4),(26,38))
+asia       = U(P((26.1,40.3),(30.7,40.2),(30.7,37.2),(27.3,36.4),(26,38)), box(27.0,40.2,29.1,40.75))   # mit Marmara-Südküste
 narb       = P((3.3,42.4),(3.3,43.6),(4.5,45.2),(6.5,45.2),(7.2,43.7))
 cyrenaica  = P((19.9,30.3),(19.9,32.9),(23,33),(25,32),(25,30.3))
 creta      = box(23.4,34.8,26.4,35.7)
@@ -88,21 +115,27 @@ cilicia    = P((32.5,36.1),(36.2,36.6),(36.0,37.3),(33.5,37.3),(32.5,36.6))
 syria      = P((35.7,36.9),(36.7,37.0),(37.9,36.9),(38.3,35.8),(37.2,34.5),(36.6,33.2),(35.0,33.0),(35.6,35.0))
 koile      = P((34.2,31.3),(35.0,33.0),(36.6,33.2),(36.3,31.5),(35.4,29.6),(34.9,29.5))
 gallia     = P((-5,47.5),(-5,49),(2,51.3),(4.6,52.3),(6.9,51),(7.5,50.4),(8.3,50),(7.8,48.6),(7.6,47.6),(6.9,46.4),(6.5,45.2),(4.5,45.2),(3.3,43.6),(-1.8,43.4),(-1.2,46))
-aegyptus   = P((24.9,31.8),(34.3,31.4),(34.95,29.5),(34.3,27.8),(35.7,23.9),(25,23.9))
-galatia    = P((30.7,40.2),(33,40.2),(35.5,40.3),(35.5,38.5),(33.5,37.3),(30.7,37.2))
+aegyptus   = P((24.9,31.8),(34.3,31.4),(34.95,29.5),(34.75,28.6),(34.3,27.8),(35.7,23.9),(25,23.9))   # mit Süd-Sinai
+galatia    = P((30.7,40.2),(33,40.2),(35.5,40.3),(35.5,38.5),(33.5,37.3),(32.5,36.6),(30.7,37.2))   # mit Pisidien/Lykaonien
 lycia      = P((27.3,36.4),(30.7,37.2),(32.5,36.6),(32.5,36.1),(28,36.2))
 cappadocia = P((35.5,40.3),(37.5,40.3),(39.5,39.5),(38.7,38.6),(38.2,37),(36.0,37.3),(33.5,37.3),(35.5,38.5))
 pontus_o   = P((37.5,41.2),(40,41),(41.8,41.5),(42,40.5),(41,39.5),(39.5,39.5),(37.5,40.3))
 raetia     = P((7.6,47.6),(8.4,47.6),(9,48.0),(10,48.4),(10.9,48.3),(12.1,48.9),(13.6,48.4),(16,48.3),(16,46.7),(14.5,45.9),(13.8,46.5),(10.4,46.9),(9.5,47.6))
 pannonia   = P((16,46.7),(16,48.3),(17,48.2),(19,47.7),(19.1,46),(19.2,45.3),(20.3,44.9),(19.5,43.5),(20,42.3),(19.6,42.4),(16,45),(14.5,45.9))
-moesia     = P((20.3,44.9),(22.4,44.75),(23,43.95),(24.9,43.8),(26,43.95),(27.3,44.2),(28,44.35),(28.9,44.7),(29.7,45.2),(29.6,42.8),(23.5,42.8),(23.5,42.2),(20,42.3),(19.5,43.5))
+moesia     = P((20.3,44.9),(22.4,44.75),(23,43.95),(24.9,43.8),(26,43.95),(27.3,44.2),(28,44.35),(28.9,44.7),(29.7,45.2),(29.6,42.8),(23.5,42.8),(23.5,42.0),(19.6,42.0),(19.5,43.5))   # mit Dardanien
 thracia    = P((23.5,42.8),(29.6,42.8),(29.6,41.0),(26.5,40.3),(23.5,40.6))
 judaea     = P((34.2,31.3),(35.0,33.0),(35.9,33.0),(35.6,31.2),(35.4,29.8),(34.9,29.5))
-arabia     = P((34.9,29.4),(35.6,31.2),(35.9,33.0),(36.6,33.2),(37.2,33.3),(38.5,33.4),(38,32),(37,30),(36.5,27),(35.5,27.6))
+arabia     = P((34.9,29.4),(35.6,31.2),(35.9,33.0),(36.6,33.2),(37.2,33.3),(38.5,33.4),(38,32),(37,30),(36.5,27),(35.5,27.6),(34.8,28.2))   # mit Küste Midians
 dacia      = P((21.4,45.5),(22.4,44.75),(23,43.95),(24.9,43.8),(26,43.95),(26.8,45.3),(26.5,48),(22.2,48),(21.4,47))
-dacia_mm   = P((21.4,45.5),(22.4,44.75),(23,43.95),(24.9,43.8),(26.8,45.3),(26.3,46.5),(25.8,47.5),(24.5,47.7),(23.5,47.6),(22.2,46.8),(21.5,45.2))
+dacia_mm   = P((21.4,45.5),(21.1,44.9),(21.6,44.65),(22.4,44.75),(23,43.95),(24.9,43.8),(26.8,45.3),(26.3,46.5),(25.8,47.5),(24.5,47.7),(23.5,47.6),(22.2,46.8),(21.5,45.2))
 agri_dec   = P((7.6,47.6),(7.8,48.6),(8.3,50.0),(8.5,50.2),(9,49.5),(9.6,48.9),(10.6,48.7),(11.6,48.9),(12.1,49.05),(12.1,48.9),(10.9,48.3),(10.0,48.4),(9.0,48.0),(8.5,47.9),(8.4,47.6))
 brit_s     = P((-6,49.8),(-4.5,51.5),(-3.2,52.2),(-3.0,53.4),(0.5,53.6),(2,53),(2,49.8))
+# Alpen: Lückenfüller (frühere Regionen haben Vorrang, hier bleibt nur, was sonst frei wäre)
+helvetia   = box(6.0,46.15,9.5,47.55)                                   # Schweizer Mittelland (Helvetier)
+alpen_w    = box(5.5,43.6,11.0,47.55)                                   # West- und Zentralalpen
+alpen_o    = U(box(11.0,45.6,14.6,47.3), box(13.5,45.2,16.0,46.8))       # Ostalpen, Julische Alpen
+commagene  = P((36.3,36.9),(37.9,36.9),(39.0,37.0),(39.2,38.0),(39.0,38.6),(38.2,38.4),(37.0,37.6),(36.3,37.4))   # mit Melitene
+palmyrene  = P((36.6,33.2),(37.2,34.5),(38.3,35.8),(38.6,35.0),(38.6,34.0),(38.5,33.4),(37.2,33.3))
 brit_n     = P((-6,49.8),(-6,53.5),(-3.3,55),(-1.5,55),(2,55),(2,53),(0.5,53.6),(-3.0,53.4),(-3.2,52.2),(-4.5,51.5))
 
 # --- Osten / Iran ---
@@ -110,7 +143,8 @@ mesopot    = P((38.3,35.8),(40.2,35.4),(38.7,37.5),(40,37.6),(43,37.4),(45.5,35.
 media      = P((45.5,35.2),(43,37.4),(44.3,39.4),(48,39.5),(50,37.3),(53,37),(53,35.5),(51,33.5),(48.5,33.5),(46.5,34))
 persis     = P((47.8,31.5),(46.5,34),(48.5,33.5),(51,33.5),(53,35.5),(56,34.5),(58,30),(57.5,27),(54,26.5),(51,27.8),(48.6,30.0))
 parthyene  = P((53,37),(53.5,38.5),(56,38.3),(58,37.8),(61,36.6),(61,34.5),(56,34.5),(53,35.5))
-ostiran    = P((61,36.6),(62.5,37.8),(64.5,37.4),(64.5,34),(63,30),(61.5,29),(58,30),(56,34.5),(61,34.5))
+ostiran    = P((61,36.6),(61.3,37.9),(62.3,38.1),(62.5,37.8),   # mit Merw
+                 (64.5,37.4),(64.5,34),(63,30),(61.5,29),(58,30),(56,34.5),(61,34.5))
 baktria    = P((64.5,37.4),(66,38.4),(68.5,38.6),(70.5,38.3),(71.5,36.8),(70.2,35.5),(67,35),(64.5,34))
 armenia    = P((41.8,41.5),(43.5,41.2),(46.5,41.5),(48,39.5),(44.3,39.4),(43,37.4),(40,37.6),(39.5,39.5),(41,39.5),(42,40.5))
 anatol_in  = P((30.7,40.2),(33,40.2),(35.5,40.3),(35.5,38.5),(33.5,37.3),(32.5,36.6),(30.7,37.2),(28.5,37.6),(28,39.5))
@@ -127,12 +161,14 @@ gupta_w    = P((69,22.5),(70,24),(72,26.5),(75,26.5),(77,25),(80,23),(78,21.5),(
 
 # --- China / Steppe ---
 han_early  = P((104,41),(109,41),(113,39.2),(118,38),(122.7,37.3),(122,34.5),(122,31),(122,29.5),(119.5,28.5),(116.5,26),(113,25.2),(110,24.8),(107,25.5),(105,25),(104,27),(102,28),(101,29),(102.5,32),(104,34.5),(102.5,36),(102,38.5))
-han_core   = P((127,39.3),(124.5,41),(122,43.2),(118,42.7),(113,42),(108,41.7),(103,41.5),(98,41.2),(94,40.6),(93.5,38.8),(96,36.5),(98.8,34.8),(100.5,32.5),(100.2,28.5),(98.7,25),(100.8,21.8),(104,21.5),(104.5,18),(106.5,16.3),(108.3,15.8),(112,16),(116,20),(118.8,22),(119.8,25.6),(122.8,29.5),(122.8,31.5),(123,34),(122.9,37.5),(122.5,39),(124,39.5))
+han_core   = P((127,39.3),(124.5,41),(122,43.2),(118,42.7),(113,42),(108,41.7),(103,41.5),(98,41.2),(94,40.6),(93.5,38.8),(96,36.5),(98.8,34.8),(100.5,32.5),(100.2,28.5),(98.7,25),(100.8,21.8),(104,21.5),(104.5,18),(106.5,16.3),(108.3,15.8),(112,16),(116,20),(118.8,22),(119.8,25.6),(122.8,29.5),(122.8,31.5),(123,34),(122.9,37.5),(122.5,39),(124,39.5),(125.0,38.5),(126.9,38.6))   # mit Lelang (Pjöngjang)
 han_rest   = han_core.difference(han_early)
 han_yan    = han_rest.intersection(box(109,37,121.5,44))
 han_korea  = han_rest.intersection(box(121.5,37,131,44))
 han_ordos  = han_rest.intersection(box(103.9,37,109,43))
-han_hexi   = han_rest.intersection(box(90,34,103.9,43))
+han_hexi   = U(han_rest.intersection(box(90,34,103.9,43)), box(92.8,39.3,94.6,40.8))   # mit Dunhuang
+han_longxi = han_rest.intersection(box(96,30,104.2,34))                 # Longxi und Westgrenze
+han_minyue = han_rest.intersection(P((116.3,25.0),(116.5,26),(119.5,28.5),(121.6,29.3),(121.2,27.5),(120,25),(117.3,23.5),(116.8,24.4)))
 han_dian   = han_rest.intersection(box(96,20,104.2,30))
 han_nanyue = han_rest.intersection(box(104.2,14,125,27))
 tarim_full = P((74,40),(80,42.2),(85,42),(90,42.5),(93.7,40.8),(93.5,38.8),(91,37.5),(87,36.5),(80,35.5),(77,36.5),(74.5,38))
@@ -140,6 +176,23 @@ tarim_east = P((84,41.5),(90,42.4),(93.7,40.8),(93.5,38.8),(91,37.5),(87,36.8),(
 mongolia   = P((88,47),(90,50.5),(98,52),(108,52),(118,50),(122,47),(119,43.5),(113,42),(108,41.7),(103,41.5),(98,41.2),(94,42.5),(90,44))
 mong_ost   = P((112,42),(119,43.5),(122,47),(126,47.5),(127,44),(124.5,41),(122,43.2),(118,42.7))
 steppe_w   = P((28,46.5),(30,48.5),(40,50.5),(48,50),(50,47),(47,44.5),(40,45.5),(36,45.3),(33,46),(30,45.8))
+# --- Europa (Kontext) ---
+wg_aquit   = P((-1.8,43.4),(-1.4,44.5),(-1.2,46.2),(0.3,46.6),(1.5,45.9),(2.2,44.6),(2.3,43.5),(1.5,42.8),(-0.5,42.9))
+wg_sept    = P((1.5,42.8),(2.3,43.5),(3.3,43.6),(4.5,43.7),(3.3,42.4))
+wg_gall    = P((-1.2,46.2),(-2.2,47.3),(0.5,47.5),(2.9,47.4),(3.5,46.3),(3.9,45.2),(4.2,44.3),(3.3,43.6),(2.3,43.5),(2.2,44.6),(1.5,45.9),(0.3,46.6))
+wg_prov    = P((4.5,43.7),(4.2,44.3),(5.5,44.5),(6.9,43.9),(6.3,43.1),(4.8,43.3))
+sueb_core  = P((-9.8,40.5),(-9.8,43.8),(-7,43.8),(-4.5,43.4),(-5.5,42),(-6.5,41.2))
+sueb_ext   = P((-9.8,36),(-9.8,40.5),(-6.5,41.2),(-5,39.5),(-4,37.5),(-5,36))
+balearen   = box(1.2,38.6,4.4,40.1)
+burg_worms = box(7.8,49.2,8.6,50.0)
+burg_sap   = P((5.6,45.3),(5.8,46.6),(6.9,46.6),(7.1,45.8),(6.6,45.2))
+burg_rhone = P((4.2,44.3),(4.0,45.8),(4.5,47.0),(5.5,47.6),(6.9,47.5),(7.1,46.5),(6.6,45.2),(5.5,44.5))
+fr_rechts  = P((6.0,51.4),(5.9,51.8),(6.5,52.5),(8.5,52.3),(8.8,51.0),(7.6,50.4),(7.2,51.4))
+fr_toxand  = P((4.2,51.0),(4.2,51.7),(5.9,51.8),(6.0,51.0))
+fr_tournai = P((2.5,50.0),(2.5,51.0),(4.2,51.0),(4.6,50.3),(3.8,49.9))
+fr_koeln   = P((6.0,50.3),(6.0,51.4),(7.2,51.4),(7.6,50.4),(7.0,49.9))
+al_elsass  = P((7.0,47.4),(7.2,48.9),(8.2,48.9),(7.8,48.6),(7.6,47.6),(9.5,47.6),(9.5,47.3),(7.6,47.3))
+angl_ost   = P((-0.5,50.8),(-1.0,52.0),(-0.6,53.7),(0.3,53.6),(2,52.9),(1.9,51.1),(1.4,50.9))
 hung_plain = P((19,47.7),(19,48.6),(22,48.5),(24.5,47.7),(26,46.5),(26.8,45.3),(24,44.5),(22.4,44.75),(21.4,45.5),(20.3,44.9),(19.2,45.3),(19.1,46))
 
 # ======================================================================
@@ -150,51 +203,117 @@ R = []
 def reg(reich, name, g, von, bis=None, art='kern', seite=None):
     R.append(dict(reich=reich, name=name, g=g, von=von, bis=bis, art=art, seite=seite))
 
-# ---- Rom (W = Westrom, O = Ostrom ab 395) ----
-reg('rom','Mittelitalien',italia_c,-300,476,seite='w')
-reg('rom','Süditalien (nach dem Krieg gegen Pyrrhos)',italia_s,-272,476,seite='w')
-reg('rom','Sicilia',sicilia,-241,476,seite='w')
-reg('rom','Sardinia et Corsica',sardinia,-238,476,seite='w')
-reg('rom','Gallia Cisalpina (Poebene)',cisalpina,-222,476,seite='w')
-reg('rom','Hispania (Küste)',hisp_early,-206,456,seite='w')
-reg('rom','Illyricum (Küste)',illyria,-167,476,seite='w')
-reg('rom','Macedonia und Achaia',greece,-146,seite='o')
-reg('rom','Africa',africa,-146,439,seite='w')
-reg('rom','Hispania (Inneres)',hisp_mid,-133,456,seite='w')
-reg('rom','Asia (Erbe von Pergamon)',asia,-133,seite='o')
-reg('rom','Gallia Narbonensis',narb,-121,462,seite='w')
-reg('rom','Cyrenaica',cyrenaica,-74,seite='o')
-reg('rom','Bithynia',bithynia,-74,seite='o')
-reg('rom','Creta',creta,-67,seite='o')
-reg('rom','Pontus',pontus,-64,seite='o')
-reg('rom','Cilicia',cilicia,-64,seite='o')
-reg('rom','Syria',syria,-64,seite='o')
-reg('rom','Cyprus',cyprus,-58,seite='o')
-reg('rom','Gallia (Eroberung durch Caesar)',gallia,-50,460,seite='w')
-reg('rom','Africa Nova und Tripolitanien',africa_ext,-46,439,seite='w')
-reg('rom','Aegyptus',aegyptus,-30,seite='o')
-reg('rom','Galatia',galatia,-25,seite='o')
-reg('rom','Hispania (Nordwesten)',hisp_all,-19,456,seite='w')
-reg('rom','Raetia und Noricum',raetia,-15,476,seite='w')
-reg('rom','Iudaea',judaea,6,seite='o')
-reg('rom','Moesia',moesia,6,seite='o')
-reg('rom','Pannonia und Dalmatia',pannonia,9,433,seite='w')
-reg('rom','Cappadocia',cappadocia,17,seite='o')
-reg('rom','Mauretania',mauretania,42,429,seite='w')
+# ---- Rom: Provinzen (Stand um 117 n. Chr., Namen und Einrichtungsjahre nach der Liste der Provinzen des Römischen
+#      Reichs, de.wikipedia). Flächen grob von Hand gezeichnet. von = Erwerb des Gebiets, Provinzjahr im Namen.
+#      seite: w = Westrom, o = Ostrom ab 395 (Teilung nach dem Tod Theodosius' I.).
+#      bis Westrom: Verlustjahr; Nachfolgestaaten (Europa, Kontext) haben bei Überlappung Vorrang.
+#      Ostrom: Gebiete reichen bis zum Ende der dargestellten Antike (481); Byzanz um 1400–1453 steht gesondert unten.
+OST_ENDE = 481
+baetica    = P((-7.5,37.2),(-7.4,38.2),(-5.5,38.6),(-4.3,38.4),(-3.0,38.0),(-2.3,37.4),(-1.7,37.0),(-2.2,36.6),(-5.6,35.9),(-6.5,36.8))
+lusitania  = P((-9.9,36.95),(-9.9,41.15),(-6.8,41.0),(-6.2,41.2),(-4.6,40.9),(-4.4,40.2),(-5.0,39.3),(-5.5,38.6),(-7.4,38.2),(-7.5,37.2))
+narbonensis= P((3.25,42.45),(1.75,42.45),(1.3,43.3),(2.1,43.7),(2.9,44.2),(3.9,44.9),(4.5,45.7),(5.2,46.2),(6.1,46.35),(6.8,46.05),(6.9,45.6),(6.6,45.1),(6.6,44.5),(7.0,44.1),(7.0,43.55))
+aquitania  = P((-1.8,43.35),(-1.3,44.6),(-1.2,46.2),(-2.2,47.25),(0.0,47.4),(1.5,47.4),(2.9,47.3),(3.4,46.4),(3.9,45.5),(3.9,44.9),(2.9,44.2),(2.1,43.7),(1.3,43.3),(1.75,42.45),(0.0,42.7))
+lugdunensis= P((-5.0,47.5),(-5.2,48.7),(-1.9,49.7),(0.2,49.5),(1.8,49.0),(3.0,48.6),(4.4,47.9),(5.0,47.2),(5.0,46.2),(5.3,46.25),(4.8,45.7),(4.5,45.7),(3.95,44.95),(3.9,45.5),(3.4,46.4),(2.9,47.3),(1.5,47.4),(0.0,47.4),(-2.2,47.25))
+belgica    = P((0.2,49.5),(1.6,50.9),(3.5,51.4),(4.3,51.3),(5.2,50.7),(6.0,50.0),(6.3,49.95),(7.1,50.25),(7.0,49.8),(6.3,49.4),(7.0,48.8),(6.7,47.9),(6.0,47.0),(5.2,46.4),(5.0,46.2),(5.0,47.2),(4.4,47.9),(3.0,48.6),(1.8,49.0))
+germ_sup   = P((6.3,49.4),(7.0,49.8),(7.1,50.25),(7.3,50.5),(7.7,50.5),(8.3,50.05),(7.8,48.6),(7.6,47.6),(9.5,47.6),(9.4,47.2),(8.4,46.6),(7.0,46.4),(6.1,46.35),(5.2,46.4),(6.0,47.0),(6.7,47.9),(7.0,48.8))
+germ_inf   = P((4.3,51.3),(4.5,51.9),(6.0,52.0),(6.7,51.9),(6.9,51.0),(7.3,50.5),(6.3,49.9),(6.0,50.0),(5.2,50.7))
+raetia_p   = raetia.intersection(box(5,40,12.95,50))
+noricum    = U(raetia.intersection(box(12.95,40,20,50)), box(12.95,46.35,16.0,47.0))
+pann_nord  = pannonia.intersection(box(14,45.05,21,49))
+pann_sup   = pann_nord.intersection(box(14,40,18.1,50))
+pann_inf   = pann_nord.difference(box(14,40,18.1,50))
+dalm_hint  = pannonia.difference(box(14,45.05,21,49))
+moes_sup   = moesia.intersection(box(18,40,23.0,46))
+moes_inf   = moesia.difference(box(18,40,23.0,46))
+epirus     = greece.intersection(P((19.2,38.8),(19.2,40.5),(20.6,40.6),(21.4,39.9),(21.4,38.8)))
+achaia     = greece.difference(epirus).intersection(box(19,35,27,39.05))
+macedonia  = greece.difference(epirus).difference(box(19,35,27,39.05))
+sic_ost    = sicilia.intersection(box(14.6,36.4,15.8,37.7))
+numidia    = africa_ext.intersection(box(5,30,8.3,38))
+tripolis   = africa_ext.intersection(box(11.2,28,26,38)).difference(africa)
+africa_nova= africa_ext.difference(numidia).difference(tripolis)
+maur_ting  = mauretania.intersection(box(-11,30,-1.8,37))
+maur_caes  = mauretania.difference(box(-11,30,-1.8,37))
+alpen_prov = alpen_w
+soissons   = P((1.5,50.1),(4.3,49.9),(4.6,49.0),(4.0,48.0),(2.5,47.3),(0.0,47.4),(-1.0,48.3),(0.2,49.5))
+
+reg('rom','Italia (Mittelitalien)',italia_c,-300,476,seite='w')
+reg('rom','Italia (Süditalien, nach dem Krieg gegen Pyrrhos)',italia_s,-272,476,seite='w')
+reg('rom','Sicilia (Syrakus, ganz römisch ab 210 v. Chr.)',sic_ost,-212,476,seite='w')
+reg('rom','Sicilia (erste Provinz, 241 v. Chr.)',sicilia,-241,476,seite='w')
+reg('rom','Sardinia et Corsica (Provinz 227 v. Chr.)',sardinia,-238,476,seite='w')
+reg('rom','Gallia cisalpina (Norditalien, ab 42 v. Chr. Teil Italiens)',cisalpina,-222,476,seite='w')
+reg('rom','Hispania Baetica (Hauptstadt Corduba)',baetica,-206,476,seite='w')
+reg('rom','Hispania Tarraconensis (Küste; Hauptstadt Tarraco)',hisp_early,-206,476,seite='w')
+reg('rom','Illyricum / Dalmatia (Küste)',illyria,-167,OST_ENDE,seite='w')
+reg('rom','Macedonia (Provinz 148 v. Chr.)',macedonia,-148,OST_ENDE,seite='o')
+reg('rom','Achaia (Hauptstadt Korinth, Provinz 27 v. Chr.)',achaia,-146,OST_ENDE,seite='o')
+reg('rom','Epirus (Hauptstadt Nikopolis, eigene Provinz vor 117)',epirus,-146,OST_ENDE,seite='o')
+reg('rom','Africa proconsularis (Africa vetus, Hauptstadt Karthago)',africa,-146,439,seite='w')
+reg('rom','Lusitania (Süden)',lusitania.intersection(hisp_mid),-138,476,seite='w')
+reg('rom','Hispania Tarraconensis (Inneres)',hisp_mid.difference(lusitania),-133,476,seite='w')
+reg('rom','Asia (Erbe von Pergamon, Provinz 129 v. Chr.; Hauptstadt Ephesos)',asia,-133,OST_ENDE,seite='o')
+reg('rom','Gallia Narbonensis',narbonensis,-121,476,seite='w')
+reg('rom','Creta et Cyrenaica (Kyrenaika)',cyrenaica,-74,OST_ENDE,seite='o')
+reg('rom','Bithynia et Pontus (Hauptstadt Nikomedia)',bithynia,-74,OST_ENDE,seite='o')
+reg('rom','Creta et Cyrenaica (Kreta; Hauptstadt Gortyn)',creta,-67,OST_ENDE,seite='o')
+reg('rom','Bithynia et Pontus (Pontus)',pontus,-64,OST_ENDE,seite='o')
+reg('rom','Cilicia (Hauptort Tarsos)',cilicia,-64,OST_ENDE,seite='o')
+reg('rom','Syria (Hauptstadt Antiochia, Provinz 63 v. Chr.)',syria,-64,OST_ENDE,seite='o')
+reg('rom','Lusitania (Norden)',lusitania,-61,476,seite='w')
+reg('rom','Cyprus',cyprus,-58,OST_ENDE,seite='o')
+reg('rom','Gallia Aquitania (Hauptstadt Burdigala, Provinz 16 v. Chr.)',aquitania,-50,476,seite='w')
+reg('rom','Gallia Lugdunensis (Hauptstadt Lugdunum)',lugdunensis,-50,476,seite='w')
+reg('rom','Gallia Belgica (Hauptstadt Durocortorum/Reims)',belgica,-50,476,seite='w')
+reg('rom','Germania inferior (eigene Provinz ab 90)',germ_inf,-50,476,seite='w')
+reg('rom','Germania superior (eigene Provinz ab 90; mit Helvetiern)',germ_sup,-50,476,seite='w')
+reg('rom','Numidia (Africa nova)',numidia,-46,439,seite='w')
+reg('rom','Africa proconsularis (Africa nova, Byzacena)',africa_nova,-46,439,seite='w')
+reg('rom','Tripolitanien (zu Africa proconsularis)',tripolis,-46,455,seite='w')
+reg('rom','Aegyptus (Hauptstadt Alexandria)',aegyptus,-30,OST_ENDE,seite='o')
+reg('rom','Galatia',galatia,-25,OST_ENDE,seite='o')
+reg('rom','Hispania Tarraconensis (Nordwesten: Gallaecia, Asturien, Kantabrien)',hisp_all,-19,476,seite='w')
+reg('rom','Raetia',raetia_p,-15,476,seite='w')
+reg('rom','Noricum',noricum,-15,476,seite='w')
+reg('rom','Alpenprovinzen (Alpes Maritimae, Cottiae, Graiae et Poeninae)',alpen_prov,-15,476,seite='w')
+reg('rom','Noricum und Ostalpen',alpen_o,-15,476,seite='w')
+reg('rom','Iudaea',judaea,6,OST_ENDE,seite='o')
+reg('rom','Moesia superior (Provinz Moesia, Teilung 86)',moes_sup,6,OST_ENDE,seite='o')
+reg('rom','Moesia inferior (Provinz Moesia, Teilung 86)',moes_inf,6,OST_ENDE,seite='o')
+reg('rom','Pannonia superior',pann_sup,9,433,seite='w')
+reg('rom','Pannonia inferior',pann_inf,9,433,seite='w')
+reg('rom','Dalmatia (Hinterland)',dalm_hint,9,OST_ENDE,seite='w')
+reg('rom','Cappadocia (Hauptstadt Caesarea)',cappadocia,18,OST_ENDE,seite='o')
+reg('rom','Palmyrene (zu Syria)',palmyrene,17,OST_ENDE,seite='o')
+reg('rom','Mauretania Tingitana',maur_ting,42,429,seite='w')
+reg('rom','Mauretania Caesariensis',maur_caes,42,429,seite='w')
 reg('rom','Britannia (Süden)',brit_s,43,410,seite='w')
-reg('rom','Lycia et Pamphylia',lycia,43,seite='o')
-reg('rom','Thracia',thracia,46,seite='o')
-reg('rom','Pontus Polemoniacus',pontus_o,64,seite='o')
-reg('rom','Agri decumates',agri_dec,74,260,seite='w')
+reg('rom','Lycia et Pamphylia',lycia,43,OST_ENDE,seite='o')
+reg('rom','Thracia',thracia,46,OST_ENDE,seite='o')
+reg('rom','Pontus Polemoniacus',pontus_o,64,OST_ENDE,seite='o')
+reg('rom','Commagene (zu Syria)',commagene,72,OST_ENDE,seite='o')
+reg('rom','Agri decumates (zu Germania superior und Raetia)',agri_dec,74,260,seite='w')
 reg('rom','Britannia (Norden und Wales)',brit_n,78,410,seite='w')
 reg('rom','Dacia',dacia_mm,106,271,seite='o')
-reg('rom','Arabia Petraea',arabia,106,seite='o')
+reg('rom','Arabia Petraea (Hauptstadt Bostra)',arabia,106,OST_ENDE,seite='o')
+
+# ---- Byzanz (Ostrom) im Spätmittelalter, Abschnitt 1400–1453 der Zeitleiste ----
+byz_konst  = P((27.9,40.95),(27.9,41.55),(29.1,41.25),(29.05,40.98))
+byz_thess  = P((22.6,40.5),(23.3,40.8),(24.0,40.4),(23.9,39.9),(22.9,40.1))
+byz_morea  = P((22.0,36.4),(21.9,37.3),(22.4,37.6),(23.2,37.6),(23.2,36.4))
+byz_achaia = P((21.1,37.4),(21.1,38.4),(22.9,38.3),(22.4,37.6),(21.9,37.3))
+reg('rom','Konstantinopel und Umland',byz_konst,1400,1453,seite='o')
+reg('rom','Thessalonike (1403 zurückgewonnen, 1423 an Venedig)',byz_thess,1403,1423,seite='o')
+reg('rom','Despotat Morea (Peloponnes)',byz_morea,1400,1460,seite='o')
+reg('rom','Nordwest-Peloponnes (ab 1430 byzantinisch)',byz_achaia,1430,1460,seite='o')
 
 # ---- Han ----
 reg('han','Kernland der Han',han_early,-206)
 reg('han','Yan und Liaodong',han_yan,-202)
 reg('han','Ordos (von den Xiongnu zurückerobert)',han_ordos,-127)
+reg('han','Longxi und Westgrenze',han_longxi,-206)
 reg('han','Hexi-Korridor',han_hexi,-121)
+reg('han','Minyue (Fujian)',han_minyue,-110)
 reg('han','Nanyue (Süden)',han_nanyue,-111)
 reg('han','Dian (Yunnan)',han_dian,-109)
 reg('han','Lelang-Kommandanturen (Korea)',han_korea,-108)
@@ -268,8 +387,41 @@ reg('xianb','Mongolische Steppe',mongolia,93)
 
 # ---- Hunnen ----
 reg('hunnen','Pontische Steppe',steppe_w,370)
-reg('hunnen','Ungarische Tiefebene',hung_plain,400)
-reg('hunnen','Pannonien (von Westrom abgetreten)',pannonia.intersection(box(16,44,20.5,48.5)),433)
+reg('hunnen','Ungarische Tiefebene',hung_plain,400,455)
+reg('hunnen','Pannonien (von Westrom abgetreten)',pannonia.intersection(box(16,44,20.5,48.5)),433,455)
+
+# ---- Europa (Kontext): Nachfolgestaaten ----
+reg('franken','Siedlungsgebiet rechts des Rheins',fr_rechts,257)
+reg('franken','Toxandrien (Salfranken als Föderaten)',fr_toxand,358)
+reg('franken','Rheinfranken um Köln',fr_koeln,457)
+reg('franken','Tournai und Cambrai (Childerich I.)',fr_tournai,457)
+reg('alaman','Dekumatland',agri_dec,260)
+reg('alaman','Elsass und Nordschweiz',al_elsass,455)
+reg('westgot','Aquitanien (Föderatenvertrag)',wg_aquit,418)
+reg('westgot','Septimanien (Narbonne)',wg_sept,462)
+reg('westgot','Gallien bis zur Loire',wg_gall,470)
+reg('westgot','Hispanien (Eroberung unter Eurich)',hisp_all,472)
+reg('westgot','Provence (Arles, Marseille)',wg_prov,474)
+reg('sueben','Gallaecia',sueb_core,411)
+reg('sueben','Lusitanien und Baetica',sueb_ext,439,456)
+reg('vandal','Baetica (Silingen und Hasdingen)',baetica,411,429)
+reg('vandal','Mauretanien',mauretania,429)
+reg('vandal','Africa und Numidien (Karthago)',U(africa,africa_nova,numidia),439)
+reg('vandal','Tripolitanien',tripolis,455)
+reg('vandal','Sardinien, Korsika, Balearen',U(sardinia,balearen),455)
+reg('burgund','Reich um Worms',burg_worms,413,436)
+reg('burgund','Sapaudia (Genf)',burg_sap,443)
+reg('burgund','Rhônetal und Lyon',burg_rhone,470)
+reg('odoaker','Italien',U(italia_c,italia_s,cisalpina,sicilia),476)
+reg('odoaker','Dalmatien (nach dem Tod des Julius Nepos 480)',U(illyria,dalm_hint),481)
+reg('syagrius','Nordgallien zwischen Somme und Loire (Ausdehnung unsicher)',soissons,461,487)
+osm_balkan = P((19.8,41.8),(20.5,43.2),(22.4,44.6),(26,44.0),(28.6,43.8),(29.2,41.2),(28.0,40.9),(26.4,40.4),(24.0,40.7),(23.0,40.3),(22.4,39.5),(21.0,39.6),(20.0,40.0))
+osm_anatol = P((26.2,40.0),(28.0,40.6),(31.0,41.2),(34.0,41.8),(36.0,41.5),(36.5,38.5),(32.0,37.0),(29.0,36.6),(27.0,37.5))
+reg('osman','Balkan (Thrakien, Bulgarien, Makedonien, Thessalien)',osm_balkan.difference(byz_konst).difference(byz_thess),1400,1454)
+reg('osman','Westliches Kleinasien',osm_anatol,1400,1454)
+reg('osman','Thessalonike (1430 erobert)',byz_thess,1430,1454)
+reg('ostgot','Pannonien (Föderaten)',pannonia.intersection(box(16,44,20.5,48.5)),456,473)
+reg('angels','Ostengland (Siedlungsgebiet)',angl_ost,449)
 
 # ======================================================================
 #  Überlappungen zeitabhängig auflösen
@@ -280,7 +432,7 @@ def clipland(g):
 def endyear(r): return r['bis'] if r['bis'] is not None else META[r['reich']]['bis']
 
 pieces = []   # dicts mit g, von, bis
-for r in sorted(R, key=lambda r: ORDER.index(r['reich'])):  # stabile Sortierung: Reihenfolge innerhalb eines Reichs bleibt
+for r in sorted(R, key=lambda r: PRIO.index(r['reich'])):  # stabile Sortierung: Reihenfolge innerhalb eines Reichs bleibt
     g0 = clipland(r['g'])
     if g0.is_empty: print('LEER', r['reich'], r['name']); continue
     a0, b0 = max(r['von'], META[r['reich']]['von']), endyear(r)
@@ -342,7 +494,13 @@ E = [
  ('rom',395,'Reichsteilung in West- und Ostrom','Nach dem Tod Theodosius’ I. erben seine Söhne das Reich: Honorius den Westen (Westrom), Arcadius den Osten (Ostrom, Hauptstadt Konstantinopel).'),
  ('rom',410,'Plünderung Roms','Westgoten unter Alarich plündern Rom. Britannien wird aufgegeben.'),
  ('rom',439,'Vandalen erobern Karthago','Westrom verliert Nordafrika, seine reichste Provinz. Hispanien und Gallien gehen in den folgenden Jahrzehnten an germanische Reiche.'),
- ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Ostrom (Byzanz) besteht bis 1453 weiter.'),
+ ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Julius Nepos hält sich bis 480 in Dalmatien. Ostrom (Byzanz) besteht bis 1453 weiter.'),
+ ('rom',1400,'Byzanz um 1400','Vom Oströmischen Reich sind nur Konstantinopel, Teile der Peloponnes (Morea) und einige Inseln übrig. Die Osmanen beherrschen den Balkan und den Westen Kleinasiens.'),
+ ('rom',1403,'Thessalonike wieder byzantinisch','Nach der Niederlage der Osmanen gegen Timur bei Ankara (1402) erhält Byzanz Thessalonike zurück.'),
+ ('rom',1423,'Thessalonike an Venedig','Byzanz übergibt die von den Osmanen belagerte Stadt an Venedig. 1430 erobern die Osmanen sie.'),
+ ('rom',1430,'Osmanen erobern Thessalonike','Byzanz gewinnt im selben Jahr den Nordwesten der Peloponnes; die Morea ist fast ganz byzantinisch.'),
+ ('rom',1439,'Kirchenunion von Florenz','Kaiser Johannes VIII. sucht Hilfe im Westen gegen die Osmanen. Die Union von Ost- und Westkirche bleibt ohne Wirkung.'),
+ ('rom',1453,'Fall Konstantinopels','Sultan Mehmed II. erobert Konstantinopel am 29. Mai 1453. Das Byzantinische Reich, der Rest des Oströmischen Reichs, endet.'),
  ('han',-206,'Anfänge der Han-Dynastie','Liu Bang gründet die Dynastie (traditionell 206/202 v. Chr.). Im Norden sind die Xiongnu überlegen; 200 v. Chr. wird der Kaiser bei Baideng eingeschlossen.'),
  ('han',-127,'Gegenangriff auf die Xiongnu','Kaiser Wu (141–87 v. Chr.) lässt die Xiongnu angreifen. Das Ordos-Gebiet und 121 v. Chr. der Hexi-Korridor werden erobert.'),
  ('han',-111,'Expansion unter Kaiser Wu','Nanyue im Süden (111 v. Chr.), Dian (109 v. Chr.) und Nordkorea (Lelang, 108 v. Chr.) werden eingegliedert.'),
@@ -387,18 +545,140 @@ S = [
 ]
 battles = [{'name': n, 'jahr': j, 'lng': x, 'lat': y, 'reiche': rs, 'note': t} for n, j, x, y, rs, t in S]
 
+# ======================================================================
+#  Orte: (reich, name, lng, lat, von, bis, stufe)
+#  stufe: Vorgabe hier, endgültig gesetzt durch neue_stufe() unten (1–4).
+#  von/bis = Stadtgeschichte; sichtbar ist ein Ort nur, solange sein Gebiet zum Reich gehört (wird unten berechnet).
+# ======================================================================
 cities = [
- ('rom','Rom',12.50,41.90,-753,None),('rom','Karthago',10.32,36.85,-44,None),('rom','Athen',23.73,37.98,-146,None),
- ('rom','Alexandria',29.92,31.20,-30,None),('rom','Antiochia',36.16,36.20,-64,None),('rom','Lugdunum',4.83,45.76,-43,None),
- ('rom','Londinium',-0.09,51.51,43,409),('rom','Konstantinopel',28.98,41.01,330,None),('rom','Ravenna',12.20,44.42,402,None),
- ('han',"Chang'an",108.95,34.27,-202,None),('han','Luoyang',112.45,34.62,25,220),('han','Dunhuang',94.66,40.14,-111,None),('han','Panyu',113.27,23.13,-111,None),
- ('karth','Karthago',10.32,36.85,-814,-146),('ptol','Alexandria',29.92,31.20,-331,None),('seleu','Antiochia',36.16,36.20,-300,None),
- ('seleu','Seleukeia',44.52,33.10,-305,None),('parth','Ktesiphon',44.58,33.09,-120,None),('sasan','Ktesiphon',44.58,33.09,224,None),
- ('maurya','Pataliputra',85.14,25.61,-490,None),('gupta','Pataliputra',85.14,25.61,320,None),('kusch','Purushapura',71.57,34.01,30,None),
+ # --- Rom ---
+ ('rom','Rom',12.50,41.90,-753,None,1),('rom','Konstantinopel',28.98,41.01,330,None,1),('rom','Alexandria',29.92,31.20,-331,None,1),
+ ('rom','Antiochia',36.16,36.20,-300,None,1),('rom','Karthago',10.32,36.85,-44,None,1),('rom','Athen',23.73,37.98,-1000,None,1),
+ ('rom','Lugdunum',4.83,45.76,-43,None,1),('rom','Londinium',-0.09,51.51,47,None,1),('rom','Ravenna',12.20,44.42,-200,None,2),
+ ('rom','Mediolanum',9.19,45.46,-400,None,2),('rom','Aquileia',13.37,45.77,-181,None,2),('rom','Capua',14.25,41.08,-600,None,2),
+ ('rom','Neapolis',14.25,40.85,-470,None,2),('rom','Tarentum',17.24,40.47,-706,None,2),('rom','Syracusae',15.29,37.07,-734,None,2),
+ ('rom','Carthago Nova',-0.98,37.60,-228,None,2),('rom','Tarraco',1.25,41.12,-218,None,2),('rom','Gades',-6.29,36.53,-1100,None,2),
+ ('rom','Emerita Augusta',-6.34,38.92,-25,None,2),('rom','Corduba',-4.78,37.88,-169,None,2),('rom','Massilia',5.37,43.30,-600,None,2),
+ ('rom','Narbo',3.00,43.18,-118,None,2),('rom','Burdigala',-0.58,44.84,-300,None,2),('rom','Lutetia',2.35,48.85,-250,None,2),
+ ('rom','Augusta Treverorum',6.64,49.75,-16,None,2),('rom','Colonia Agrippina',6.96,50.94,-38,None,2),('rom','Mogontiacum',8.27,50.00,-13,None,2),
+ ('rom','Augusta Vindelicum',10.90,48.37,-15,None,2),('rom','Carnuntum',16.92,48.11,6,None,2),('rom','Sirmium',19.61,44.97,9,None,2),
+ ('rom','Thessalonike',22.94,40.64,-315,None,2),('rom','Korinth',22.88,37.91,-44,None,2),('rom','Ephesos',27.34,37.94,-1000,None,2),
+ ('rom','Pergamon',27.18,39.13,-300,None,2),('rom','Nikomedia',29.92,40.77,-264,None,2),('rom','Ankyra',32.86,39.93,-300,None,2),
+ ('rom','Tarsos',34.90,36.92,-1000,None,2),('rom','Caesarea Maritima',34.89,32.50,-22,None,2),('rom','Jerusalem',35.23,31.78,-1000,None,2),
+ ('rom','Damaskus',36.30,33.51,-1000,None,2),('rom','Palmyra',38.27,34.55,-100,None,2),('rom','Petra',35.44,30.33,-300,None,2),
+ ('rom','Kyrene',21.86,32.82,-630,None,2),('rom','Leptis Magna',14.29,32.64,-600,None,2),('rom','Caesarea (Mauretania)',2.19,36.61,-25,None,2),
+ ('rom','Tingis',-5.80,35.77,-400,None,2),('rom','Eboracum',-1.08,53.96,71,None,2),('rom','Ulpia Traiana Sarmizegetusa',22.79,45.52,106,None,2),
+ ('rom','Byzantion',28.98,41.01,-667,329,2),('rom','Augusta Raurica',7.72,47.53,-44,None,3),('rom','Aventicum',7.04,46.88,-15,None,3),
+ ('rom','Pompeji',14.49,40.75,-600,79,3),('rom','Ostia',12.29,41.75,-620,None,3),('rom','Brundisium',17.94,40.63,-244,None,3),
+ ('rom','Verona',10.99,45.44,-89,None,3),('rom','Arelate',4.63,43.68,-46,None,3),('rom','Nemausus',4.36,43.84,-121,None,3),
+ ('rom','Vienna (Vienne)',4.87,45.52,-121,None,3),('rom','Argentoratum',7.75,48.58,-12,None,3),('rom','Castra Regina',12.10,49.02,179,None,3),
+ ('rom','Vindobona',16.37,48.21,97,None,3),('rom','Aquincum',19.05,47.56,41,None,3),('rom','Singidunum',20.46,44.82,86,None,3),
+ ('rom','Naissus',21.90,43.32,6,None,3),('rom','Serdica',23.32,42.70,46,None,3),('rom','Philippopolis',24.75,42.15,-342,None,3),
+ ('rom','Dyrrachium',19.45,41.32,-627,None,3),('rom','Salona',16.48,43.54,-200,None,3),('rom','Sparta',22.43,37.07,-900,None,3),
+ ('rom','Smyrna',27.14,38.42,-1000,None,3),('rom','Milet',27.28,37.53,-1000,None,3),('rom','Sardes',28.04,38.49,-1000,None,3),
+ ('rom','Sinope',35.15,42.03,-630,None,3),('rom','Trapezus',39.72,41.00,-756,None,3),('rom','Berytus',35.50,33.89,-1000,None,3),
+ ('rom','Tyros',35.20,33.27,-1000,None,3),('rom','Apameia',36.40,35.42,-300,None,3),('rom','Gaza',34.46,31.50,-1000,None,3),
+ ('rom','Bostra',36.48,32.52,-100,None,3),('rom','Memphis',31.25,29.85,-3000,None,3),('rom','Theben',32.65,25.70,-3000,None,3),
+ ('rom','Utica',10.06,37.06,-1100,None,3),('rom','Sabratha',12.48,32.80,-500,None,3),('rom','Hippo Regius',7.77,36.88,-1100,None,3),
+ ('rom','Hispalis',-5.99,37.39,-800,None,3),('rom','Toletum',-4.03,39.86,-190,None,3),('rom','Caesaraugusta',-0.88,41.65,-14,None,3),
+ ('rom','Olisipo',-9.14,38.71,-1000,None,3),('rom','Bracara Augusta',-8.43,41.55,-16,None,3),('rom','Camulodunum',0.90,51.89,43,None,3),
+ ('rom','Lindum',-0.54,53.23,60,None,3),('rom','Tomis',28.65,44.17,-600,None,3),
+ # --- Han ---
+ ('han',"Chang'an",108.95,34.27,-202,None,1),('han','Luoyang',112.45,34.62,-206,None,1),('han','Dunhuang',94.66,40.14,-111,None,2),
+ ('han','Panyu',113.27,23.13,-214,None,2),('han','Linzi',118.30,36.80,-859,None,2),('han','Handan',114.48,36.60,-386,None,2),
+ ('han','Chengdu',104.07,30.67,-316,None,2),('han','Wuwei',102.64,37.93,-121,None,2),('han','Ji (Peking)',116.40,39.90,-1045,None,2),
+ ('han','Jiangling',112.20,30.35,-689,None,2),('han','Changsha',112.98,28.20,-206,None,2),('han','Wu (Suzhou)',120.62,31.30,-514,None,2),
+ ('han','Lelang (Pjöngjang)',125.75,39.02,-108,None,2),('han','Jiaozhi (Hanoi)',105.85,21.03,-111,None,2),('han','Dian (Kunming)',102.70,24.90,-279,None,2),
+ ('han','Zhangye',100.45,38.93,-111,None,3),('han','Jiuquan',98.50,39.73,-111,None,3),('han','Yumen-Pass',93.86,40.35,-111,None,3),
+ ('han','Hepu',109.20,21.66,-111,None,3),('han','Shouchun',116.78,32.58,-241,None,3),('han','Pengcheng',117.19,34.26,-575,None,3),
+ ('han','Wan (Nanyang)',112.53,33.00,-688,None,3),('han','Jinyang (Taiyuan)',112.55,37.87,-497,None,3),
+ # --- Nachbarreiche ---
+ ('karth','Karthago',10.32,36.85,-814,-146,1),('karth','Carthago Nova',-0.98,37.60,-228,-209,2),('karth','Utica',10.06,37.06,-1100,None,3),
+ ('ptol','Alexandria',29.92,31.20,-331,None,1),('ptol','Memphis',31.25,29.85,-3000,None,2),('ptol','Kyrene',21.86,32.82,-630,None,2),('ptol','Theben',32.65,25.70,-3000,None,3),
+ ('seleu','Antiochia',36.16,36.20,-300,None,1),('seleu','Seleukeia',44.52,33.10,-305,None,1),('seleu','Sardes',28.04,38.49,-1000,None,2),
+ ('seleu','Ekbatana',48.52,34.80,-700,None,2),('seleu','Susa',48.26,32.19,-4000,None,3),
+ ('parth','Ktesiphon',44.58,33.09,-120,None,1),('parth','Hekatompylos',54.40,36.10,-300,None,2),('parth','Ekbatana',48.52,34.80,-700,None,2),
+ ('parth','Merw',61.83,37.66,-500,None,2),('parth','Seleukeia',44.52,33.10,-305,None,3),('parth','Nisa',58.20,37.95,-250,None,3),('parth','Susa',48.26,32.19,-4000,None,3),
+ ('sasan','Ktesiphon',44.58,33.09,224,None,1),('sasan','Istachr',52.92,29.98,-500,None,2),('sasan','Merw',61.83,37.66,-500,None,2),
+ ('sasan','Gundischapur',48.52,32.28,260,None,3),('sasan','Bischapur',51.57,29.78,266,None,3),
+ ('maurya','Pataliputra',85.14,25.61,-490,None,1),('maurya','Taxila',72.82,33.74,-500,None,2),('maurya','Ujjain',75.78,23.18,-600,None,2),
+ ('kusch','Purushapura',71.57,34.01,-200,None,1),('kusch','Mathura',77.67,27.49,-600,None,2),('kusch','Taxila',72.82,33.74,-500,None,2),('kusch','Kapisa (Begram)',69.27,34.99,-300,None,3),
+ ('gupta','Pataliputra',85.14,25.61,-490,None,1),('gupta','Ujjain',75.78,23.18,-600,None,2),('gupta','Prayaga',81.85,25.43,-600,None,3),
+ # --- Europa (Kontext) ---
+ ('westgot','Tolosa (Toulouse)',1.44,43.60,-100,None,1),('westgot','Burdigala',-0.58,44.84,-300,None,2),('westgot','Narbo',3.00,43.18,-118,None,2),('westgot','Arelate',4.63,43.68,-46,None,3),
+ ('sueben','Bracara',-8.43,41.55,-16,None,1),('vandal','Karthago',10.32,36.85,-44,None,1),('vandal','Hippo Regius',7.77,36.88,-1100,None,3),
+ ('burgund','Genava (Genf)',6.14,46.20,-120,None,1),('burgund','Lugdunum',4.83,45.76,-43,None,2),('burgund','Borbetomagus (Worms)',8.36,49.63,-14,None,2),
+ ('franken','Tornacum (Tournai)',3.39,50.61,-50,None,1),('franken','Köln',6.96,50.94,-38,None,2),
+ ('odoaker','Ravenna',12.20,44.42,-200,None,1),('odoaker','Rom',12.50,41.90,-753,None,2),('angels','Cantiacorum (Canterbury)',1.08,51.28,-50,None,2),
 ]
-orte = [{'reich': r, 'name': n, 'lng': x, 'lat': y, 'von': v, 'bis': b} for r, n, x, y, v, b in cities]
 
-out = {'meta': META, 'reihen': ORDER, 'regionen': feats, 'ereignisse': events, 'schlachten': battles, 'orte': orte}
+cities += [('rom','Gortyna',24.95,35.06,-600,None,2),('rom','Puteoli',14.12,40.82,-194,None,3)]
+
+# Stufen (Anzeige nach Zoom): 1 Weltstädte, 2 große Provinzzentren (über das Reich verteilt), 3 weitere Provinzhauptstädte
+# und wirtschaftlich bedeutende Städte, 4 kleinere Orte
+STUFE_ROM_HAN = {
+ 1: {'Rom','Konstantinopel','Alexandria','Antiochia','Karthago',"Chang'an",'Luoyang'},
+ 2: {'Londinium','Lugdunum','Augusta Treverorum','Tarraco','Corduba','Mediolanum','Carnuntum','Sirmium','Thessalonike',
+     'Athen','Ephesos','Ankyra','Caesarea Maritima','Leptis Magna',
+     'Chengdu','Ji (Peking)','Panyu','Dunhuang','Lelang (Pjöngjang)','Linzi'},
+ 3: {'Ravenna','Emerita Augusta','Narbo','Burdigala','Colonia Agrippina','Mogontiacum','Augusta Vindelicum','Aquincum','Salona','Korinth','Nikomedia','Tarsos','Bostra','Kyrene','Gortyna','Caesarea (Mauretania)','Tingis','Eboracum','Ulpia Traiana Sarmizegetusa','Tomis','Handan','Wuwei','Jiaozhi (Hanoi)','Dian (Kunming)','Jiangling','Changsha','Wu (Suzhou)',
+     'Massilia','Gades','Carthago Nova','Aquileia','Capua','Neapolis','Puteoli','Ostia','Syracusae','Tarentum','Leptis Magna',
+     'Palmyra','Damaskus','Petra','Pergamon','Smyrna','Tyros','Berytus','Jerusalem','Memphis','Byzantion','Lutetia','Hispalis',
+     'Arelate','Brundisium','Milet','Sardes','Sinope','Trapezus','Apameia','Gaza','Dyrrachium','Utica','Hippo Regius','Olisipo',
+     'Camulodunum','Verona','Zhangye','Jiuquan','Hepu','Shouchun','Pengcheng','Wan (Nanyang)','Jinyang (Taiyuan)'},
+}
+def neue_stufe(r, n, st):
+    if r in ('rom', 'han'):
+        return next((k for k in (1, 2, 3) if n in STUFE_ROM_HAN[k]), 4)
+    if META[r].get('kontext'): return 2 if st == 1 else 4   # Europa (Kontext): Hauptorte erst beim Hineinzoomen
+    return st if st < 3 else 4                              # Nachbarreiche: Hauptstadt 1, wichtige Städte 2, sonst 4
+cities = [(r, n, x, y, v, b, neue_stufe(r, n, st)) for r, n, x, y, v, b, st in cities]
+
+def zeiten(reich, lng, lat, von, bis):
+    """Jahre, in denen ein Gebiet des Reichs den Ort (±0,3°) abdeckt, geschnitten mit der Stadtgeschichte"""
+    from shapely.geometry import Point
+    pt = Point(lng, lat).buffer(0.3)
+    ende = bis + 1 if bis is not None else META[reich]['bis']
+    iv = sorted((max(p['von'], von), min(p['bis'], ende)) for p in pieces if p['reich'] == reich and p['g'].intersects(pt))
+    iv = [x for x in iv if x[0] < x[1]]
+    out = []
+    for a, b in iv:
+        if out and a <= out[-1][1]: out[-1][1] = max(out[-1][1], b)
+        else: out.append([a, b])
+    return out
+
+orte = []
+for r, n, x, y, v, b, st in cities:
+    z = zeiten(r, x, y, v, b)
+    if not z: print('Ort ohne Gebiet:', r, n); continue
+    orte.append({'reich': r, 'name': n, 'lng': x, 'lat': y, 'stufe': st, 'zeiten': z})
+
+# ======================================================================
+#  Völkerwanderung: Züge als Linien [lng, lat], von/bis = Jahre, in denen der Zug gezeichnet wird (schematisch!)
+# ======================================================================
+WANDERUNGEN = [
+ dict(volk='Hunnen', farbe='#c08a5b', von=370, bis=376, pfad=[[50,47.5],[45,47.8],[40,47.5],[35,47.0],[31,46.6]], text='um 375: Hunnen überqueren den Don, besiegen Alanen und Ostgoten'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=395, bis=410, pfad=[[31,46.6],[27,46.5],[23,46.8],[20,47.0]], text='um 400: Hunnen in der Ungarischen Tiefebene'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=450, bis=451, pfad=[[20,47.0],[16,48.0],[12,48.6],[8.3,49.6],[4.4,48.9]], text='451: Attila zieht nach Gallien (Katalaunische Felder)'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=452, bis=453, pfad=[[20,47.0],[16,46.3],[13.37,45.77],[11.5,45.4],[10.8,45.2]], text='452: Attila in Italien (Aquileia zerstört)'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=376, bis=378, pfad=[[28.5,45.4],[27.4,44.1],[26.6,42.9],[26.56,41.68]], text='376: Westgoten überqueren die Donau, 378 Sieg bei Adrianopel'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=395, bis=401, pfad=[[26.56,41.68],[23.5,40.8],[22.4,39.5],[22.9,37.9],[21.6,38.6],[20.4,40.4],[19.6,42.0],[17.2,44.2],[14.5,45.7],[13.37,45.77]], text='395–401: Westgoten unter Alarich in Griechenland und Illyricum, dann Zug nach Italien'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=401, bis=410, pfad=[[13.37,45.77],[11.3,44.5],[12.5,43.1],[12.5,41.9]], text='410: Alarich plündert Rom'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=410, bis=418, pfad=[[12.5,41.9],[11.5,43.6],[8.5,44.3],[5.5,43.5],[3.0,43.2],[2.17,41.39],[1.44,43.6]], text='412–418: über Südgallien nach Hispanien; 418 Ansiedlung in Aquitanien (Toulouse)'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=401, bis=406, pfad=[[17,50.5],[13,50.5],[10,50.2],[8.27,50.0]], text='31.12.406: Vandalen, Sueben und Alanen überqueren den Rhein bei Mainz'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=406, bis=409, pfad=[[8.27,50.0],[5.5,49.3],[3.0,48.0],[1.2,46.0],[-0.5,44.5],[-1.5,43.2]], text='406–409: Zug durch Gallien bis zu den Pyrenäen'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=409, bis=422, pfad=[[-1.5,43.2],[-3.0,41.5],[-4.5,39.5],[-5.5,37.6]], text='409: Einfall in Hispanien; Vandalen in der Baetica'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=429, bis=439, pfad=[[-5.5,37.6],[-5.6,36.0],[-5.3,35.6],[-2.0,35.2],[2.0,36.4],[6.0,36.8],[8.5,36.8],[10.32,36.85]], text='429: Übergang nach Afrika; 439 Eroberung Karthagos'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=455, bis=456, pfad=[[10.32,36.85],[11.0,38.5],[12.0,40.5],[12.3,41.7]], text='455: Vandalen plündern Rom (über das Meer)'),
+ dict(volk='Sueben', farbe='#6f8a8a', von=409, bis=411, pfad=[[-1.5,43.2],[-4.5,42.6],[-7.0,42.2],[-8.43,41.55]], text='411: Sueben in Gallaecia (Hauptort Bracara)'),
+ dict(volk='Burgunder', farbe='#a07a6a', von=406, bis=413, pfad=[[11,50.3],[9.5,50.0],[8.36,49.63]], text='413: Burgunderreich um Worms'),
+ dict(volk='Burgunder', farbe='#a07a6a', von=436, bis=443, pfad=[[8.36,49.63],[7.6,48.3],[7.0,47.3],[6.14,46.2]], text='443: nach der Niederlage 436 Ansiedlung in der Sapaudia (Genf)'),
+ dict(volk='Angeln, Sachsen, Jüten', farbe='#8c7f6a', von=440, bis=455, pfad=[[9.5,54.8],[7.5,54.2],[4.5,53.3],[2.0,52.5],[1.2,51.4]], text='um 450: Angeln, Sachsen und Jüten setzen nach Britannien über'),
+ dict(volk='Alamannen', farbe='#8f7a5c', von=255, bis=260, pfad=[[10.8,50.2],[10.0,49.3],[9.0,48.6]], text='um 260: Alamannen besetzen das Dekumatland'),
+ dict(volk='Ostgoten', farbe='#6d7f6d', von=454, bis=456, pfad=[[31,46.6],[27,46.0],[22,46.2],[19,46.5]], text='456: Ostgoten als Föderaten in Pannonien'),
+]
+
+out = {'meta': META, 'reihen': ORDER, 'regionen': feats, 'ereignisse': events, 'schlachten': battles, 'orte': orte, 'wanderungen': WANDERUNGEN}
 path = os.path.join(HERE, 'data/reiche.json')
 json.dump(out, open(path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
 print('Regionen:', len(feats), ' Datei:', os.path.getsize(path), 'Bytes')

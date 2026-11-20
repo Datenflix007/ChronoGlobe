@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#101a27">
 <title>Digitales Tafelbild: Rom und China</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
-<link rel="icon" href="data:,">
+<link rel="icon" href="img/icons/favicon.png" type="image/png">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -14,8 +14,20 @@
 <div id="karLayer" class="kar-layer"></div>
 
 <header class="top">
-  <h1>Digitales Tafelbild <span id="h1sub">Rom und China</span></h1>
-  <button id="btnInfo" class="ghost" title="Hinweise und Lizenzen">Hinweise</button>
+  
+  <h1 style="display: flex; align-items: center; gap: 10px; margin: 0;">
+    <!-- <img
+        src="img/icons/favicon.png"
+        alt="Logo"
+        style="width: 36px; height: 36px; object-fit: contain; flex-shrink: 0;"
+    > -->
+    Digitales Tafelbild
+    <span id="h1sub">Rom - Das Zentrum der Welt?</span>
+</h1>
+  <div class="top-btns">
+    <button id="btnInfo" class="ghost" title="Bedienung, Hinweise zu Daten und Lizenzen">Erste Schritte</button>
+    <button id="btnLehrer" class="ghost" title="Unterrichtsreihe, Ziele, Sachanalyse, Didaktik und Verlaufsplan">Lehrerhinweise</button>
+  </div>
 </header>
 
 <aside class="panel" id="panel">
@@ -46,6 +58,11 @@
       <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
     </div>
   </section>
+  <section>
+    <h2>Europa (Kontext)</h2>
+    <p class="hint kx-hint">Nachfolgestaaten Westroms zur Orientierung. Sie lassen sich einblenden, haben aber <b>keine Schriftrolle</b>.</p>
+    <div class="nb-grid" id="kxChips"></div>
+  </section>
   <section id="handelSec">
     <h2>Handel &amp; Austausch</h2>
     <button id="tglHandel" class="chip plain" aria-pressed="false">Handelsverbindungen anzeigen</button>
@@ -55,8 +72,14 @@
         <button id="tglSee" class="chip plain hs on" aria-pressed="true" disabled><span>Seewege</span></button>
         <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren anzeigen</span></button>
         <button id="tglGes" class="chip plain hs on" aria-pressed="true" disabled><span>Gesandt&shy;schaften</span></button>
-        <button id="tglKar" class="chip plain hs on kar" aria-pressed="true" disabled><span>Karawanen&shy;handel</span></button>
-        <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0)"><span>Römische Straßen</span></button>
+        <button id="tglKar" class="chip plain hs kar" aria-pressed="false" disabled><span>Karawanen&shy;handel</span></button>
+        <button id="tglSchiff" class="chip plain hs" aria-pressed="false" disabled title="Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich nach dem ORBIS-Modell (Stanford, um 200 n. Chr.)"><span>Schiffs&shy;verkehr (ORBIS)</span></button>
+        <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0), zeitlich modelliert"><span>Römerstraßen anzeigen</span></button>
+      </div>
+      <div class="str-opt off" id="strOpt" aria-label="Optionen Römerstraßen">
+        <button id="tglStrEhem" class="chip plain hs" aria-pressed="false" disabled title="Nach dem Ende der modellierten römischen Nutzung blass und gestrichelt: ehemalige römische Trassen, mittelalterliche Nutzung nicht allgemein belegt"><span>Ehemalige Trassen</span></button>
+        <button id="tglStrAnim" class="chip plain hs on" aria-pressed="true" disabled title="Straßen in der modellierten Ausbauphase schrittweise zeichnen (didaktische Animation, kein belegter Baufortschritt)"><span>Ausbau animieren</span></button>
+        <p class="hint str-hint">Ausbau und Ende sind <b>regional modelliert</b>; belegt sind Verlauf und, für einen Teil der Linien, Itiner-e-Daten. Klick auf eine Straße zeigt die Quellenlage.</p>
       </div>
       <div class="tlegend" aria-label="Legende Handelswege">
         <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
@@ -65,6 +88,7 @@
         <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
         <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
         <div><svg viewBox="0 0 40 8"><line class="str" x1="2" y1="4" x2="38" y2="4"/></svg>Römerstraße</div>
+        <div><svg viewBox="0 0 40 8"><line class="orbis" x1="2" y1="4" x2="38" y2="4"/></svg>Schiffsverkehr (ORBIS)</div>
         <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
       </div>
       <div id="routeList" class="route-list" aria-live="polite"></div>
@@ -73,6 +97,7 @@
       <div class="zh-block" aria-label="Entdeckungsfahrten des Zheng He">
         <h3 class="hsub-h">Entdeckungsfahrten des Zheng He <small>1405–1433</small></h3>
         <button id="tglZh" class="chip plain hs on" aria-pressed="true" disabled><span>Alle Fahrten anzeigen</span></button>
+        <button id="tglBilder" class="chip plain hs" aria-pressed="false" disabled title="Wo eine Abbildung vorliegt (z. B. Zheng Hes Schatzschiff), wird sie statt des Symbols gezeigt"><span>Abbildungen statt Symbole</span></button>
         <div class="zh-grid" id="zhChips"></div>
         <div class="tlegend" aria-label="Legende Fahrten des Zheng He">
           <div><svg viewBox="0 0 40 8"><line class="zh" x1="2" y1="4" x2="38" y2="4"/></svg>laufende Fahrt</div>
@@ -93,6 +118,7 @@
     <h2>Globus</h2>
     <button id="tglOrte" class="chip plain" aria-pressed="false">Orte anzeigen</button>
     <button id="tglSchl" class="chip plain on" aria-pressed="true">Schlachten anzeigen</button>
+    <button id="tglVw" class="chip plain" aria-pressed="false" title="Züge von Hunnen, West- und Ostgoten, Vandalen, Sueben, Burgundern, Alamannen, Angeln und Sachsen (255–456 n. Chr., schematisch)">Völkerwanderung</button>
     <button id="tglRot" class="chip plain on" aria-pressed="true">Automatisch drehen</button>
     <button id="tglStandort" class="chip plain" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen">Mein Standort</button>
     <div class="row">
@@ -182,21 +208,63 @@
   </div>
 </div>
 
-<!-- Hinweise -->
+<!-- Erste Schritte (Bedienung, Hinweise zu Daten, Lizenzen) -->
 <div id="modal" class="modal" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="mt">
-    <h2 id="mt">Hinweise</h2>
+    <h2 id="mt">Erste Schritte</h2>
+    <ol class="steps">
+      <li><b>Globus bewegen:</b> mit der Maus ziehen (oder wischen) dreht den Globus, Mausrad bzw. zwei Finger zoomen. „→ Rom“, „→ China“ und „Eurasien“ im Menü springen zu festen Ansichten.</li>
+      <li><b>Zeit wählen:</b> Schieber der Zeitleiste ziehen, ▶ spielt ab, „−10/+10“ springen um zehn Jahre. Tastatur: ←/→ ein Jahr, mit Shift zehn Jahre, Leertaste Abspielen. Punkte auf der Zeitleiste sind Ereignisse, Schwerter Schlachten.</li>
+      <li><b>Reiche ein- und ausblenden:</b> im Menü links Rom, Han und die Nachbarreiche. Rechts erklären Infokarten, was im gewählten Jahr geschieht.</li>
+      <li><b>Schriftrolle öffnen:</b> Klick auf ein Reich auf dem Globus oder „Schriftrolle öffnen“ in der Infokarte. Dort stehen Vignetten (bei Rom: Wiederholung mit Aufgaben) und die Karte des Reichs.</li>
+      <li><b>Handel &amp; Austausch:</b> „Handelsverbindungen anzeigen“ blendet Land- und Seewege, Waren und Gesandtschaften ein. Klick auf eine Route öffnet eine Infokarte und einen Schülertext in drei Niveaus. Darunter: Römerstraßen und die Fahrten des Zheng He.</li>
+      <li><b>Spätmittelalter:</b> Rechts auf der Zeitleiste liegt der Abschnitt 1400–1453 mit den Fahrten des Zheng He und den portugiesischen Fahrten.</li>
+      <li><b>Schließen:</b> Esc oder Klick neben ein Fenster.</li>
+    </ol>
+    <h3 class="mh">Hinweise zu Daten und Darstellung</h3>
     <p><b>Entwurf für den Unterricht.</b> Die Reichsgebiete sind <b>vereinfachte, von Hand gezeichnete Flächen</b> (grob nach Provinzen bzw. Regionen mit Erwerbs- und Verlustjahr) und an die Küstenlinien angepasst. Sie sind <b>nicht</b> aus einem Atlas übernommen und geben Grenzen und Jahreszahlen nur ungefähr wieder. Schlachtsymbole erscheinen für etwa 25 Jahre ab dem Schlachtjahr. Vor dem Einsatz bitte mit einem Geschichtsatlas abgleichen.</p>
     <p><b>Handel &amp; Austausch:</b> Die Routen sind <b>schematisch</b> und grob von Hand gezeichnet. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien. Linien: durchgezogen = belegt, gestrichelt = vermittelt, gepunktet = umstritten. Quellen stehen in jeder Infokarte.</p>
     <p><b>Karawanenhandel:</b> Die Kamel-Symbole zeigen regionalen Zwischenhandel auf kurzen Etappen. Ab 220 n. Chr. (Ende der Han-Dynastie) wird die durchgehende Mittelroute blass dargestellt. Auch vorher lief der Handel überwiegend als Etappenhandel über Zwischenhändler; gezeigt wird eine Verschiebung in Intensität und Organisation.</p>
     <p><b>Zeitleiste:</b> Sie hat zwei Abschnitte, „Europäische Antike“ (300 v. Chr. bis 480 n. Chr.) und „Europäisches Spätmittelalter“ (1400 bis 1440). Der Zeitsprung dazwischen (≈) ist nicht dargestellt; die Abschnitte haben verschiedene Maßstäbe.</p>
-    <p><b>Entdeckungsfahrten des Zheng He</b> (unter „Handel &amp; Austausch“): die sieben Flottenfahrten der Ming-Zeit (1405–1433), zu sehen im Abschnitt Spätmittelalter. Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
+    <p><b>Entdeckungsfahrten des Zheng He</b> (unter „Handel &amp; Austausch“): die sieben Flottenfahrten der Ming-Zeit (1405–1433), zu sehen im Abschnitt Spätmittelalter. Eine neue Fahrt zeichnet sich mit dem Schiff an der Spitze ein; Häfen erscheinen, wenn die Flotte sie erreicht. Beim Abspielen wartet die Zeitleiste, bis die Fahrt gezeichnet ist. Dazu: das Ming-Reich (vereinfacht, mit Jiaozhi 1407–1427 und dem Umzug der Hauptstadt nach Peking 1421) und zum Vergleich die portugiesischen Fahrten jener Jahre (Ceuta 1415, Madeira 1419, Azoren 1427, Kap Bojador 1434). Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
+    <p><b>Orte:</b> Je näher man heranzoomt, desto mehr Orte erscheinen: ganz weit weg keine, in der Standardansicht nur die Weltstädte, dann große Provinzzentren, dann weitere Provinzhauptstädte und wirtschaftlich bedeutende Städte, erst ganz nah alle Orte. Ein Ort wird nur angezeigt, solange sein Gebiet zum jeweiligen Reich gehört.</p>
     <p><b>Schülertexte:</b> Ein Klick auf eine Route öffnet einen Text in drei Niveaus (A/B/C) mit Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“ und Arbeitsaufträgen. Alle Texte mit Belegen und Literaturverzeichnis: <a href="lehrkraft.html" target="_blank" rel="noopener">Lehrkraft-Ansicht öffnen ↗</a></p>
+    <p><b>Provinzen:</b> Die römischen Flächen folgen den Provinzen um 117 n. Chr. (Namen und Einrichtungsjahre nach der Liste der Provinzen des Römischen Reichs). Ab 395 sind West- und Ostrom farblich getrennt. Westrom verliert seine Gebiete bis 476/480 an die Nachfolgestaaten; Ostrom reicht als Byzantinisches Reich bis 1453 (Abschnitt Spätmittelalter, mit dem Osmanischen Reich als Kontext). Grenzen sind von Hand gezeichnet und nur ungefähr.</p>
+    <p><b>Völkerwanderung</b> (Menü → Globus): Die Züge der Hunnen, Goten, Vandalen, Sueben, Burgunder, Alamannen, Angeln und Sachsen wachsen mit der Zeitleiste (255–456 n. Chr.). Die Wege sind schematisch.</p>
+    <p><b>Europa (Kontext):</b> Franken, Alamannen, West- und Ostgoten, Sueben, Vandalen, Burgunder, das Reich von Soissons, das Reich Odoakers und die Angelsachsen sind als Nachfolgestaaten Westroms zur Orientierung eingezeichnet (vereinfacht, bis 480 n. Chr.). Sie öffnen keine Schriftrolle.</p>
     <p><b>Schriftrolle:</b> Ein Klick auf ein eingeblendetes Reich (oder „Schriftrolle öffnen“ im Infoband) öffnet eine Schriftrolle mit <b>Vignetten</b> (beim Römischen Reich: <b>Wiederholung</b> mit Aufgaben und Rückmeldung) und der <b>Karte</b> des Reichs. Quiz-Ergebnisse bleiben nur in der geöffneten Seite und werden nicht gespeichert.</p>
+    <p><b>Römerstraßen im Zeitverlauf:</b> Jede Straße erscheint in ihrer modellierten Ausbauphase (das Netz wächst von Rom aus; jede Straße setzt an einer schon gezeichneten an: didaktische Animation), ist in der römischen Nutzungsphase voll sichtbar und verschwindet danach. Mit „Ehemalige Trassen“ bleiben frühere Trassen blass gestrichelt sichtbar; eine mittelalterliche Nutzung ist damit nicht behauptet. Die Zeitangaben sind regionale Modellwerte, für rund die Hälfte der Linien mit Itiner-e-Belegen eingegrenzt; Einzelheiten in der Infokarte jeder Straße.</p>
+    <p><b>Schiffsverkehr (ORBIS):</b> Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich bis Britannien nach dem Verkehrsmodell ORBIS (Stanford, W. Scheidel und E. Meeks; Daten github.com/emeeks/orbis_v2, MIT). ORBIS zeigt das Netz um 200 n. Chr. und hat keine Jahreszahlen: Eine Strecke erscheint, solange beide Endhäfen römisch sind. Die Linien sind Modellstrecken, keine belegten einzelnen Fahrten.</p>
     <p><b>Römische Straßen:</b> Daten aus „Itiner-e. A High-Resolution Dataset of Roads of the Roman Empire“ (de Soto, Pažout, Brughmans u. a., Scientific Data 2025; Zenodo, DOI 10.5281/zenodo.17122148), Lizenz CC BY 4.0, vereinfacht und auf Hauptstraßen reduziert.</p>
-    <p><b>Lizenzen:</b> Satellitenbild „Blue Marble Next Generation“ (NASA Earth Observatory, gemeinfrei), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
+    <p><b>Lizenzen:</b> Satellitenbild „Blue Marble Next Generation“ (NASA Earth Observatory, gemeinfrei), Küstenlinien <i>Natural Earth</i> 1:50 Mio. und 1:10 Mio. (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
     <button id="modalClose" class="small">Schließen</button>
+  </div>
+</div>
+
+<!-- Lehrerhinweise -->
+<div id="lmodal" class="modal" hidden>
+  <div class="modal-box lbox" role="dialog" aria-modal="true" aria-labelledby="lmt">
+    <div class="lhead">
+      <h2 id="lmt">Lehrerhinweise</h2>
+      <button id="lmodalClose" class="small">Schließen</button>
+    </div>
+    <p class="lentwurf">Inhalte aus <code>lehrerhinweise/*.md</code> in diesem Repository.</p>
+    <div class="ltabs" role="tablist" aria-label="Lehrerhinweise">
+      <button role="tab" id="lt-reihe" aria-controls="lp-reihe" aria-selected="true">Unterrichtsreihe</button>
+      <button role="tab" id="lt-kompetenz" aria-controls="lp-kompetenz" aria-selected="false" tabindex="-1">Kompetenzziele</button>
+      <button role="tab" id="lt-handlung" aria-controls="lp-handlung" aria-selected="false" tabindex="-1">Handlungsziele</button>
+      <button role="tab" id="lt-sach" aria-controls="lp-sach" aria-selected="false" tabindex="-1">Sachanalyse</button>
+      <button role="tab" id="lt-didaktik" aria-controls="lp-didaktik" aria-selected="false" tabindex="-1">Methodisch-didaktische Analyse</button>
+      <button role="tab" id="lt-verlauf" aria-controls="lp-verlauf" aria-selected="false" tabindex="-1">Verlaufsplan</button>
+    </div>
+
+    <section class="lpanel" role="tabpanel" id="lp-reihe" aria-labelledby="lt-reihe" data-md="lehrerhinweise/01_unterrichtsreihe.md"><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-kompetenz" aria-labelledby="lt-kompetenz" data-md="lehrerhinweise/02_kompetenzziele.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-handlung" aria-labelledby="lt-handlung" data-md="lehrerhinweise/03_handlungsziele.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-sach" aria-labelledby="lt-sach" data-md="lehrerhinweise/04_sachanalyse.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-didaktik" aria-labelledby="lt-didaktik" data-md="lehrerhinweise/05_methodisch_didaktische_analyse.md" hidden><p class="hint">Wird geladen …</p></section>
+    <section class="lpanel" role="tabpanel" id="lp-verlauf" aria-labelledby="lt-verlauf" data-md="lehrerhinweise/06_verlaufsplan.md" hidden><p class="hint">Wird geladen …</p></section>
   </div>
 </div>
 
@@ -204,6 +272,7 @@
 <script src="vendor/d3.min.js"></script>
 <script src="js/texte.js"></script>
 <script src="js/vignetten.js"></script>
+<script src="js/strassenzeit.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

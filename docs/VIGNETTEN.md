@@ -12,7 +12,7 @@ Für die Sachinhalte gelten die Regeln in `docs/GRUNDREGELN.md`. Erfundene Erzä
 
 ```json
 {
-  "platzhalter": 3,
+  "platzhalter": 5,
   "reiche": {
     "rom": {
       "modus": "wiederholung",
@@ -34,7 +34,9 @@ Für die Sachinhalte gelten die Regeln in `docs/GRUNDREGELN.md`. Erfundene Erzä
   - `"wiederholung"`: Reiter „Wiederholung“, Kacheln heißen „Aufgabe 1, 2, …“.
 - `titel` ersetzt die Überschrift (sonst der Reichsname). `einleitung` ersetzt den Satz unter der Überschrift.
 - Eine Vignette mit leerer Liste `bloecke` erscheint als gestrichelte Kachel „Inhalt folgt“.
-- Hat ein Reich gar keine Vignetten, zeigt die Rolle `platzhalter` leere Kacheln (Standard 3).
+- Hat ein Reich gar keine Vignetten, zeigt die Rolle `platzhalter` leere Kacheln (Standard 5; fünf Vignetten je Rolle sind das vorgesehene Maß).
+- `schriftrolle`: `false` heißt, das Reich hat keine Schriftrolle. Es lässt sich dann nicht anklicken, und im Infoband fehlt der Knopf. So legt die Lehrkraft fest, welche Kulturen die Klasse erarbeitet.
+- Die europäischen Nachfolgestaaten (Kontext) haben grundsätzlich keine Schriftrolle. Nur ein ausdrückliches `"schriftrolle": true` gibt ihnen eine.
 - `quellen` (optional) erscheinen am Ende der Vignette als Liste.
 
 ## Bausteine (`bloecke`)
