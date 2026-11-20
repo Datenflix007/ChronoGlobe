@@ -213,12 +213,12 @@
       .polygonCapColor(capColor)
       .polygonSideColor(function (f) { return f.properties.kind === 'land' ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.15)'; })
       .polygonStrokeColor(function (f) { return f.properties.kind === 'land' ? 'rgba(90,80,55,0.55)' : 'rgba(35,15,5,0.45)'; })
-      .polygonAltitude(function (f) { var p = f.properties; return p.kind === 'land' ? 0.0012 : (M(p.reich).haupt ? 0.0045 : 0.0038); })
-      .polygonCapCurvatureResolution(3)
+      .polygonAltitude(function (f) { var p = f.properties; return p.kind === 'land' ? 0.0006 : (M(p.reich).haupt ? 0.0012 : 0.0009); })
+      .polygonCapCurvatureResolution(1)   // fein unterteilt, damit die flach liegenden Flächen nicht in die Kugel einsinken
       .polygonsTransitionDuration(900)
       .polygonLabel(polyLabel)
       .labelLat('lat').labelLng('lng').labelText(function (d) { return d.kind === 'handel' ? d.name.replace(/Ó/g, 'O') : d.name; })
-      .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.006).labelResolution(2)
+      .labelSize(0.85).labelDotRadius(0.28).labelAltitude(0.0026).labelResolution(2)
       .labelColor(labelColor)
       .labelSize(function (d) { return d.kind === 'karawane' ? 0.75 : labelIsTrade(d) ? 1.0 : 0.85; })
       .labelDotRadius(function (d) { return d.kind === 'karawane' ? 0.3 : labelIsTrade(d) ? 0.42 : 0.28; })
@@ -227,7 +227,7 @@
         var t = el('div', 'gtip'); t.appendChild(el('b', null, d.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode((d.kind === 'karawane' ? d.hinweis : d.vermittler) + ' · Klick für Infos')); return t.outerHTML;
       })
-      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.009 : 0.01; }).htmlElement(htmlEl).htmlTransitionDuration(0);
+      .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.kind === 'waren' ? 0.0028 : 0.003; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
@@ -877,7 +877,7 @@
     (CUR_TV ? CUR_TV.parts : []).forEach(function (p) {
       dense(p.pts).forEach(function (c, j) {
         if (j % 2 || d3.geoDistance([pov.lng, pov.lat], c) > 1.45) return;
-        var q = globe.getScreenCoords(c[1], c[0], 0.008); scr.push([q.x, q.y]);
+        var q = globe.getScreenCoords(c[1], c[0], 0.0022); scr.push([q.x, q.y]);
       });
     });
     var placed = [];
@@ -886,7 +886,7 @@
       var r = e.getBoundingClientRect(); placed.push([r.left, r.top, r.width, r.height]);
     });
     tags.forEach(function (t) {
-      var sc = globe.getScreenCoords(t.lat, t.lng, 0.009), box = t.__el.querySelector('.wtag'), w = box.offsetWidth, h = box.offsetHeight;
+      var sc = globe.getScreenCoords(t.lat, t.lng, 0.0028), box = t.__el.querySelector('.wtag'), w = box.offsetWidth, h = box.offsetHeight;
       var cand = {
         oben: [sc.x - w / 2, sc.y - STEM - h, w, h], unten: [sc.x - w / 2, sc.y + STEM, w, h],
         links: [sc.x - STEM - w, sc.y - h / 2, w, h], rechts: [sc.x + STEM, sc.y - h / 2, w, h]
@@ -1033,7 +1033,7 @@
   function initTradeGlobe() {
     globe.pathsData([])
       .pathPoints('pts').pathPointLat(function (p) { return p[1]; }).pathPointLng(function (p) { return p[0]; })
-      .pathPointAlt(0.008)
+      .pathPointAlt(0.0022)
       .pathColor(pathColor)
       .pathStroke(pathStroke)
       .pathDashLength(function (d) { return pathDash(d, 0); })
@@ -1634,12 +1634,12 @@
       if (u < 0.44) { s = u / 0.44; dir = 1; } else if (u < 0.5) { s = 1; dir = 0; } else if (u < 0.94) { s = 1 - (u - 0.5) / 0.44; dir = -1; } else { s = 0; dir = 0; }
       if (c.rev) { s = 1 - s; dir = -dir; }
       var p = karPoint(c.e, s);
-      var sc = globe.getScreenCoords(p[1], p[0], 0.012), x = sc.x + gr.left, yy = sc.y + gr.top;
+      var sc = globe.getScreenCoords(p[1], p[0], 0.003), x = sc.x + gr.left, yy = sc.y + gr.top;
       if (d3.geoDistance([pov.lng, pov.lat], p) > 1.35 || x < -20 || yy < -20 || x > innerWidth + 20 || yy > innerHeight + 20) { e.classList.add('hide'); return; }
       e.classList.remove('hide');
       e.style.transform = 'translate(' + x.toFixed(1) + 'px,' + yy.toFixed(1) + 'px)';
       if (dir) {
-        var q = karPoint(c.e, Math.max(0, Math.min(1, s + dir * 0.03))), sq = globe.getScreenCoords(q[1], q[0], 0.012);
+        var q = karPoint(c.e, Math.max(0, Math.min(1, s + dir * 0.03))), sq = globe.getScreenCoords(q[1], q[0], 0.003);
         if (Math.abs(sq.x - sc.x) > 0.5) e.classList.toggle('flip', sq.x > sc.x);
       }
     });
@@ -1672,7 +1672,7 @@
         ['path', 'start', 'ring', 'dot'].forEach(function (k) { e[k].setAttribute('visibility', op ? 'visible' : 'hidden'); });
         if (!op) return;
         var rc = chip.getBoundingClientRect(), x1 = rc.right, y1 = rc.top + rc.height / 2;
-        var p = globe.getScreenCoords(z[1], z[0], 0.01), x2 = p.x, y2 = p.y;
+        var p = globe.getScreenCoords(z[1], z[0], 0.003), x2 = p.x, y2 = p.y;
         var dx = Math.max(60, (x2 - x1) * 0.5);
         e.path.setAttribute('d', 'M' + x1 + ',' + y1 + ' C' + (x1 + dx) + ',' + y1 + ' ' + (x2 - dx * 0.4) + ',' + y2 + ' ' + x2 + ',' + y2);
         e.path.setAttribute('stroke-opacity', op);
