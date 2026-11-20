@@ -42,7 +42,7 @@ Ein Tafelbild ist ein Ordner `tafelbilder/<id>/`. Er legt fest, was vom Kern (Gl
 
 **Ebenen**
 
-- `orte`, `schlachten`, `vw` (Völkerwanderung)
+- `orte`, `schlachten`, `vw` (Völkerwanderung), `limes` (Grenzanlagen)
 - `handel`; darunter `land`, `see`, `waren`, `gesandt`, `karawanen`, `strassen`, `schiff`
 - `zh` (Zheng He), `bilder` (Abbildungen statt Symbole)
 - Nur in `aktiv`: `strassen_ehemals`, `strassen_animieren`

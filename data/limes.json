@@ -1,0 +1,59 @@
+{
+  "_hinweis": "Römische Grenzanlagen (Limes). Verläufe SCHEMATISCH über bekannte Kastellorte gelegt (Grad, [lng, lat]); Jahreszahlen gerundet nach gängigen Überblicksdarstellungen und der UNESCO-Welterbeliste „Grenzen des Römischen Reiches“. art: mauer (Steinmauer), wall (Rasen-/Erdwall), palisade (Palisade/Wall mit Graben), fluss (Flussgrenze mit Kastellkette), strasse (Grenzstraße mit Kastellen), graben (Graben mit Wall). Von Hand gepflegt; Format siehe docs/ARCHITEKTUR.md.",
+  "abschnitte": [
+    {
+      "id": "hadrian", "name": "Hadrianswall", "art": "mauer", "von": 122, "bis": 410, "laenge_km": 117,
+      "text": "Steinmauer quer durch Nordengland, ab 122 n. Chr. unter Kaiser Hadrian gebaut: 80 römische Meilen lang, mit Kastellen, Meilenkastellen und Wachtürmen. Sie kontrollierte, wer ins Reich kam – Händler mussten an Toren Zoll zahlen. Um 142–160 rückte die Grenze kurz zum Antoninuswall vor. Seit 1987 UNESCO-Welterbe.",
+      "pfad": [[-1.53, 54.99], [-1.61, 54.97], [-1.87, 54.99], [-2.14, 55.03], [-2.33, 55.01], [-2.47, 54.99], [-2.60, 54.99], [-2.78, 54.94], [-2.94, 54.90], [-3.21, 54.95]]
+    },
+    {
+      "id": "antonin", "name": "Antoninuswall", "art": "wall", "von": 142, "bis": 162, "laenge_km": 60,
+      "text": "Wall aus Rasensoden auf einem Steinfundament zwischen Firth of Forth und Firth of Clyde, ab 142 n. Chr. unter Antoninus Pius. Er wurde schon nach rund zwei Jahrzehnten wieder aufgegeben; die Grenze kehrte zum Hadrianswall zurück.",
+      "pfad": [[-4.46, 55.92], [-4.33, 55.92], [-4.15, 55.94], [-3.94, 55.98], [-3.84, 55.99], [-3.70, 56.00], [-3.56, 56.01]]
+    },
+    {
+      "id": "orl", "name": "Obergermanisch-Raetischer Limes", "art": "palisade", "von": 100, "bis": 260, "laenge_km": 550,
+      "text": "Grenze zwischen Rhein und Donau: zuerst Postenweg mit Holztürmen, ab Hadrian eine durchgehende Palisade, später Wall und Graben (Obergermanien) bzw. eine Steinmauer (Raetien), mit rund 900 Wachtürmen und etwa 60 Kastellen. Um 260 n. Chr. gaben die Römer das Gebiet auf („Limesfall“). Seit 2005 UNESCO-Welterbe.",
+      "pfad": [[7.33, 50.50], [7.71, 50.33], [8.10, 50.27], [8.57, 50.27], [8.67, 50.43], [8.79, 50.48], [8.98, 50.25], [8.98, 50.08], [9.14, 49.83], [9.26, 49.70], [9.37, 49.59], [9.43, 49.43], [9.47, 49.31], [9.55, 49.10], [9.63, 48.87], [9.69, 48.80], [10.09, 48.84], [10.30, 48.95], [10.48, 49.04], [10.75, 49.11], [10.97, 49.03], [11.40, 48.95], [11.78, 48.85]]
+    },
+    {
+      "id": "rhein", "name": "Niedergermanischer Limes (Rhein)", "art": "fluss", "von": -12, "bis": 406, "laenge_km": 400,
+      "text": "Am Niederrhein bildete der Fluss selbst die Grenze („ripa“). Eine Kette von Legionslagern und Kastellen – etwa Xanten, Köln, Bonn, Nijmegen – überwachte das Ufer. Seit 2021 UNESCO-Welterbe.",
+      "pfad": [[4.40, 52.20], [5.12, 52.09], [5.50, 51.95], [5.86, 51.84], [6.20, 51.83], [6.45, 51.66], [6.62, 51.43], [6.78, 51.23], [6.96, 50.94], [7.10, 50.73], [7.33, 50.50]]
+    },
+    {
+      "id": "donau", "name": "Donau-Limes", "art": "fluss", "von": 15, "bis": 476, "laenge_km": 2400,
+      "text": "Die Donau war über Hunderte Kilometer die Nordgrenze des Reiches. Legionslager wie Regensburg, Lauriacum (Enns), Vindobona (Wien), Carnuntum, Aquincum (Budapest), Singidunum (Belgrad) und Durostorum sicherten den Fluss; die Donauflotte patrouillierte. Teile sind seit 2021 UNESCO-Welterbe.",
+      "pfad": [[11.78, 48.85], [12.10, 49.02], [12.68, 48.83], [13.46, 48.57], [14.47, 48.21], [15.60, 48.40], [16.37, 48.21], [16.93, 48.11], [17.63, 47.77], [18.15, 47.75], [18.90, 47.80], [19.05, 47.56], [18.93, 46.90], [18.80, 46.00], [19.20, 45.25], [20.46, 44.82], [21.21, 44.74], [22.50, 44.60], [22.66, 44.20], [23.80, 43.75], [25.40, 43.62], [26.50, 44.05], [27.27, 44.11], [28.10, 44.60], [28.25, 45.25], [29.60, 45.20]]
+    },
+    {
+      "id": "arabicus", "name": "Limes Arabicus", "art": "strasse", "von": 106, "bis": 480, "laenge_km": 1500,
+      "text": "Nach der Einrichtung der Provinz Arabia (106 n. Chr.) sicherte eine Kette von Kastellen und Wachtürmen entlang der Via Nova Traiana die Wüstengrenze vom Roten Meer nach Syrien. Unter Diokletian wurde sie als „Strata Diocletiana“ bis an den Euphrat ausgebaut.",
+      "pfad": [[35.00, 29.53], [35.45, 30.33], [35.60, 31.10], [35.93, 31.95], [36.48, 32.52], [37.00, 33.30], [37.70, 33.95], [38.27, 34.55], [38.81, 35.90]]
+    },
+    {
+      "id": "fossatum", "name": "Fossatum Africae", "art": "graben", "von": 120, "bis": 430, "laenge_km": 750,
+      "text": "Abschnitte von Graben und Wall am Rand der Sahara im heutigen Algerien und Tunesien. Sie trennten das Ackerland von den Weidegebieten der Nomaden und lenkten deren Herden zu kontrollierten Durchgängen – Grenze und Zollstelle zugleich.",
+      "pfad": [[3.20, 35.20], [4.00, 35.05], [4.70, 34.95], [5.40, 34.75], [5.95, 34.75], [6.50, 34.90], [7.20, 34.50], [8.10, 34.20]]
+    }
+  ],
+  "kastelle": [
+    { "name": "Vindolanda", "lng": -2.36, "lat": 54.99, "abschnitt": "hadrian", "text": "Kastell südlich des Hadrianswalls; berühmt für die Holztäfelchen mit Briefen und Listen von Soldaten und ihren Familien." },
+    { "name": "Housesteads (Vercovicium)", "lng": -2.33, "lat": 55.01, "abschnitt": "hadrian", "text": "Eines der besterhaltenen Kastelle direkt am Hadrianswall." },
+    { "name": "Segedunum (Wallsend)", "lng": -1.53, "lat": 54.99, "abschnitt": "hadrian", "text": "Kastell am Ostende des Hadrianswalls." },
+    { "name": "Rough Castle", "lng": -3.84, "lat": 55.99, "abschnitt": "antonin", "text": "Kleines, gut erhaltenes Kastell am Antoninuswall." },
+    { "name": "Saalburg", "lng": 8.57, "lat": 50.27, "abschnitt": "orl", "text": "Kastell im Taunus; um 1900 rekonstruiert, heute Museum." },
+    { "name": "Osterburken", "lng": 9.43, "lat": 49.43, "abschnitt": "orl", "text": "Doppelkastell am vorderen Limes." },
+    { "name": "Aalen", "lng": 10.09, "lat": 48.84, "abschnitt": "orl", "text": "Größtes Reiterkastell nördlich der Alpen (ca. 1000 Reiter)." },
+    { "name": "Weißenburg (Biriciana)", "lng": 10.97, "lat": 49.03, "abschnitt": "orl", "text": "Kastell mit großen Thermen am Raetischen Limes." },
+    { "name": "Xanten (Vetera)", "lng": 6.45, "lat": 51.66, "abschnitt": "rhein", "text": "Legionslager am Niederrhein." },
+    { "name": "Bonn (Bonna)", "lng": 7.10, "lat": 50.73, "abschnitt": "rhein", "text": "Legionslager am Rhein." },
+    { "name": "Regensburg (Castra Regina)", "lng": 12.10, "lat": 49.02, "abschnitt": "donau", "text": "Legionslager an der Donau, gegründet um 179 n. Chr." },
+    { "name": "Carnuntum", "lng": 16.93, "lat": 48.11, "abschnitt": "donau", "text": "Legionslager und Hauptstadt der Provinz Oberpannonien; wichtiger Punkt der Bernsteinstraße." },
+    { "name": "Aquincum", "lng": 19.05, "lat": 47.56, "abschnitt": "donau", "text": "Legionslager im heutigen Budapest." },
+    { "name": "Durostorum", "lng": 27.27, "lat": 44.11, "abschnitt": "donau", "text": "Legionslager an der unteren Donau (heute Silistra)." },
+    { "name": "Bostra", "lng": 36.48, "lat": 32.52, "abschnitt": "arabicus", "text": "Legionslager und Hauptstadt der Provinz Arabia." },
+    { "name": "Lejjun (Betthorus)", "lng": 35.79, "lat": 31.23, "abschnitt": "arabicus", "text": "Legionslager der Spätantike in Jordanien." },
+    { "name": "Gemellae", "lng": 5.60, "lat": 34.65, "abschnitt": "fossatum", "text": "Kastell am Fossatum Africae südlich von Biskra." }
+  ]
+}

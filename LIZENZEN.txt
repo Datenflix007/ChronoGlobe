@@ -44,6 +44,8 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
   in the Han dynasty (两汉丝绸之路交通数据集), China Scientific Data 3 (2018) 3, DOI 10.11922/csdata.2018.0016.zh;
   Science Data Bank, DOI 10.57760/sciencedb.611, Lizenz CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
   Verändert: Linien vereinfacht, Typen übersetzt, Perioden zusammengeführt (build_han_seidenstrasse.py).
+- Grenzanlagen (data/limes.json): eigene, schematische Verläufe über bekannte Kastellorte; Angaben nach gängigen
+  Überblicksdarstellungen und der UNESCO-Welterbeliste „Grenzen des Römischen Reiches“ (CC0).
 - Frühe Hochkulturen (data/fruehe_reiche.json): eigene, grob angedeutete Umrisse (build_fruehe_kulturen.py),
   an die Küstenlinie aus Natural Earth angepasst; Jahreszahlen gerundet nach gängigen Überblicksdarstellungen (CC0).
 - Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen

@@ -122,7 +122,7 @@ def ohne_haefen(e):
 def ohne_neue(e):
     if not isinstance(e, dict): return e
     # neue Schalter nach dem Ausgangszustand (Seidenstraße der Han, standardmäßig aus)
-    if 'gedrueckt' in e: e['gedrueckt'] = [x for x in e['gedrueckt'] if x.split('=')[0] not in NEU and x.split('=')[0] != 'tglHanSeide']
+    if 'gedrueckt' in e: e['gedrueckt'] = [x for x in e['gedrueckt'] if x.split('=')[0] not in NEU and x.split('=')[0] not in ('tglHanSeide', 'tglLimes')]
     if isinstance(e.get('trade'), dict) and e['trade'].get('hanseide') is False: del e['trade']['hanseide']
     if 'state' in e and isinstance(e['state'].get('on'), dict): e['state']['on'] = {k: v for k, v in e['state']['on'].items() if k not in NEU}
     return e

@@ -12,7 +12,7 @@
     { ep: 'ming', von: 1400, bis: 1453, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, limes: false, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false, hanseide: false };
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau; unsicherheit bleibt aus (einfarbige Darstellung)
   var ZH = { on: true, fahrt: {} }, ZHD = null;
@@ -196,7 +196,7 @@
   function refreshHtml() {
     if (state.epoche === 'ming') { globe.htmlElementsData(zhHtml(CUR_ZV || zhVisible(state.year))); return; }
     var tv = CUR_TV || tradeVisible(state.year);
-    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), [STANDORT || JENA]));
+    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), limesKastelle(), [STANDORT || JENA]));
   }
   function battleEl(d) {
     if (d.__el) return d.__el;
@@ -215,7 +215,7 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    pfadeSetzen(tradeGlobePaths(tv).concat(vwPaths()));
+    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths()));
     globe.pointsData(hanStationen(state.year));
     refreshHtml(); vwDrehenBald();
     karUpdate();
@@ -558,7 +558,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw;
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -579,7 +579,7 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : tradeGlobePaths(CUR_TV).concat(vwPaths()));
+      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths()));
       if (state.vw) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
@@ -1112,7 +1112,7 @@
     });
   }
   function vwDrehenBald() { if (!VW_DREH) VW_DREH = requestAnimationFrame(vwDrehen); }
-  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
 
   /* ---------- Eigener Standort (Pin) ---------- */
   // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
@@ -1183,6 +1183,58 @@
       row(b, 'Zeit', 'ORBIS enthält keine Jahreszahlen. Eine Strecke erscheint, solange beide Endhäfen im Tafelbild römisch sind. Das ist eine Darstellungsregel, kein Beleg für den Beginn des Verkehrs.').classList.add('twarn');
       row(b, 'Daten', 'ORBIS – The Stanford Geospatial Network Model of the Roman World (W. Scheidel, E. Meeks), orbis.stanford.edu; Daten aus github.com/emeeks/orbis_v2, vereinfacht mit build_orbis.py.');
       row(b, 'Lizenz', 'MIT (Repository emeeks/orbis_v2)');
+    });
+  }
+
+  /* ---------- Grenzanlagen (Limes, Hadrianswall …; data/limes.json) ----------
+     Eigene Signatur je Bauart über einer dunklen Kontur; Kastelle als Turm-Symbole. Sichtbar mit dem Römischen Reich,
+     solange der Abschnitt in Gebrauch war. Verläufe schematisch. */
+  var LIMES = null, LIMES_OBJ = [];
+  var LIMES_ART = {
+    mauer: { name: 'Steinmauer', farbe: '#f4e3b5', block: 5, luecke: 1.2 },
+    wall: { name: 'Rasen- bzw. Erdwall', farbe: '#a8e07a', block: 4, luecke: 1.5 },
+    palisade: { name: 'Palisade, Wall und Graben', farbe: '#ffb35c', block: 6, luecke: 2.2 },
+    fluss: { name: 'Flussgrenze mit Kastellkette', farbe: '#7fd8ff', block: 18, luecke: 12 },
+    strasse: { name: 'Grenzstraße mit Kastellen', farbe: '#ffd27a', block: 22, luecke: 9 },
+    graben: { name: 'Graben und Wall', farbe: '#ff8f6b', block: 10, luecke: 5 }
+  };
+  function initLimes(d) {
+    LIMES = d && Array.isArray(d.abschnitte) ? d : null; LIMES_OBJ = [];
+    if (!LIMES) return;
+    LIMES.abschnitte.forEach(function (a) {
+      var km = Math.max(1, lauf(a.pfad).len * 6371);
+      a.__dash = [Math.min(1, LIMES_ART[a.art].block / km), LIMES_ART[a.art].luecke / km];   // Muster in km, unabhängig von der Länge
+      // Kernlinie etwas höher als die Kontur, damit sie sicher darüber liegt (dritter Wert = Höhe)
+      LIMES_OBJ.push({ id: 'lim-' + a.id + '-r', limes: a, limTeil: 'rand', pts: a.pfad },
+        { id: 'lim-' + a.id + '-k', limes: a, limTeil: 'kern', pts: a.pfad.map(function (q) { return [q[0], q[1], 0.0019]; }) });
+    });
+    LIMES.kastelle.forEach(function (k) { k.kind = 'kastell'; k.__a = LIMES.abschnitte.filter(function (a) { return a.id === k.abschnitt; })[0]; });
+  }
+  function limesAn(a, y) { return !!state.limes && !!state.on.rom && state.epoche === 'antike' && y >= a.von && y <= a.bis; }
+  function limesPaths() { var y = state.year; return LIMES_OBJ.filter(function (o) { return limesAn(o.limes, y); }); }
+  function limesKastelle() { var y = state.year; return LIMES ? LIMES.kastelle.filter(function (k) { return k.__a && limesAn(k.__a, y); }) : []; }
+  function limesSchluessel(y) { return !state.limes ? '' : (LIMES ? LIMES.abschnitte.filter(function (a) { return limesAn(a, y); }).map(function (a) { return a.id; }).join('.') : ''); }
+  var TURM = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V9h2V6h2v3h2V6h2v3h2V6h2v3h2v12h-5v-5a2 2 0 0 0-4 0v5z" fill="currentColor" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+  function kastellEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('button', 'kastell'); e.type = 'button'; e.innerHTML = TURM; e.style.setProperty('--c', LIMES_ART[d.__a.art].farbe);
+    e.title = d.name + ' · ' + d.__a.name + ' (Klick für Infos)';
+    e.setAttribute('aria-label', d.name + ': Infokarte öffnen');
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); openLimes(d.__a, d); });
+    d.__el = e; return e;
+  }
+  function openLimes(a, k) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'limes', id: a.id, kastell: k ? k.name : null };
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk limes', 'Römische Grenzanlage · ' + LIMES_ART[a.art].name));
+      var h = el('h3', null, k ? k.name : a.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      if (k) { row(b, 'Kastell', k.text); row(b, 'Teil von', a.name); }
+      row(b, 'Bauart', LIMES_ART[a.art].name);
+      row(b, 'Zeitraum', 'etwa ' + fmtYear(a.von) + ' bis ' + fmtYear(a.bis));
+      row(b, 'Länge', 'rund ' + a.laenge_km.toLocaleString('de-DE') + ' km');
+      row(b, 'Bedeutung', a.text);
+      row(b, 'Hinweis', 'Verlauf schematisch über bekannte Kastellorte gelegt; Jahreszahlen gerundet. Eine Grenze war keine dichte Abschottung, sondern kontrollierte Übergänge für Händler, Reisende und Herden.').classList.add('twarn');
+      if (k) { var x = el('button', 'small tmore', 'Ganzer Abschnitt: ' + a.name); x.type = 'button'; x.addEventListener('click', function () { openLimes(a); }); b.appendChild(x); }
     });
   }
 
@@ -1448,6 +1500,7 @@
   function pathColor(d) {
     if (d.strasse) return strassenFarbe(d);
     if (d.orbis) return orbisFarbe(d);
+    if (d.limes) return d.limTeil === 'rand' ? (state.mode === 'schem' ? '#fffaf0' : '#1a0c04') : (state.mode === 'schem' ? mix(LIMES_ART[d.limes.art].farbe, '#000000', 0.45) : LIMES_ART[d.limes.art].farbe);
     if (d.hanlinie) return state.mode === 'schem' ? 'rgba(122,74,10,0.9)' : 'rgba(255,224,138,0.92)';
     if (d.vw) {
       var vc = state.mode === 'schem' ? mix(vwFarbe(d.vw), '#000000', 0.25) : vwFarbe(d.vw), l = d.vw.__laeuft;
@@ -1471,6 +1524,7 @@
     if (d.strasse) return strassenDash(d, i);
     if (d.orbis) return [1, 0][i];
     if (d.hanlinie) return [1, 0][i];
+    if (d.limes) return d.limTeil === 'rand' ? [1, 0][i] : d.limes.__dash[i];
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
       if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
@@ -1486,6 +1540,7 @@
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
     if (d.orbis) return null;
     if (d.hanlinie) return 1.6;
+    if (d.limes) return d.limTeil === 'rand' ? 11 : 6;
     if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
     if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
     return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2;
@@ -1493,7 +1548,7 @@
   function initTradeGlobe() {
     globe.pathsData([])
       .pathPoints('pts').pathPointLat(function (p) { return p[1]; }).pathPointLng(function (p) { return p[0]; })
-      .pathPointAlt(0.0012)
+      .pathPointAlt(function (p) { return p[2] || 0.0012; })
       .pathColor(pathColor)
       .pathStroke(pathStroke)
       .pathDashLength(function (d) { return pathDash(d, 0); })
@@ -1509,6 +1564,11 @@
           t.appendChild(el('b', null, d.stil === 'ehemals' ? 'Ehemalige römische Trasse' : 'Römische Straße' + (nm && nm.length ? ': ' + nm[0] : ''))); t.appendChild(el('br'));
           t.appendChild(document.createTextNode(d.stil === 'ehemals' ? 'mittelalterliche Nutzung nicht allgemein belegt · Klick für Infos'
             : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
+          return t.outerHTML;
+        }
+        if (d.limes) {
+          t.appendChild(el('b', null, d.limes.name + ' · ' + LIMES_ART[d.limes.art].name)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode('etwa ' + fmtYear(d.limes.von) + ' bis ' + fmtYear(d.limes.bis) + ' · Verlauf schematisch · Klick für Infos'));
           return t.outerHTML;
         }
         if (d.hanlinie) {
@@ -1537,6 +1597,7 @@
         if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
         else if (d.hanlinie) openHanLinie(d.hanlinie);
+        else if (d.limes) openLimes(d.limes);
         else if (d.zh) openText('zhenghe', { art: 'zh', id: d.zh.id });
         else if (d.kontakt) openKontaktInfo(d.kontakt);
         else openText(routeText(d.route), { art: 'route', id: d.route.id });
@@ -2494,6 +2555,11 @@
       if (state.vw && state.epoche === 'antike' && (state.year < 370 || state.year > 480)) toast('Völkerwanderung: Die Züge laufen vor allem 375–456 n. Chr. Spiel die Zeitleiste ab 370 ab.');
     });
     $('#tglSchl').addEventListener('click', function () { setState({ globus: { schlachten: !state.schlachten } }); });
+    $('#tglLimes').addEventListener('click', function () {
+      setState({ globus: { limes: !state.limes } });
+      if (state.limes && !state.on.rom) toast('Grenzanlagen erscheinen mit dem Römischen Reich – bitte „Römisches Reich“ einblenden.');
+      else if (state.limes && state.epoche === 'antike' && !limesSchluessel(state.year)) toast('Grenzanlagen: Hadrianswall ab 122, Limes in Germanien etwa 100–260 n. Chr.');
+    });
     function setTrade(k, v) { var o = {}; o[k] = v; setState({ handel: o }); }
     $('#tglHandel').addEventListener('click', function () { setTrade('on', !TRADE.on); });
     $('#tglLand').addEventListener('click', function () { setTrade('land', !TRADE.land); });
@@ -2616,7 +2682,7 @@
       kamera: { lat: Math.round(pov.lat * 1000) / 1000, lng: Math.round(pov.lng * 1000) / 1000, alt: Math.round(pov.altitude * 1000) / 1000 },
       drehen: state.rotate,
       reiche: reiche,
-      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw },
+      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw, limes: state.limes },
       handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff, hanseide: TRADE.hanseide },
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
@@ -2641,6 +2707,7 @@
       if (t.globus) {
         if ('orte' in t.globus && !!t.globus.orte !== state.orte) { state.orte = !!t.globus.orte; chipSetzen('#tglOrte', state.orte); neu = true; }
         if ('vw' in t.globus && !!t.globus.vw !== state.vw) { state.vw = !!t.globus.vw; chipSetzen('#tglVw', state.vw); neu = true; }
+        if ('limes' in t.globus && !!t.globus.limes !== state.limes) { state.limes = !!t.globus.limes; chipSetzen('#tglLimes', state.limes); neu = true; }
         if ('schlachten' in t.globus && !!t.globus.schlachten !== state.schlachten) {
           state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
         }
@@ -2702,6 +2769,7 @@
     else if (d.art === 'strasse') { var sx = finde(STR_OBJ, d.id); if (sx) openStrassenLinie(sx); }
     else if (d.art === 'strassen') openStrassenInfo();
     else if (d.art === 'hanstation') { var hs = HANSEIDE && finde(HANSEIDE.stationen, d.id); if (hs) openHanStation(hs); }
+    else if (d.art === 'limes') { var la = LIMES && finde(LIMES.abschnitte, d.id); if (la) openLimes(la, d.kastell ? LIMES.kastelle.filter(function (k) { return k.name === d.kastell; })[0] : null); }
     else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
     else if (d.art === 'text') openText(d.id, d.zurueck);
   }
@@ -2774,7 +2842,7 @@
 
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
-  var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
+  var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
     gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
@@ -2791,7 +2859,7 @@
     var k = st.kamera, fp = (tb.fokuspunkte || []).filter(function (f) { return f.id === k; })[0];
     if (fp) t.kamera = fokusKamera(fp); else if (k && typeof k === 'object') t.kamera = fokusKamera(k);
     if (tb.reiche && tb.reiche.aktiv) { t.reiche = {}; DATA.reihen.forEach(function (r) { t.reiche[r] = tb.reiche.aktiv.indexOf(r) >= 0; }); }
-    t.globus = {}; ['orte', 'schlachten', 'vw'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
+    t.globus = {}; ['orte', 'schlachten', 'vw', 'limes'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
     t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
     if ('handel' in a) t.handel.on = !!a.handel;
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
@@ -2883,10 +2951,11 @@
     daten('orbis_schiff', 'data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
     daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
     daten('han_seidenstrasse', 'data/han_seidenstrasse.json').catch(function (e) { console.warn(e); return null; }),
+    daten('limes', 'data/limes.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); VIG = res[12];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); initLimes(res[12]); VIG = res[13];
     reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
