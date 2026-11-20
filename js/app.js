@@ -13,7 +13,7 @@
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
   var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, year: 117, epoche: 'antike' };
-  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false };
+  var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false, hanseide: false };
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau; unsicherheit bleibt aus (einfarbige Darstellung)
   var ZH = { on: true, fahrt: {} }, ZHD = null;
   var BILDER = { an: false };   // Abbildungen statt Symbole (nur wo eine Abbildung vorliegt, z. B. Zheng Hes Schatzschiff)
@@ -21,6 +21,7 @@
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
   /* Geöffnete Fenster (Teil des Zustands, siehe getState): Schriftrolle, Infokarte/Schülertext, Warenübersicht, Hilfe */
   var FENSTER = { rolle: null, info: null, waren: null, modal: null }, INFO_NEU = null;
+  var KAMERA_GESETZT = 0;   // Zeitpunkt der letzten über applyState gesetzten Kamera
   var ZUSTAND = { hoerer: [], still: 0, fern: 0 };
   var DARF = function () { return true; };   // Schülerrechte in Live-Sessions (js/session.js setzt das)
   function darfLokal(recht) { return ZUSTAND.fern > 0 || DARF(recht); }
@@ -214,8 +215,9 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    refreshHtml();
     pfadeSetzen(tradeGlobePaths(tv).concat(vwPaths()));
+    globe.pointsData(hanStationen(state.year));
+    refreshHtml(); vwDrehenBald();
     karUpdate();
     setTimeout(scheduleTagSides, 50);
     clearTimeout(flashTimer);
@@ -290,9 +292,16 @@
       })
       .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.zeiten ? 0.0013 : d.kind === 'waren' ? 0.0015 : 0.0016; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
+    globe.pointLat('lat').pointLng('lng').pointAltitude(0.0025).pointResolution(10).pointsTransitionDuration(0)
+      .pointRadius(function (s) { return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
+      .pointColor(function (s) { return HS_FARBE[s.typ] || '#d8c7a8'; })
+      .pointLabel(function (s) { var t = el('div', 'gtip'); t.appendChild(el('b', null, s.py + ' (' + s.zh + ')')); t.appendChild(el('br'));
+        t.appendChild(document.createTextNode(s.typ + ' · Seidenstraße der Han · Klick für Infos')); return t.outerHTML; })
+      .onPointClick(function (s) { if (s && s.hanstation) openHanStation(s); });
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
     globe.controls().addEventListener('change', zoomPruefen);
+    globe.controls().addEventListener('change', vwDrehenBald);
     setInterval(zoomPruefen, 500);   // Kameraflüge (pointOfView) melden kein 'change'
     window.addEventListener('resize', scheduleTagSides);
     var c = globe.controls();
@@ -549,7 +558,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + (state.vw ? '|vw' + y : '');
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw;
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -562,7 +571,7 @@
     if (!fromSlider) $('#year').value = sliderPos(y);
     $('#yearOut').textContent = fmtYear(y);
     $('#track').style.setProperty('--pf', pct(y) / 100);
-    var key = stateKey(y), strKey = strassenSchluessel(y);
+    var key = stateKey(y), strKey = strassenSchluessel(y) + '#' + vwSchluessel(y);
     if (key !== lastKey) {
       lastKey = key; lastStrKey = strKey; CUR_TV = stateKey.tv; CUR_ZV = stateKey.zv || null; refreshGlobe(); renderCards(); updateMarkers(); updateChips(); renderTradeList(CUR_TV);
       if (mapOpen) drawMap(mapReich, true);
@@ -571,6 +580,7 @@
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
       pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : tradeGlobePaths(CUR_TV).concat(vwPaths()));
+      if (state.vw) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
     else strassenAnteile(y);   // gleicher Stil, aber Netz wächst weiter
@@ -920,8 +930,9 @@
     res.kar = karPlan(y, res);
     res.strassen = strassenSichtbar(y);
     res.schiff = orbisSichtbar(y);
+    res.hanseide = hanSeideAn(y) ? (y <= 8 ? 'w' : y >= 25 ? 'o' : 'x') + hanStationen(y).length : '';
     res.strKey = strassenSchluessel(y);
-    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' + res.schiff.map(function (d) { return d.n; }).join('.') + '|' +
+    res.key = [TRADE.land, TRADE.see, TRADE.waren, TRADE.gesandt, TRADE.karawanen, res.strassen].join('') + '|' + res.hanseide + '|' + res.schiff.map(function (d) { return d.n; }).join('.') + '|' +
       res.parts.map(function (p) { return p.id; }).join(',') + '|' + res.places.map(function (o) { return o.id; }).join(',') + '|' +
       res.kontakte.map(function (k) { return k.id; }).join(',') + '|' + res.kar.key;
     return res;
@@ -1025,31 +1036,82 @@
     d.__el = e; return e;
   }
   /* Völkerwanderung: Züge wachsen mit der Zeitleiste (von/bis), Schild am Zugende solange der Zug läuft */
+  /* ---------- Völkerwanderung (data/reiche.json → wanderungen) ----------
+     Jeder Zug ist ein leuchtender Strom: breites Glühband, kräftige Kernlinie und fließende Partikel. An der Front sitzt
+     eine Pfeilspitze, die auf dem Bildschirm in Zugrichtung zeigt, mit dem Namen des Volkes. Am Ziel pulsiert einige
+     Jahre ein Ankunfts-Ring; abgeschlossene Züge bleiben eine Weile als blasse Spur. Wege sind schematisch. */
+  var VW_FARBE = { 'Hunnen': '#ff5a36', 'Westgoten': '#b06bff', 'Ostgoten': '#7fe35a', 'Vandalen': '#3aa0ff', 'Sueben': '#21d4c4',
+    'Burgunder': '#ff4fa3', 'Alamannen': '#ffc233', 'Angeln, Sachsen, Jüten': '#3ee08a' };
+  var VW_SPUR = 40, VW_ANKUNFT = 6;   // Jahre: Spur nach dem Ende; Ankunfts-Ring
+  function vwFarbe(w) { return VW_FARBE[w.volk] || w.farbe; }
   function vwAnteil(w, y) { return y < w.von ? -1 : Math.min(1, (y - w.von + 1) / (w.bis - w.von + 1)); }
+  function vwSichtbar(w, y) { return vwAnteil(w, y) > 0 && y <= w.bis + VW_SPUR; }
+  function vwVorbereiten(w, i) {
+    w.__p = { id: 'vw' + i, vw: w, pts: w.pfad };
+    w.__band = { id: 'vwb' + i, vw: w, vwArt: 'band', pts: w.pfad };
+    w.__fluss = { id: 'vwf' + i, vw: w, vwArt: 'fluss', pts: w.pfad };
+    w.__schatten = { id: 'vws' + i, vw: w, vwArt: 'schatten', pts: w.pfad };   // dunkle Kontur: hebt den Strom von den Reichsflächen ab
+    w.__tag = { kind: 'vw', w: w };
+  }
   function vwPaths() {
     if (!state.vw || state.epoche !== 'antike') return [];
-    var y = state.year;
-    return (DATA.wanderungen || []).filter(function (w) { return vwAnteil(w, y) > 0; }).map(function (w) {
-      w.__p.pts = schnitt(w.__lauf, vwAnteil(w, y)); return w.__p;
+    var y = state.year, out = [];
+    (DATA.wanderungen || []).forEach(function (w) {
+      if (!vwSichtbar(w, y)) return;
+      var pts = schnitt(w.__lauf, vwAnteil(w, y)), laeuft = y <= w.bis;
+      w.__band.pts = w.__schatten.pts = w.__p.pts = w.__fluss.pts = pts;
+      w.__laeuft = laeuft;
+      out.push(w.__band, w.__schatten, w.__p);
+      if (laeuft) out.push(w.__fluss);
     });
+    return out;
+  }
+  /* Schlüssel des sichtbaren Zustands: ändert sich, wenn ein Zug wächst, ankommt oder verblasst */
+  function vwSchluessel(y) {
+    if (!state.vw || state.epoche !== 'antike') return 'aus';
+    return (DATA.wanderungen || []).map(function (w) {
+      return vwSichtbar(w, y) ? Math.round(vwAnteil(w, y) * 100) + (y <= w.bis ? 'l' : y <= w.bis + VW_ANKUNFT ? 'a' : 's') : '-';
+    }).join(',');
   }
   function vwTags() {
     if (!state.vw || state.epoche !== 'antike') return [];
     var y = state.year;
-    var je = {};   // je Volk nur ein Schild: am jüngsten Zug, solange er läuft (und 2 Jahre danach)
-    (DATA.wanderungen || []).forEach(function (w) { if (y >= w.von && y <= w.bis + 2 && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
+    var je = {};   // je Volk ein Kopf: am jüngsten Zug, solange er läuft und bis zum Ende des Ankunfts-Rings
+    (DATA.wanderungen || []).forEach(function (w) { if (y >= w.von && y <= w.bis + VW_ANKUNFT && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
     return Object.keys(je).map(function (k) {
-      var w = je[k], t = punktBei(w.__lauf, vwAnteil(w, y)); w.__tag.lng = t[0]; w.__tag.lat = t[1]; return w.__tag;
+      var w = je[k], f = vwAnteil(w, y), t = punktBei(w.__lauf, f);
+      w.__tag.lng = t[0]; w.__tag.lat = t[1]; w.__tag.f = f; w.__tag.angekommen = y > w.bis;
+      if (w.__tag.__el) w.__tag.__el.classList.toggle('da', y > w.bis);
+      return w.__tag;
     });
   }
   function vwEl(d) {
     if (d.__el) return d.__el;
-    var e = el('button', 'vwtag'); e.type = 'button'; e.style.setProperty('--c', d.w.farbe);
-    e.appendChild(el('b', null, d.w.volk)); e.appendChild(el('span', null, shortYear(d.w.bis)));
-    e.title = d.w.text + ' (schematisch)';
-    e.addEventListener('click', function (ev) { ev.stopPropagation(); toast(d.w.volk + ': ' + d.w.text + ' (Weg schematisch)'); });
-    d.__el = e; return e;
+    var w = d.w, c = vwFarbe(w), e = el('div', 'vwkopf'); e.style.setProperty('--c', c);
+    e.appendChild(el('span', 'vw-ring'));
+    var pf = el('span', 'vw-pfeil'); pf.innerHTML = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 20 L34 20 M22 8 L34 20 L22 32" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    e.appendChild(pf);
+    var b = el('button', 'vw-schild'); b.type = 'button';
+    b.appendChild(el('b', null, w.volk)); b.appendChild(el('span', null, shortYear(w.von) + '–' + shortYear(w.bis)));
+    b.title = w.text + ' (Weg schematisch)';
+    b.addEventListener('click', function (ev) { ev.stopPropagation(); toast(w.volk + ' (' + fmtYear(w.von) + ' bis ' + fmtYear(w.bis) + '): ' + w.text + ' · Weg schematisch'); });
+    e.appendChild(b);
+    d.__el = e; e.classList.toggle('da', !!d.angekommen); return e;
   }
+  /* Pfeilspitzen in Zugrichtung drehen (Bildschirmrichtung hängt von der Kamera ab) */
+  var VW_DREH = 0;
+  function vwDrehen() {
+    VW_DREH = 0;
+    if (!state.vw || state.epoche !== 'antike' || !globe) return;
+    vwTags().forEach(function (d) {
+      if (!d.__el) return;
+      var w = d.w, f = Math.max(0.02, d.f), a = punktBei(w.__lauf, Math.max(0, f - 0.03)), b = punktBei(w.__lauf, f);
+      var pa = globe.getScreenCoords(a[1], a[0], 0.002), pb = globe.getScreenCoords(b[1], b[0], 0.002);
+      if (!pa || !pb || (Math.abs(pb.x - pa.x) + Math.abs(pb.y - pa.y)) < 0.5) return;
+      d.__el.style.setProperty('--rot', Math.atan2(pb.y - pa.y, pb.x - pa.x) + 'rad');
+    });
+  }
+  function vwDrehenBald() { if (!VW_DREH) VW_DREH = requestAnimationFrame(vwDrehen); }
   function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
 
   /* ---------- Eigener Standort (Pin) ---------- */
@@ -1088,6 +1150,7 @@
     var a = [];
     if (tv.strassen) a.push.apply(a, strassenPaths(state.year));
     if (tv.schiff) a.push.apply(a, tv.schiff);
+    if (tv.hanseide) a.push.apply(a, HANSEIDE_LINIEN);
     tv.parts.forEach(function (p) { a.push(p, p.flowObj); });
     tv.kontakte.forEach(function (k) { if (k.pathObj) a.push(k.pathObj); });
     return a;
@@ -1120,6 +1183,63 @@
       row(b, 'Zeit', 'ORBIS enthält keine Jahreszahlen. Eine Strecke erscheint, solange beide Endhäfen im Tafelbild römisch sind. Das ist eine Darstellungsregel, kein Beleg für den Beginn des Verkehrs.').classList.add('twarn');
       row(b, 'Daten', 'ORBIS – The Stanford Geospatial Network Model of the Roman World (W. Scheidel, E. Meeks), orbis.stanford.edu; Daten aus github.com/emeeks/orbis_v2, vereinfacht mit build_orbis.py.');
       row(b, 'Lizenz', 'MIT (Repository emeeks/orbis_v2)');
+    });
+  }
+
+  /* ---------- Layer „Seidenstraße der Han (Forschungsdaten)“ (data/han_seidenstrasse.json, build_han_seidenstrasse.py) ----------
+     Rekonstruierte Hauptlinien und Verkehrspunkte der Westlichen (202 v.–8 n. Chr.) und Östlichen Han (25–220 n. Chr.):
+     Hauptstädte, Kommandanturen, Kreissitze, Poststationen, Pässe, Fährstellen. Quelle: Hu/Yan/Zhang 2018, CC BY 4.0. */
+  var HANSEIDE = null, HANSEIDE_LINIEN = [];
+  var HS_FARBE = { 'Poststation': '#5fd8ff', 'Pass mit Grenzposten': '#ff7a59', 'Hauptstadt': '#ffd166', 'Sitz einer Kommandantur': '#ffd166',
+    'Sitz eines Militärkommandanten': '#ff9e66', 'Kreissitz': '#f1e6c8', 'Fährstelle': '#8be08b', 'Brücke': '#8be08b', 'Siedlung': '#c9b49b' };
+  var HS_ROLLE = {
+    'Poststation': 'Poststationen versorgten Boten, Beamte und Gesandte mit Pferden, Unterkunft und Verpflegung und hielten fest, wer durchreiste.',
+    'Pass mit Grenzposten': 'An Pässen und Grenzposten wurden Reisende und Waren kontrolliert; ohne Passierschein ging es nicht weiter.',
+    'Sitz einer Kommandantur': 'Verwaltungssitz einer Kommandantur (Bezirk): Steuern, Getreidelager, Militär – wichtige Versorgungspunkte am Weg.',
+    'Sitz eines Militärkommandanten': 'Sitz eines Militärkommandanten, der den Abschnitt der Straße sicherte.',
+    'Hauptstadt': 'Hauptstadt eines Reiches oder Staates: Ziel von Gesandtschaften und Mittelpunkt von Handel und Verwaltung.',
+    'Kreissitz': 'Verwaltungssitz eines Kreises mit Markt; Rast- und Versorgungspunkt.',
+    'Fährstelle': 'Übergang über einen Fluss.', 'Brücke': 'Übergang über einen Fluss.'
+  };
+  function initHanSeide(d) {
+    HANSEIDE = d && Array.isArray(d.stationen) ? d : null; HANSEIDE_LINIEN = [];
+    if (!HANSEIDE) return;
+    HANSEIDE.linien.forEach(function (L) { L.teile.forEach(function (t, i) { HANSEIDE_LINIEN.push({ id: L.id + '-' + i, hanlinie: L, pts: t }); }); });
+    HANSEIDE.stationen.forEach(function (s) { s.hanstation = true; });
+  }
+  function hanSeideAn(y) { return !!HANSEIDE && TRADE.on && TRADE.hanseide && !!state.on.han && state.epoche === 'antike' && y >= -202 && y <= 220; }
+  function hanStationen(y) {
+    if (!hanSeideAn(y)) return [];
+    return HANSEIDE.stationen.filter(function (s) { return s.zeiten.some(function (z) { return y >= z[0] && y <= z[1]; }); });
+  }
+  function hanZeitText(s) {
+    return s.zeiten.map(function (z) { return z[1] <= 8 ? 'Westliche Han (' + fmtYear(z[0]) + ' bis ' + fmtYear(z[1]) + ')' : 'Östliche Han (' + fmtYear(z[0]) + ' bis ' + fmtYear(z[1]) + ')'; }).join(' · ');
+  }
+  var HS_QUELLE = 'Hu Yumeng, Yan Bo, Zhang Ping: Traffic data of the Silk Road in the Han dynasty (两汉丝绸之路交通数据集), China Scientific Data 3 (2018); Science Data Bank, DOI 10.57760/sciencedb.611, Lizenz CC BY 4.0.';
+  function openHanStation(s) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'hanstation', id: s.id };
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk land', 'Seidenstraße der Han · ' + s.typ));
+      var h = el('h3', null, s.py + ' (' + s.zh + ')'); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Art', s.typ);
+      if (HS_ROLLE[s.typ]) row(b, 'Rolle für Handel und Verkehr', HS_ROLLE[s.typ]);
+      row(b, 'Belegt für', hanZeitText(s));
+      if (s.land) row(b, 'Heute', s.land);
+      row(b, 'Daten', HS_QUELLE + ' Lage nach dem Datensatz; Namen in der dort verwendeten Umschrift.');
+      row(b, 'Hinweis', 'Rekonstruktion aus Quellen, Funden und Satellitenbildern. Viele Lagen ausländischer Orte sind unsicher.').classList.add('twarn');
+    });
+  }
+  function openHanLinie(L) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'hanlinie', id: L.id };
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk land', 'Seidenstraße der Han · Hauptlinie'));
+      var h = el('h3', null, L.de + ' (' + L.zh + ')'); h.id = 'tinfoTitle'; b.appendChild(h);
+      var n = HANSEIDE.stationen.length, typen = {};
+      HANSEIDE.stationen.forEach(function (s) { typen[s.typ] = (typen[s.typ] || 0) + 1; });
+      row(b, 'Was gezeigt wird', 'Eine von 14 rekonstruierten Hauptlinien der Seidenstraße zur Han-Zeit, von Chang’an bis ans Mittelmeer, dazu ' + n +
+        ' Verkehrspunkte: ' + Object.keys(typen).sort(function (a, c) { return typen[c] - typen[a]; }).slice(0, 6).map(function (t) { return typen[t] + ' × ' + t; }).join(', ') + ' …');
+      row(b, 'Bedeutung', 'Die Han sicherten den Weg nach Westen mit Kommandanturen, Garnisonen, Poststationen und Grenzpässen. Über diese Kette liefen Gesandtschaften und der Handel mit Seide, Pferden und anderen Waren – meist von Station zu Station, nicht in einem Zug bis nach Rom.');
+      row(b, 'Daten', HS_QUELLE);
     });
   }
 
@@ -1328,7 +1448,15 @@
   function pathColor(d) {
     if (d.strasse) return strassenFarbe(d);
     if (d.orbis) return orbisFarbe(d);
-    if (d.vw) return state.mode === 'schem' ? mix(d.vw.farbe, '#000000', 0.35) : mix(d.vw.farbe, '#ffffff', 0.25);
+    if (d.hanlinie) return state.mode === 'schem' ? 'rgba(122,74,10,0.9)' : 'rgba(255,224,138,0.92)';
+    if (d.vw) {
+      var vc = state.mode === 'schem' ? mix(vwFarbe(d.vw), '#000000', 0.25) : vwFarbe(d.vw), l = d.vw.__laeuft;
+      var hx = vwFarbe(d.vw);
+      if (d.vwArt === 'band') return rgba(hx, l ? 0.4 : 0.14);
+      if (d.vwArt === 'schatten') return l ? 'rgba(8,4,16,0.6)' : 'rgba(8,4,16,0.25)';
+      if (d.vwArt === 'fluss') return state.mode === 'schem' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.9)';
+      return l ? vc : rgba(hx, 0.5);
+    }
     if (d.eu) return state.mode === 'schem' ? '#1d4f8a' : '#8fc3ff';
     if (d.zh) return d.flow ? 'rgba(255,255,255,0.9)' : zhCol(d.zh, zhAktiv(d.zh, state.year) ? 1 : 0.42);
     if (d.kontakt) return state.mode === 'schem' ? 'rgba(78,46,128,0.95)' : 'rgba(230,210,255,0.95)';
@@ -1338,10 +1466,11 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
-    if (d.vw) return [0.03, 0.012][i];   // Zeichenfeder: sichtbarer Anteil, dahinter Lücke
+    if (d.vw) return d.vwArt === 'fluss' ? [0.02, 0.045][i] : [1, 0][i];   // fließende Partikel auf dem Strom
     if (d.eu) return [1, 0][i];
     if (d.strasse) return strassenDash(d, i);
     if (d.orbis) return [1, 0][i];
+    if (d.hanlinie) return [1, 0][i];
     if (d.zh) {
       if (d.flow) return [0.008, 0.05][i];
       if (d.ab) return d.ab.belegt === 'umstritten' ? DASH_GLOBE.umstritten[i] : [1, 0][i];
@@ -1352,10 +1481,11 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
-    if (d.vw) return 2.6;
+    if (d.vw) return d.vwArt === 'band' ? (d.vw.__laeuft ? 22 : 9) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 9 : 4) : d.vwArt === 'fluss' ? 2.6 : (d.vw.__laeuft ? 5.5 : 2.2);
     if (d.eu) return 2;
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
     if (d.orbis) return null;
+    if (d.hanlinie) return 1.6;
     if (d.zh) return d.flow ? 1.1 : d.ab ? 1.5 : zhAktiv(d.zh, state.year) ? 3.2 : 1.9;
     if (d.teil === 'spaet') return d.flow ? 0.8 : 2.2;
     return d.flow ? 1.2 : d.kontakt ? 1.6 : 3.2;
@@ -1369,7 +1499,7 @@
       .pathDashLength(function (d) { return pathDash(d, 0); })
       .pathDashGap(function (d) { return pathDash(d, 1); })
       .pathDashInitialGap(function (d) { return d.strasse && d.stil !== 'ehemals' && d.stil !== 'undatiert' ? strassenGap(d) : 0; })
-      .pathDashAnimateTime(function (d) { return d.vw ? 7000 : d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
+      .pathDashAnimateTime(function (d) { return d.vw ? (d.vwArt === 'fluss' ? 2000 : 0) : d.flow ? (d.zh ? 9000 : d.teil === 'spaet' ? 40000 : 14000) : d.kontakt ? 30000 : 0; })
       .pathResolution(1)
       .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
@@ -1379,6 +1509,11 @@
           t.appendChild(el('b', null, d.stil === 'ehemals' ? 'Ehemalige römische Trasse' : 'Römische Straße' + (nm && nm.length ? ': ' + nm[0] : ''))); t.appendChild(el('br'));
           t.appendChild(document.createTextNode(d.stil === 'ehemals' ? 'mittelalterliche Nutzung nicht allgemein belegt · Klick für Infos'
             : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
+          return t.outerHTML;
+        }
+        if (d.hanlinie) {
+          t.appendChild(el('b', null, 'Seidenstraße der Han: ' + d.hanlinie.de)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode(d.hanlinie.zh + ' · Rekonstruktion (Hu/Yan/Zhang 2018) · Klick für Infos'));
           return t.outerHTML;
         }
         if (d.orbis) {
@@ -1401,6 +1536,7 @@
       .onPathClick(function (d) {
         if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
+        else if (d.hanlinie) openHanLinie(d.hanlinie);
         else if (d.zh) openText('zhenghe', { art: 'zh', id: d.zh.id });
         else if (d.kontakt) openKontaktInfo(d.kontakt);
         else openText(routeText(d.route), { art: 'route', id: d.route.id });
@@ -1933,6 +2069,7 @@
     return res;
   }
   function refreshGlobeMing() {
+    globe.pointsData([]);
     var zv = CUR_ZV || zhVisible(state.year);
     CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
     globe.polygonsData(visiblePolys().concat(state.on.han ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
@@ -2296,7 +2433,12 @@
   function applyCompact() {
     document.documentElement.classList.toggle('compact', compact());
     if (compact()) { setPanel(true, true); setSide(true, true); }
-    if (globe && !mapOpen) setTimeout(function () { var pv = globe.pointOfView(); globe.pointOfView({ lat: pv.lat, lng: pv.lng, altitude: homeAlt() }, 600); }, 250);
+    // Abstand an das neue Format anpassen – aber nicht, wenn inzwischen eine Kamera gesetzt wurde (Fokus, Lehreransicht)
+    var geplant = Date.now();
+    if (globe && !mapOpen) setTimeout(function () {
+      if (KAMERA_GESETZT > geplant) return;
+      var pv = globe.pointOfView(); globe.pointOfView({ lat: pv.lat, lng: pv.lng, altitude: homeAlt() }, 600);
+    }, 250);
     else {
       var lp = null, ls = null;
       try { lp = localStorage.getItem('tafelbild.panel'); ls = localStorage.getItem('tafelbild.side'); } catch (e) {}
@@ -2360,6 +2502,7 @@
     $('#tglGes').addEventListener('click', function () { setTrade('gesandt', !TRADE.gesandt); });
     $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
     $('#tglSchiff').addEventListener('click', function () { setTrade('schiff', !TRADE.schiff); });
+    $('#tglHanSeide').addEventListener('click', function () { setTrade('hanseide', !TRADE.hanseide); });
     // Entdeckungsfahrten des Zheng He (unter Handel & Austausch)
     $('#tglZh').addEventListener('click', function () { setState({ zh: { on: !ZH.on } }); });
     $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
@@ -2450,7 +2593,7 @@
      Änderungen an die Abonnenten (abonnieren). Format: docs/ARCHITEKTUR.md. */
   function handelSetzen(k, v) {
     TRADE[k] = v;
-    var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff' }[k]);
+    var b = $({ on: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren', gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide' }[k]);
     if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); }
     if (k === 'on') {
       $('#handelSub').classList.toggle('off', !v);
@@ -2474,7 +2617,7 @@
       drehen: state.rotate,
       reiche: reiche,
       globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw },
-      handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff },
+      handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff, hanseide: TRADE.hanseide },
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
       niveau: TX_NIV,
@@ -2503,7 +2646,7 @@
         }
       }
       if ('drehen' in t && !!t.drehen !== state.rotate) { state.rotate = !!t.drehen; chipSetzen('#tglRot', state.rotate); globe.controls().autoRotate = state.rotate && !mapOpen; }
-      if (t.handel) ['on', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff'].forEach(function (k) {
+      if (t.handel) ['on', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (k) {
         if (k in t.handel && !!t.handel[k] !== !!TRADE[k]) { handelSetzen(k, !!t.handel[k]); neu = true; }
       });
       if (t.strassen) ['ehemals', 'animieren'].forEach(function (k) {
@@ -2528,6 +2671,7 @@
       if (t.jahr != null && t.jahr !== state.year) { if (neu) lastKey = ''; setYear(t.jahr, !!opt.schieber); }
       else if (neu) { lastKey = ''; setYear(state.year); }
       if (t.kamera && isFinite(t.kamera.lat) && isFinite(t.kamera.lng)) {
+        KAMERA_GESETZT = Date.now();
         globe.pointOfView({ lat: t.kamera.lat, lng: t.kamera.lng, altitude: t.kamera.alt || homeAlt() }, opt.dauer != null ? opt.dauer : 0);
       }
       if ('fenster' in t) fensterAnwenden(t.fenster || {});
@@ -2557,6 +2701,8 @@
     else if (d.art === 'orbis') openOrbisInfo(d.id ? finde(ORBIS_OBJ, d.id) || null : null);
     else if (d.art === 'strasse') { var sx = finde(STR_OBJ, d.id); if (sx) openStrassenLinie(sx); }
     else if (d.art === 'strassen') openStrassenInfo();
+    else if (d.art === 'hanstation') { var hs = HANSEIDE && finde(HANSEIDE.stationen, d.id); if (hs) openHanStation(hs); }
+    else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
     else if (d.art === 'text') openText(d.id, d.zurueck);
   }
   function modalOeffnen(id) {
@@ -2629,7 +2775,7 @@
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
-    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', zh: '#tglZh', bilder: '#tglBilder' };
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
   function fokusZustand(f) {
@@ -2646,7 +2792,7 @@
     if (fp) t.kamera = fokusKamera(fp); else if (k && typeof k === 'object') t.kamera = fokusKamera(k);
     if (tb.reiche && tb.reiche.aktiv) { t.reiche = {}; DATA.reihen.forEach(function (r) { t.reiche[r] = tb.reiche.aktiv.indexOf(r) >= 0; }); }
     t.globus = {}; ['orte', 'schlachten', 'vw'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
-    t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
+    t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
     if ('handel' in a) t.handel.on = !!a.handel;
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
     t.zh = {}; if ('zh' in a) t.zh.on = !!a.zh; if ('bilder' in a) t.zh.bilder = !!a.bilder;
@@ -2736,10 +2882,11 @@
     daten('texte', 'data/texte.json'), daten('literatur', 'data/literatur.json'), daten('roemerstrassen', 'data/roemerstrassen.json'),
     daten('orbis_schiff', 'data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
     daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
+    daten('han_seidenstrasse', 'data/han_seidenstrasse.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); VIG = res[11];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); VIG = res[12];
     reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
@@ -2749,7 +2896,7 @@
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
     DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.von >= SEGS[1].von) MITTEL[f.properties.reich] = 1; });
-    (DATA.wanderungen || []).forEach(function (w, i) { w.__lauf = lauf(w.pfad); w.__p = { id: 'vw' + i, vw: w, pts: w.pfad }; w.__tag = { kind: 'vw', w: w }; });
+    (DATA.wanderungen || []).forEach(function (w, i) { w.__lauf = lauf(w.pfad); vwVorbereiten(w, i); });
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);

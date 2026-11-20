@@ -10,6 +10,7 @@ Stand der Prüfung: 20.11.2026. Geprüft wurden ORBIS und die Datensatzliste von
 | Zeitangaben der Straßen | regionales Modell + Itiner-e-Belege | ORBIS: keine Jahreszahlen | ORBIS hilft hier nicht |
 | Schiffsverkehr (Küste, Hochsee, Flüsse) | **ORBIS** (seit 20.11.2026, Schalter „Schiffsverkehr (ORBIS)“) | – | **umgesetzt**, siehe unten |
 | Reisezeiten | – | ORBIS: Geschwindigkeit und Kosten je Strecke | möglicher neuer Baustein |
+| Seidenstraße der Han (Linien, Stationen) | **Hu/Yan/Zhang 2018** (seit 20.11.2026, Schalter „Seidenstraße der Han (Stationen)“) | – | **umgesetzt**, siehe unten |
 | Römische Städte | 94 Orte, von Hand gesetzt (`data/reiche.json` → `orte`) | Hanson, Cities Database (1388 Städte, mit Anfangsjahr) | möglicher **Ersatz/Ergänzung**, Lizenz vorher klären |
 | Ortsnamen, Koordinaten | von Hand | Pleiades (Ortsverzeichnis), ORBIS-Orte | zum Abgleich geeignet |
 
@@ -46,6 +47,40 @@ Stand der Prüfung: 20.11.2026. Geprüft wurden ORBIS und die Datensatzliste von
     - **Lizenz:** „Terms and Conditions of Use for Oxford University Research Archive“, keine freie Lizenz wie CC BY. Gefordert ist die Zitierung von Datenbank und Monografie. Vor einer Übernahme in dieses öffentliche Repository ist zu klären, ob Weitergabe und Veröffentlichung erlaubt sind.
     - Zitierung: Hanson, J. W. (2016): Cities Database (OXREP databases), Version 1.0, DOI 10.5287/bodleian:eqapevAn8; Hanson, J. W. (2016): An Urban Geography of the Roman World, 100 B.C. to A.D. 300, Oxford.
   - **Places (Pleiades):** https://pleiades.stoa.org/downloads – Ortsverzeichnis der antiken Welt (alle Orte des Barrington Atlas), Lizenz CC BY 3.0. Geeignet zum Abgleich von Namen und Koordinaten.
+
+## Seidenstraße: Quellen aus China und weitere Links (geprüft 20.11.2026)
+
+**Umgesetzt: Seidenstraße der Han**
+- Quelle: Hu Yumeng, Yan Bo, Zhang Ping: 两汉丝绸之路交通数据集 / *Traffic data of the Silk Road in the Han dynasty*. China Scientific Data 3 (2018), Nr. 3, DOI 10.11922/csdata.2018.0016.zh.
+- Daten: Science Data Bank, DOI 10.57760/sciencedb.611 (früher 10.11922/sciencedb.611), **Lizenz CC BY 4.0**.
+- Inhalt:
+  - 14 rekonstruierte Hauptlinien von Chang’an bis ans Mittelmeer.
+  - Verkehrspunkte der Westlichen (202 v.–8 n. Chr.) und Östlichen Han (25–220 n. Chr.) mit Typ (Hauptstadt, Kommandantur, Kreissitz, Poststation, Pass, Fährstelle, Brücke, Siedlung …), Zeitraum und Namen.
+- Aufbereitung `build_han_seidenstrasse.py` → `data/han_seidenstrasse.json`:
+  - 269 Stationen; gleiche Orte beider Perioden sind zusammengefasst.
+  - Linien vereinfacht (0,015°).
+  - Die Lage wird über den chinesischen Namen aus dem Shapefile übernommen.
+  - 5 Einträge mit seltenen Schriftzeichen ließen sich keiner Lage zuordnen und fehlen.
+- Download: Das Archiv (RAR) der Science Data Bank enthält Dateien mit GBK-kodierten Namen. Windows-`tar` entpackt es erst, wenn die Namen ersetzt sind (Hilfsskript im Arbeitsordner, nicht im Repository).
+- Darstellung:
+  - Linien hellgold, Stationen als Punkte nach Typ (Poststation blau, Pass orange, Haupt- und Verwaltungssitze gold).
+  - Infokarte mit der Rolle für Handel und Verkehr.
+  - Sichtbar mit eingeblendetem Han-Reich von 202 v. bis 220 n. Chr.
+
+**Geprüft, (noch) nicht übernommen**
+
+| Link | Inhalt | Warum nicht |
+|---|---|---|
+| sciengine …70310B4E… (Cheng/Zhang 2018) | Reisen von 15 Reisenden der Mongolenzeit 1218–1353 (u. a. Marco Polo, Ibn Battuta), GIS | Zeitleiste hat eine Lücke 480–1400; geeignet für einen späteren Abschnitt „Mongolenreich“ |
+| sciengine …FD62111B… (Xu/Zhang 2018) | Tang-Seidenstraße 618–907, Linien und Stationen jahrgenau | liegt in der Lücke der Zeitleiste |
+| PMC6936881 (Lancuo u. a. 2019) | Modell der Tang–Tibet-Straße (Least-Cost-Pfad) | Tang-Zeit; Modell, keine Belegdaten |
+| Frachetti u. a. 2017 (Nature, UCL-Manuskript) | Hochlandrouten der Seidenstraße aus Weidewegen der Nomaden (Flussakkumulation) | Modellergebnis ohne frei verfügbare Geodaten; als Hintergrund für Schülertexte nutzbar |
+| dlyj 10.11821/dlyj020210210 | GIS-Rekonstruktion der Südlichen Seidenstraße in China | Seite lädt Inhalte per Skript; Daten nicht frei zugänglich gefunden |
+| dlyj 52820 (Lin u. a. 2022) | Dichte und Wirkung der Seidenstraßen (Regression; Knoten Rom, Chang’an, Samarkand) | Auswertung, keine Geodaten; Ergebnisse taugen als Hintergrund |
+| LSE WP 371 (Cheng 2024) | Transportkosten Yangtze-Region vs. England, Ming–Qing; Auseinanderlaufen nach 1700 | betrifft 1600–1800, außerhalb der Zeitleiste |
+| gis.harvard.edu/china-historical-gis (CHGIS) | Verwaltungseinheiten Chinas ab 222 v. Chr. | Seite blockiert automatische Abrufe; Lizenz vor Übernahme prüfen |
+| silkroad.fudan.edu.cn | Seidenstraßen-GIS der Fudan-Universität | nur Web-Anwendung, kein Download |
+| zenodo.org/records/22734751 | – | Abruf blockiert (403); Inhalt nicht geprüft |
 
 ## Was eine Übernahme bedeuten würde
 

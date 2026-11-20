@@ -19,17 +19,30 @@
 </script>
 </head>
 <body>
-<header class="kopf">
-  <div class="marke">
-    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="24" cy="24" rx="9" ry="20" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 18h38M5 30h38" stroke="currentColor" stroke-width="2"/><path d="M24 4v6M24 38v6" stroke="var(--acc)" stroke-width="3" stroke-linecap="round"/></svg>
-    <div>
-      <h1>ChronoGlobe</h1>
-      <p class="sub">Ein interaktiver Globus mit Zeitleiste für den Geschichtsunterricht</p>
+<div id="sterne" class="sterne" aria-hidden="true"></div>
+<header class="held">
+  <div id="heldGlobus" class="held-globus" aria-hidden="true"></div>
+  <div class="held-text">
+    <div class="marke">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="24" cy="24" rx="9" ry="20" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 18h38M5 30h38" stroke="currentColor" stroke-width="2"/><path d="M24 4v6M24 38v6" stroke="var(--acc)" stroke-width="3" stroke-linecap="round"/></svg>
+      <span class="marke-name">ChronoGlobe</span>
     </div>
+    <h1>Geschichte <span class="verlauf">auf dem Globus</span> erleben</h1>
+    <p class="sub">Reiche wachsen und zerfallen, Händler ziehen über die Seidenstraße, Völker wandern, Flotten kreuzen den Indischen Ozean – Jahr für Jahr, gemeinsam mit der Klasse.</p>
+    <div class="held-knoepfe">
+      <a class="knopf prim gross" href="app.html?modus=frei">Globus öffnen <span aria-hidden="true">→</span></a>
+      <a class="knopf glas gross" href="#bereiche">Session &amp; Tafelbilder</a>
+    </div>
+    <ul class="zahlen" aria-label="Was der Globus zeigt">
+      <li><b>5 000</b><span>Jahre Geschichte</span></li>
+      <li><b>30+</b><span>Reiche und Kulturen</span></li>
+      <li><b>819</b><span>Römerstraßen</span></li>
+      <li><b>live</b><span>mit der ganzen Klasse</span></li>
+    </ul>
   </div>
 </header>
 
-<main class="raster">
+<main class="raster" id="bereiche">
   <section class="kachel frei">
     <h2>Freies Nutzen</h2>
     <p class="art">Menschheitsgeschichte</p>
@@ -90,5 +103,7 @@
 
 <script src="js/session.js"></script>
 <script src="js/landing.js"></script>
+<script src="vendor/globe.gl.min.js" defer></script>
+<script src="js/landing-globus.js" defer></script>
 </body>
 </html>

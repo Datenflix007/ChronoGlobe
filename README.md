@@ -83,6 +83,12 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
     Fahrten: „Die Reisen des Zheng He“.
   - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
   - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
+- **Seidenstraße der Han (Stationen)** (Schalter im Handelsmenü, standardmäßig aus):
+  - 14 rekonstruierte Hauptlinien und 269 Verkehrspunkte der Han-Zeit (Poststationen, Pässe, Kommandanturen, Kreissitze …).
+  - Quelle: Forschungsdaten von Hu, Yan und Zhang (2018, Science Data Bank, CC BY 4.0).
+  - Sichtbar mit dem Han-Reich, 202 v. bis 220 n. Chr.; Klick auf eine Station zeigt ihre Rolle für Handel und Verkehr.
+  - Daten: `data/han_seidenstrasse.json` aus `build_han_seidenstrasse.py`. Siehe `docs/DATENQUELLEN.md`.
+- **Völkerwanderung** (Menü → Globus): Jeder Zug ist ein leuchtender Strom mit Pfeilspitze und Namensschild. Am Ziel pulsiert einige Jahre ein Ankunftsring; abgeschlossene Züge bleiben 40 Jahre als blasse Spur.
 - **Schiffsverkehr (ORBIS)** (Schalter im Handelsmenü, standardmäßig aus): 505 Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich bis Britannien nach dem Verkehrsmodell ORBIS (Stanford, um 200 n. Chr.; Daten `emeeks/orbis_v2`, MIT), auf dem Globus und auf der Rom-Karte. ORBIS hat keine Jahreszahlen: Eine Strecke erscheint, solange beide Endhäfen römisch sind (z. B. Britannien 43–410). Einfarbig hellblau, Flüsse blasser; Klick öffnet eine Infokarte. Daten: `data/orbis_schiff.json`, erzeugt mit `python build_orbis.py <ordner mit den ORBIS-Dateien>`. Siehe `docs/DATENQUELLEN.md`.
 - **Römerstraßen** (Schalter im Handelsmenü): 819 Hauptstraßen aus Itiner-e (CC BY 4.0) auf dem Globus und auf der Rom-Karte, sichtbar, wenn das Römische Reich eingeblendet ist. Das Netz verändert sich mit der Zeitleiste:
   - Straßen erscheinen in ihrer modellierten Ausbauphase (gezeichnet wie die Schiffsrouten; jede Straße setzt am schon gezeichneten Netz an und wächst von dort weiter, ausgehend von Rom; didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.

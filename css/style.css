@@ -528,6 +528,7 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 /* Römische Straßen */
 .tlegend line.str{stroke:#ffcdb9;stroke-width:1.6}
 .tlegend line.orbis{stroke:#96d7ff;stroke-width:1.6}
+.tlegend line.hanseide{stroke:#ffe08a;stroke-width:1.6}
 .rl-item.orbis i{background:#96d7ff;height:2px}
 .rl-item.str i{background:#ffcdb9;height:2px}
 .tinfo .tk.str{color:#ffcdb9}
@@ -729,10 +730,25 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .ort.st4 i{width:5px;height:5px;left:-2.5px;top:-2.5px}
 .ort.st4 span{font-size:11.5px;font-weight:500;top:-8px}
 
-/* ----- Völkerwanderung: Schild am Zugende ----- */
-.vwtag{display:flex;align-items:center;gap:5px;margin:-11px 0 0 -8px;padding:2px 8px 2px 3px;border-radius:999px;border:1.5px solid var(--c);
-  background:rgba(20,16,12,.85);color:#fff;font:600 11.5px var(--ui);white-space:nowrap;cursor:pointer}
-.vwtag b{padding:1px 7px;border-radius:9px;background:var(--c);color:#fff;font-size:11px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
+/* ----- Völkerwanderung: Kopf des Zuges (Pfeilspitze, Leuchten, Namensschild) ----- */
+.vwkopf{position:relative;width:0;height:0;pointer-events:none;--rot:0rad}
+.vw-ring{position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,var(--c) 0%,color-mix(in srgb,var(--c) 45%,transparent) 35%,transparent 70%);
+  animation:vwpuls 1.3s ease-in-out infinite;filter:blur(.3px)}
+.vw-pfeil{position:absolute;left:-17px;top:-17px;width:34px;height:34px;color:#fff;transform:rotate(var(--rot));
+  filter:drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 8px var(--c)) drop-shadow(0 1px 2px rgba(0,0,0,.9))}
+.vw-pfeil svg{width:100%;height:100%;display:block}
+.vw-schild{position:absolute;left:14px;top:-34px;pointer-events:auto;cursor:pointer;display:flex;align-items:baseline;gap:6px;white-space:nowrap;
+  padding:4px 10px 4px 9px;border-radius:10px;border:1.5px solid var(--c);background:rgba(10,8,14,.88);color:#fff;
+  box-shadow:0 0 14px color-mix(in srgb,var(--c) 70%,transparent),0 3px 10px rgba(0,0,0,.6)}
+.vw-schild b{font:800 13px var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--c);text-shadow:0 0 8px color-mix(in srgb,var(--c) 60%,transparent)}
+.vw-schild span{font:600 11px var(--ui);color:#e8e8f0}
+/* Ankunft: Pfeil weg, Schockwellen-Ringe */
+.vwkopf.da .vw-pfeil{display:none}
+.vwkopf.da .vw-ring{animation:vwwelle 1.6s ease-out infinite;background:none;border:3px solid var(--c);box-shadow:0 0 18px var(--c)}
+.vwkopf.da::after{content:"";position:absolute;left:-7px;top:-7px;width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c),0 0 26px var(--c)}
+@keyframes vwpuls{0%,100%{transform:scale(.8);opacity:.75}50%{transform:scale(1.25);opacity:1}}
+@keyframes vwwelle{0%{transform:scale(.4);opacity:1}100%{transform:scale(2.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.vw-ring,.vwkopf.da .vw-ring{animation:none}}
 .era.era-mittel{opacity:.9}
 
 /* ----- Römerstraßen: Unteroptionen ----- */
