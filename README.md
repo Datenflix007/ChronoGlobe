@@ -16,7 +16,11 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
   getrennt durch einen schraffierten Zeitsprung (≈). Play, ±10 und Pfeiltasten springen über die Lücke; Klick auf ein
   Epochenfeld springt in den Abschnitt. Die Abschnitte haben verschiedene Maßstäbe; Reichsflächen gibt es nur in der Antike.
   Die Spuren der Nachbarreiche lassen sich über „Nachbarreiche (n)“ einklappen.
-- Auf Rom/China hineinzoomen (Mausrad/Pinch) oder „Karte entrollen“ → Reichskarte; Esc schließt.
+- **Schriftrolle:** Klick (oder Tipp) auf ein eingeblendetes Reich auf dem Globus, oder „Schriftrolle öffnen“ im Infoband, öffnet die Rolle dieses Reichs. Esc schließt sie.
+  - Das geht bei Rom, Han und allen Nachbarreichen.
+  - Reiter **Vignetten**: kindgerechte Inhaltspunkte. Beim Römischen Reich heißt der Reiter **Wiederholung** und enthält Aufgaben mit Rückmeldung.
+  - Reiter **Karte**: die Reichskarte. Bei Nachbarreichen wird der Ausschnitt aus deren Gebieten berechnet.
+  - Inhalte stehen in `data/vignetten.json`. Bisher sind es nur leere Platzhalter. Format: `docs/VIGNETTEN.md`. Vorschau aller Bausteine: `index.html?vignetten=demo`.
 - Standardmäßig markiert ein Pin Jena. „Mein Standort“ (Menü → Globus) ersetzt ihn nach Freigabe im Browser durch den eigenen Standort (nur lokal, keine Übertragung; benötigt HTTPS oder localhost).
 - **Handel & Austausch** (Menü, Standard aus): Land- und Seewege, Waren, Gesandtschaften.
   - Gezeigt werden Verbindungen aller Reiche, die eingeblendet sind **und** im gewählten Jahr existieren.
@@ -58,6 +62,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 - `data/zhenghe.json` (Ming-Zeit): erzeugt mit `build_zhenghe.py` (reines Python). Gleiches Format wie `handel.json`
   (`verbindungen` mit zusätzlich `nr`, `stationen`, `abzweige`; `orte` mit `funktion`), dazu `ereignisse` und `info`.
   Seewege werden aus Teilstrecken zusammengesetzt; die Amerika-These (Menzies, „1421“) ist widerlegt und wird nicht dargestellt.
+- `data/vignetten.json` (von Hand gepflegt): Vignetten je Reich mit den Bausteinen Text, Merke, Erzählung, Quelle, Bild, Audio und Video. Dazu kommen die Quizarten einfach, mehrfach, wahrfalsch, luecke, zuordnen, reihenfolge und zahl, jeweils mit Rückmeldung. Siehe `docs/VIGNETTEN.md`.
 - `data/texte.json` (Schülertexte) und `data/literatur.json` (Literatur, Lizenz, Ablage): Regeln in `docs/GRUNDREGELN.md`.
   Prüfen mit `python tools/check_zitate.py`. Es vergleicht jede Belegstelle mit den Seitentexten in `quellen/oeffentlich/`
   (gemeinfrei, im Repo) und `quellen/lokal/` (geschützt, nur lokal, per `.gitignore` ausgeschlossen).

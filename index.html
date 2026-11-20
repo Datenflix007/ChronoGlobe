@@ -101,7 +101,7 @@
       <button id="goAll" class="small">Eurasien</button>
     </div>
   </section>
-  <p class="hint">Tipp: Auf ein Reich <b>hineinzoomen</b> (Mausrad / Pinch), dann <b>rollt sich die Karte</b> aus.</p>
+  <p class="hint">Tipp: Ein Reich auf dem Globus <b>anklicken</b>, dann <b>rollt sich eine Schriftrolle</b> mit Vignetten und Karte aus.</p>
   <a class="credit-m" href="https://datenflix007.github.io" target="_blank" rel="noopener">Ein Projekt von <b>Felix Staacke</b> · datenflix007.github.io ↗</a>
   </div>
 </aside>
@@ -142,12 +142,21 @@
     <div class="roller left"></div>
     <div class="paper" id="paper">
       <div class="paper-in">
-        <svg id="flat" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Reichskarte"></svg>
-        <div class="cartouche" id="cartouche"></div>
-        <button class="close" id="mapClose" title="Zurück zum Globus (Esc)">⟲ <span>Zurück zum Globus</span></button>
-        <div class="stagebar" id="stagebar"></div>
-        <div class="legend" id="legend"></div>
-        <div class="credit">Schematische Darstellung (Entwurf), Grenzen ungefähr</div>
+        <div class="roll-view" id="mapView" data-view="karte">
+          <svg id="flat" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Reichskarte"></svg>
+          <div class="cartouche" id="cartouche"></div>
+          <div class="stagebar" id="stagebar"></div>
+          <div class="legend" id="legend"></div>
+          <div class="credit">Schematische Darstellung (Entwurf), Grenzen ungefähr</div>
+        </div>
+        <div class="roll-view vg" id="vigView" data-view="vig"></div>
+        <div class="roll-bar">
+          <div class="roll-tabs" role="tablist" aria-label="Inhalt der Schriftrolle">
+            <button id="tabVig" role="tab" aria-selected="true" aria-controls="vigView">Vignetten</button>
+            <button id="tabKarte" role="tab" aria-selected="false" aria-controls="mapView">Karte</button>
+          </div>
+          <button class="close" id="mapClose" title="Zurück zum Globus (Esc)">⟲ <span>Zurück zum Globus</span></button>
+        </div>
       </div>
     </div>
     <div class="roller right"></div>
@@ -182,6 +191,7 @@
     <p><b>Zeitleiste:</b> Sie hat zwei Abschnitte, „Europäische Antike“ (300 v. Chr. bis 480 n. Chr.) und „Europäisches Spätmittelalter“ (1400 bis 1440). Der Zeitsprung dazwischen (≈) ist nicht dargestellt; die Abschnitte haben verschiedene Maßstäbe.</p>
     <p><b>Entdeckungsfahrten des Zheng He</b> (unter „Handel &amp; Austausch“): die sieben Flottenfahrten der Ming-Zeit (1405–1433), zu sehen im Abschnitt Spätmittelalter. Gezeigt werden nur in den Quellen belegte Stationen; Unsicheres ist als „umstritten“ markiert. Routen sind schematisch.</p>
     <p><b>Schülertexte:</b> Ein Klick auf eine Route öffnet einen Text in drei Niveaus (A/B/C) mit Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“ und Arbeitsaufträgen. Alle Texte mit Belegen und Literaturverzeichnis: <a href="lehrkraft.html" target="_blank" rel="noopener">Lehrkraft-Ansicht öffnen ↗</a></p>
+    <p><b>Schriftrolle:</b> Ein Klick auf ein eingeblendetes Reich (oder „Schriftrolle öffnen“ im Infoband) öffnet eine Schriftrolle mit <b>Vignetten</b> (beim Römischen Reich: <b>Wiederholung</b> mit Aufgaben und Rückmeldung) und der <b>Karte</b> des Reichs. Quiz-Ergebnisse bleiben nur in der geöffneten Seite und werden nicht gespeichert.</p>
     <p><b>Römische Straßen:</b> Daten aus „Itiner-e. A High-Resolution Dataset of Roads of the Roman Empire“ (de Soto, Pažout, Brughmans u. a., Scientific Data 2025; Zenodo, DOI 10.5281/zenodo.17122148), Lizenz CC BY 4.0, vereinfacht und auf Hauptstraßen reduziert.</p>
     <p><b>Lizenzen:</b> Satellitenbild „Blue Marble“ (NASA, gemeinfrei, über das Paket three-globe), Küstenlinien <i>Natural Earth</i> (gemeinfrei, über world-atlas), globe.gl und three.js (MIT), d3 (ISC). Details in <code>LIZENZEN.txt</code>.</p>
     <p><b>Datenschutz:</b> Die Seite lädt alle Bibliotheken, Bilder und Daten von diesem Server. Es werden keine externen Dienste eingebunden und keine Daten gespeichert. Der eigene Standort („Mein Standort“) wird nur nach Freigabe im Browser ermittelt, nur lokal angezeigt und nicht übertragen.</p>
@@ -192,6 +202,7 @@
 <script src="vendor/globe.gl.min.js"></script>
 <script src="vendor/d3.min.js"></script>
 <script src="js/texte.js"></script>
+<script src="js/vignetten.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

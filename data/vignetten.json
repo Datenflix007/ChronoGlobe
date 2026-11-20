@@ -1,0 +1,305 @@
+{
+  "_hinweis": "Inhalte der Schriftrollen je Reich. Format und alle Bausteine: docs/VIGNETTEN.md. Leere 'bloecke' = Platzhalter 'Inhalt folgt'.",
+  "platzhalter": 3,
+  "reiche": {
+    "rom": {
+      "name": "Römisches Reich",
+      "modus": "wiederholung",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "rom-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "rom-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "rom-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "han": {
+      "name": "Han-Reich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "han-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "han-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "han-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "karth": {
+      "name": "Karthago",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "karth-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "karth-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "karth-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "ptol": {
+      "name": "Ptolemäerreich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "ptol-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "ptol-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "ptol-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "seleu": {
+      "name": "Seleukidenreich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "seleu-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "seleu-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "seleu-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "parth": {
+      "name": "Partherreich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "parth-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "parth-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "parth-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "sasan": {
+      "name": "Sasanidenreich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "sasan-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "sasan-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "sasan-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "maurya": {
+      "name": "Maurya-Reich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "maurya-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "maurya-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "maurya-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "kusch": {
+      "name": "Kuschanreich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "kusch-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "kusch-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "kusch-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "gupta": {
+      "name": "Gupta-Reich",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "gupta-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "gupta-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "gupta-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "xiong": {
+      "name": "Xiongnu",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "xiong-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xiong-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xiong-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "xianb": {
+      "name": "Xianbei",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "xianb-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xianb-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "xianb-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    },
+    "hunnen": {
+      "name": "Hunnen",
+      "modus": "vignetten",
+      "titel": "",
+      "einleitung": "",
+      "vignetten": [
+        {
+          "id": "hunnen-1",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "hunnen-2",
+          "titel": "",
+          "bloecke": []
+        },
+        {
+          "id": "hunnen-3",
+          "titel": "",
+          "bloecke": []
+        }
+      ]
+    }
+  }
+}
