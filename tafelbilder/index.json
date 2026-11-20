@@ -1,6 +1,11 @@
 {
   "_hinweis": "Register aller Tafelbilder für die Galerie und die Session-Erstellung (Reihenfolge = Anzeige). Titel, Beschreibung und Vorschaubild stehen in tafelbilder/<id>/tafelbild.json. Neue Tafelbilder: docs/TAFELBILD_ERSTELLEN.md. Prüfen: python tools/check_tafelbilder.py",
   "tafelbilder": [
-    { "id": "rom-zentrum-der-welt" }
+    {
+      "id": "rom-zentrum-der-welt"
+    },
+    {
+      "id": "aufbruch-aus-europa"
+    }
   ]
 }

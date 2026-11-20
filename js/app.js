@@ -408,7 +408,7 @@
   /* ---------- Zeitleiste (Abschnitte je Epoche, dazwischen Zeitsprung) ---------- */
   function segOf(y) { return y >= SEGS[1].von ? SEGS[1] : SEGS[0]; }
   /* Lineare Teile der Leiste: ein Abschnitt kann mehrere Teile mit eigenem Maßstab haben (frühe Hochkulturen) */
-  function teile() { var T = []; SEGS.forEach(function (S) { (S.teile || [S]).forEach(function (t) { T.push(t); }); }); return T; }
+  function teile() { var T = []; SEGS.forEach(function (S) { if (!S.aus) (S.teile || [S]).forEach(function (t) { T.push(t); }); }); return T; }
   function teilVon(y) { return teile().filter(function (t) { return y >= t.von && y <= t.bis; })[0] || segOf(y); }
   function pct(y) {
     var T = teile();
@@ -447,7 +447,7 @@
   }
   function buildTicks() {
     var ticks = $('#ticks'); ticks.innerHTML = '';
-    SEGS.forEach(function (S0, si) { (S0.teile || [S0]).forEach(function (S, ti, alle) {
+    SEGS.forEach(function (S0, si) { if (S0.aus) return; (S0.teile || [S0]).forEach(function (S, ti, alle) {
       for (var y = S.von; ti < alle.length - 1 ? y < S.bis : y <= S.bis; y += S.tick) {
         var t = document.createElement('div'); t.style.left = pct(y) + '%';
         if (y % S.major) { t.className = 'tick minor'; }
@@ -464,7 +464,7 @@
   /* Epochen-Übersicht über der Zeitleiste: Name je Abschnitt, Zeitsprung dazwischen. Klick springt in den Abschnitt. */
   function buildEpochs() {
     var bar = $('#epbar'); bar.innerHTML = '';
-    SEGS.forEach(function (S0) { (S0.teile || [S0]).forEach(function (S) {
+    SEGS.forEach(function (S0) { if (S0.aus) return; (S0.teile || [S0]).forEach(function (S) {
       var d = el('button', 'ep'); d.type = 'button'; d.dataset.ep = S0.ep; d.dataset.von = S.von; d.dataset.bis = S.bis;
       d.style.left = S.a * 100 + '%'; d.style.width = (S.b - S.a) * 100 + '%';
       d.appendChild(el('b', null, S.name)); d.appendChild(el('span', null, S.sub));
@@ -472,6 +472,7 @@
       d.addEventListener('click', function () { if (!(state.year >= S.von && state.year <= S.bis)) setYear(S.start); });
       bar.appendChild(d);
     }); });
+    if (SEGS[0].aus || SEGS[1].aus) return;   // nur ein Abschnitt: kein Zeitsprung
     var g = el('div', 'epgap', '≈'); g.style.left = SEGS[0].b * 100 + '%'; g.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%';
     g.title = 'Zeitsprung: ' + fmtYear(SEGS[0].bis) + ' bis ' + fmtYear(SEGS[1].von) + ' ist nicht dargestellt';
     bar.appendChild(g);
@@ -479,7 +480,7 @@
   function buildLanes() {
     var lanes = $('#lanes'); lanes.innerHTML = '';
     var zero = document.createElement('div'); zero.className = 'zero'; zero.style.left = pct(0) + '%'; lanes.appendChild(zero);
-    var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap);
+    if (!SEGS[0].aus && !SEGS[1].aus) { var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap); }
     var cur = document.createElement('div'); cur.className = 'cursor'; lanes.appendChild(cur);
     var shown = DATA.reihen.filter(function (r) { return M(r).haupt || state.on[r]; });
     shown.forEach(function (r) {
@@ -513,6 +514,7 @@
         lane.appendChild(bt);
       });
       (EVENTS[r] || []).forEach(function (e) {
+        if (e.jahr < YMIN || e.jahr > YMAX) return;   // außerhalb des Tafelbild-Zeitraums
         var k = document.createElement('button'); k.type = 'button'; k.className = 'mk'; k.dataset.y = e.jahr;
         k.style.left = pct(e.jahr) + '%'; k.textContent = shortYear(e.jahr);
         k.title = e.label + ': ' + e.titel;
@@ -595,6 +597,7 @@
     penStopAlle(); PEN.prevAkt = {}; PEN.prevEu = {};
     if (mapOpen) finishClose();
     KAR.prevY = null;
+    if (ZUSTAND.kameraFolgt) return;   // applyState setzt gleich eine eigene Kamera
     if (ep === 'ming') fly(8, 82, homeAlt()); else fly(36, 62, homeAlt());
   }
   function togglePlay() {
@@ -2079,7 +2082,7 @@
         return ZH.fahrt[v.nr] && y >= v.von && (!q || v.__hafen[o.id] <= q.f + 0.002);
       });
     });
-    var haupt = state.on.han ? ZHD.ming.hauptstaedte.filter(function (h) { return y >= h.von && y <= h.bis; }) : [];
+    var haupt = mingAn() ? ZHD.ming.hauptstaedte.filter(function (h) { return y >= h.von && y <= h.bis; }) : [];
     return orte.concat(haupt);
   }
   var JUNKE = '<svg viewBox="0 0 32 28" aria-hidden="true"><path d="M3 18h26l-3.5 6.5H7.5z" fill="currentColor"/><path d="M15 3v14M15 4l-8 12h8zM16 6l7 10h-7z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M2 26.5c3 1.3 5 1.3 8 0s5-1.3 8 0 5 1.3 8 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
@@ -2133,7 +2136,7 @@
     globe.pointsData([]);
     var zv = CUR_ZV || zhVisible(state.year);
     CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
-    globe.polygonsData(visiblePolys().concat(state.on.han ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
+    globe.polygonsData(visiblePolys().concat(mingAn() ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
     zhAnimPruefen(zv);
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
@@ -2226,7 +2229,7 @@
     zhCard(box, ZHD.ming.farbe, 'China · Ming-Dynastie', hs ? 'Hauptstadt: ' + hs.name.replace(/ \(.*\)/, '') : 'Ming-Reich',
       [y < 1421 ? 'Kaiser Yongle verlegt die Hauptstadt 1421 von Nanjing nach Peking.' : 'Seit 1421 ist Peking die Hauptstadt; Nanjing bleibt Nebenhauptstadt.',
        y >= 1407 && y <= 1427 ? 'Nordvietnam (Jiaozhi) ist 1407–1427 von den Ming besetzt.' : null, ZHD.ming.hinweis].filter(Boolean),
-      state.on.han ? null : 'Ming-Reich einblenden', function () { setOn('han', true); });
+      mingAn() ? null : 'Ming-Reich einblenden', function () { setOn('han', true); });
     var eu = null; (ZHD.europa || []).forEach(function (e) { if (e.jahr <= y) eu = e; });
     if (eu) zhCard(box, '#6aa8e8', 'Zur gleichen Zeit in Europa · ' + eu.jahr + (eu.belegt === 'umstritten' ? ' · Datierung umstritten' : ''), eu.titel,
       [eu.text, 'Quelle: ' + eu.quelle], 'Auf dem Globus zeigen', function () { fly(eu.lat, eu.lng, 1.3); });
@@ -2257,7 +2260,10 @@
     });
   }
   /* Spätmittelalter-Abschnitt der Zeitleiste: Fahrt-Balken in eigener Spur, Ereignisse in der China-Spur (Han) */
+  /* Ming-Reich: folgt dem Schalter des Han-Reichs (China); fehlt das Han-Reich im Tafelbild, immer sichtbar */
+  function mingAn() { return DATA.meta.han ? !!state.on.han : true; }
   function addMingLanes(lanes) {
+    if (SEGS[1].aus) return;
     var lane = el('div', 'lane zhlane'); lane.dataset.r = 'zhenghe';
     ZHD.verbindungen.forEach(function (v) {
       var b = el('button', 'zhbar', String(v.nr)); b.type = 'button'; b.dataset.nr = v.nr;
@@ -2267,7 +2273,7 @@
       b.addEventListener('click', function () { setYear(v.von); });
       lane.appendChild(b);
     });
-    var nm = el('span', 'zhnm', 'Zheng He'); nm.style.left = 'calc(' + SEGS[1].a * 100 + '% - 6px)'; lane.appendChild(nm);
+    var nm = el('span', 'zhnm', 'Zheng He'); nm.style.left = SEGS[0].aus ? '0' : 'calc(' + SEGS[1].a * 100 + '% - 6px)'; lane.appendChild(nm);
     var china = lanes.querySelector('.lane[data-r="han"]');
     var evl = china || lane;
     ZHD.ereignisse.forEach(function (e) {
@@ -2416,7 +2422,7 @@
   function startIntro() {
     var svg = $('#intro'), NS = 'http://www.w3.org/2000/svg';
     function mk(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; }
-    ['rom', 'han'].forEach(function (r) {
+    ['rom', 'han'].filter(function (r) { return !!DATA.meta[r]; }).forEach(function (r) {
       intro.els[r] = {
         path: mk('path', { pathLength: 1 }),
         start: mk('circle', { r: 3.5, 'class': 'start' }),
@@ -2428,7 +2434,7 @@
     (function frame() {
       if (!intro.on) return;
       var pov = globe.pointOfView(), collapsed = $('#panel').classList.contains('collapsed');
-      ['rom', 'han'].forEach(function (r) {
+      Object.keys(intro.els).forEach(function (r) {
         var e = intro.els[r], chip = $(r === 'rom' ? '#tglRom' : '#tglHan');
         var z = M(r).zentrum, ang = d3.geoDistance([pov.lng, pov.lat], z);
         var rc0 = chip.getBoundingClientRect(), pb = $('#panelBody').getBoundingClientRect();
@@ -2735,6 +2741,7 @@
         if (FENSTER.info && FENSTER.info.art === 'text' && !('fenster' in t)) infoOeffnen(FENSTER.info);
       }
       if (lanes) buildLanes();
+      ZUSTAND.kameraFolgt = !!(t.kamera && isFinite(t.kamera.lat));
       if (t.jahr != null && t.jahr !== state.year) { if (neu) lastKey = ''; setYear(t.jahr, !!opt.schieber); }
       else if (neu) { lastKey = ''; setYear(state.year); }
       if (t.kamera && isFinite(t.kamera.lat) && isFinite(t.kamera.lng)) {
@@ -2743,6 +2750,7 @@
       }
       if ('fenster' in t) fensterAnwenden(t.fenster || {});
     } finally {
+      ZUSTAND.kameraFolgt = false;
       ZUSTAND.still--;
       if (fern) ZUSTAND.fern--;
     }
@@ -2839,6 +2847,19 @@
     ];
     S.von = von; YMIN = Math.min(YMIN, von);
   }
+  /* Abschnitte außerhalb des Tafelbild-Zeitraums ausblenden; bleibt einer übrig, nimmt er die ganze Breite ein */
+  function abschnitteZuschneiden() {
+    var tb = window.CG && CG.tafelbild, z = tb && tb.zeitraum; if (!z) return;
+    YMIN = Math.max(YMIN, z.von); YMAX = Math.min(YMAX, z.bis);
+    SEGS.forEach(function (S) { S.aus = S.bis < z.von || S.von > z.bis; });
+    var sichtbar = SEGS.filter(function (S) { return !S.aus; });
+    if (sichtbar.length !== 1) return;
+    var S = sichtbar[0], a0 = S.a, b0 = S.b, f = function (x) { return (x - a0) / (b0 - a0); };
+    (S.teile || []).forEach(function (t) { t.a = f(t.a); t.b = f(t.b); });
+    S.a = 0; S.b = 1;
+    SEGS.forEach(function (T) { if (T.aus) { T.a = T.b = T === SEGS[0] ? 0 : 1; } });
+    if (state.year < YMIN || state.year > YMAX) { state.year = S.start; if (S.ep !== state.epoche) ZUSTAND.kameraFolgt = true; }   // Startansicht kommt vom Tafelbild
+  }
 
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
@@ -2873,12 +2894,15 @@
     if (tb.zeitraum) { YMIN = Math.max(YMIN, tb.zeitraum.von); YMAX = Math.min(YMAX, tb.zeitraum.bis); }
     // verfügbare Reiche und Ebenen
     var rv = tb.reiche && tb.reiche.verfuegbar;
+    ['rom', 'han'].forEach(function (r) { if (!DATA.meta[r]) $(r === 'rom' ? '#tglRom' : '#tglHan').hidden = true; });   // außerhalb des Zeitraums
     if (Array.isArray(rv)) DATA.reihen.forEach(function (r) {
       if (rv.indexOf(r) >= 0) return;
       var b = r === 'rom' ? $('#tglRom') : r === 'han' ? $('#tglHan') : $('.chip.nb[data-r="' + r + '"]'); if (b) b.hidden = true;
     });
     var ev = tb.ebenen && tb.ebenen.verfuegbar;
     if (Array.isArray(ev)) Object.keys(EBENEN_SEL).forEach(function (k) { if (ev.indexOf(k) < 0) { var b = $(EBENEN_SEL[k]); if (b) b.hidden = true; } });
+    if (Array.isArray(ev) && ev.indexOf('zh') < 0) $('.zh-block').hidden = true;
+    if (Array.isArray(ev) && ev.indexOf('limes') < 0) $('#limesLeg').hidden = true;
     // Fokuspunkte → Knöpfe im Menü
     var box = $('#fokusBtns'); box.innerHTML = '';
     (tb.fokuspunkte || []).forEach(function (f) {
@@ -2956,7 +2980,7 @@
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
     TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); initLimes(res[12]); VIG = res[13];
-    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten();
+    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); abschnitteZuschneiden();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
     initTrade(); initZh(); buildZhChips();
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });

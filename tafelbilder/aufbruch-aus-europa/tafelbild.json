@@ -1,0 +1,123 @@
+{
+  "id": "aufbruch-aus-europa",
+  "titel": "Aufbruch aus Europa?",
+  "kopf": "Digitales Tafelbild",
+  "untertitel": "Aufbruch aus Europa?",
+  "beschreibung": "Zheng Hes Flottenfahrten (1405–1433) und die ersten portugiesischen Fahrten entlang Afrikas im Vergleich: Wer bricht wann auf – und warum endet Chinas Seefahrt, während Europas beginnt?",
+  "vorschaubild": "vorschau.jpg",
+  "zeitraum": {
+    "von": 1400,
+    "bis": 1453,
+    "epochen": [
+      "spaetmittelalter"
+    ]
+  },
+  "start": {
+    "jahr": 1405,
+    "ansicht": "sat",
+    "kamera": "welt",
+    "drehen": false
+  },
+  "reiche": {
+    "verfuegbar": "alle",
+    "aktiv": [
+      "rom",
+      "osman"
+    ]
+  },
+  "ebenen": {
+    "verfuegbar": [
+      "orte",
+      "handel",
+      "waren",
+      "zh",
+      "bilder"
+    ],
+    "aktiv": {
+      "orte": false,
+      "handel": true,
+      "waren": true,
+      "zh": true,
+      "bilder": false
+    }
+  },
+  "fokuspunkte": [
+    {
+      "id": "welt",
+      "name": "Vom Atlantik bis China",
+      "knopf": "Überblick",
+      "lat": 18,
+      "lng": 50,
+      "alt": "standard"
+    },
+    {
+      "id": "indischer-ozean",
+      "name": "Indischer Ozean (Zheng He)",
+      "knopf": "→ Indischer Ozean",
+      "lat": 8,
+      "lng": 82,
+      "alt": 1.9
+    },
+    {
+      "id": "nanjing",
+      "name": "Nanjing (Ausgangshafen)",
+      "knopf": "→ Nanjing",
+      "lat": 31,
+      "lng": 119,
+      "alt": 1.1
+    },
+    {
+      "id": "ostafrika",
+      "name": "Ostafrika (Malindi)",
+      "knopf": "→ Ostafrika",
+      "lat": -2,
+      "lng": 42,
+      "alt": 1.4
+    },
+    {
+      "id": "portugal",
+      "name": "Portugal und Atlantik",
+      "knopf": "→ Portugal",
+      "lat": 34,
+      "lng": -12,
+      "alt": 1.3,
+      "jahr": 1415
+    }
+  ],
+  "lehrerhinweise": {
+    "ordner": "lehrerhinweise/",
+    "reiter": [
+      {
+        "id": "reihe",
+        "titel": "Unterrichtsreihe",
+        "datei": "01_unterrichtsreihe.md"
+      },
+      {
+        "id": "kompetenz",
+        "titel": "Kompetenzziele",
+        "datei": "02_kompetenzziele.md"
+      },
+      {
+        "id": "handlung",
+        "titel": "Handlungsziele",
+        "datei": "03_handlungsziele.md"
+      },
+      {
+        "id": "sach",
+        "titel": "Sachanalyse",
+        "datei": "04_sachanalyse.md"
+      },
+      {
+        "id": "didaktik",
+        "titel": "Methodisch-didaktische Analyse",
+        "datei": "05_methodisch_didaktische_analyse.md"
+      },
+      {
+        "id": "verlauf",
+        "titel": "Verlaufsplan",
+        "datei": "06_verlaufsplan.md"
+      }
+    ]
+  },
+  "daten": {}
+}

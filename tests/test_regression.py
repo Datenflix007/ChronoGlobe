@@ -12,10 +12,13 @@ import hashlib, json, mimetypes, os, sys, urllib.parse
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASIS = os.path.join(ROOT, 'tests', 'regression_baseline.json')
+BASIS = os.path.join(ROOT, 'tests', 'regression_baseline.json')   # Ausgangszustand vor dem Umbau (freier Modus)
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 AUFNEHMEN = '--aufnehmen' in sys.argv
 SEITE = args[0] if args else ('app.html?modus=frei' if os.path.exists(os.path.join(ROOT, 'app.html')) else 'index.html')
+# Tafelbilder haben einen eigenen Ausgangszustand (sie zeigen bewusst nur einen Ausschnitt)
+if 'tafelbild=' in SEITE:
+    BASIS = os.path.join(ROOT, 'tests', 'regression_baseline_%s.json' % SEITE.split('tafelbild=')[1].split('&')[0])
 T = '__tafelbild'
 
 
@@ -88,8 +91,11 @@ with sync_playwright() as p:
     klick('#vigView .vg-karte >> nth=0'); fp('vignette 1')
     klick('#mapClose', 1800); fp('rolle zu')
     pg.evaluate("document.querySelector('#routeList .rl-item.orbis') && document.querySelector('#routeList .rl-item.orbis').click()"); fp('orbis info'); pg.keyboard.press('Escape')
-    klick('#btnZhGo', 2500); fp('ming 1405')
-    klick('#zhChips .chip >> nth=1'); fp('fahrt 2 aus'); klick('#tglBilder'); fp('bilder'); klick('#tglZh'); fp('zh aus'); klick('#tglZh')
+    if pg.is_visible('#btnZhGo'):
+        klick('#btnZhGo', 2500); fp('ming 1405')
+        klick('#zhChips .chip >> nth=1'); fp('fahrt 2 aus'); klick('#tglBilder'); fp('bilder'); klick('#tglZh'); fp('zh aus'); klick('#tglZh')
+    else:   # Tafelbild ohne Spätmittelalter
+        for n in ('ming 1405', 'fahrt 2 aus', 'bilder', 'zh aus'): schritte.append((n, None))
     klick('#btnInfo'); fp('erste schritte'); pg.keyboard.press('Escape')
     if pg.is_visible('#btnLehrer'): klick('#btnLehrer'); fp('lehrerhinweise'); pg.keyboard.press('Escape'); pg.wait_for_timeout(150)
     else: schritte.append(('lehrerhinweise', None))   # Freier Modus: keine Lehrerhinweise (gewollt)
@@ -127,7 +133,7 @@ def ohne_neue(e):
     if 'state' in e and isinstance(e['state'].get('on'), dict): e['state']['on'] = {k: v for k, v in e['state']['on'].items() if k not in NEU}
     return e
 for (n1, a), (n2, e) in zip(basis, schritte):
-    e = ohne_haefen(ohne_neue(json.loads(json.dumps(e)))); a = ohne_haefen(a)
+    e = ohne_haefen(ohne_neue(json.loads(json.dumps(e)))); a = ohne_haefen(ohne_neue(json.loads(json.dumps(a))))
     if e is None: print('  --   ' + n1 + ' (in diesem Modus nicht vorhanden)'); continue
     if a == e: ok += 1; print('  ok   ' + n1)
     else:

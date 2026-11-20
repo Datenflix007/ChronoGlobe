@@ -5,6 +5,7 @@
   --serif: Georgia, "Times New Roman", serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}   /* ausgeblendete Schalter (Tafelbild) trotz display-Regeln verbergen */
 html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:var(--ui);overflow:hidden}
 /* Globus nur im freien Bereich über der Zeitleiste, damit er dort mittig sitzt (--tlh = Höhe der Zeitleiste, aus app.js) */
 #globe{position:fixed;top:0;left:0;right:0;bottom:calc(var(--tlh,180px) + 14px)}

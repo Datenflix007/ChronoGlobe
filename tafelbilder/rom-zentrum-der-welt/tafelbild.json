@@ -3,37 +3,125 @@
   "titel": "Rom – Zentrum der Welt?",
   "kopf": "Digitales Tafelbild",
   "untertitel": "Rom - Das Zentrum der Welt?",
-  "beschreibung": "Römisches Reich und Han-Reich im Vergleich: Ausdehnung, Nachbarreiche, Handel über Zwischenhändler, Römerstraßen, Völkerwanderung und als Ausblick die Fahrten des Zheng He.",
+  "beschreibung": "Römisches Reich und Han-Reich im Vergleich: Ausdehnung, Nachbarreiche, Handel über Zwischenhändler, Römerstraßen, Grenzanlagen und Völkerwanderung (300 v. bis 480 n. Chr.).",
   "vorschaubild": "vorschau.jpg",
-  "zeitraum": { "von": -300, "bis": 1453, "epochen": ["antike", "spaetmittelalter"] },
-  "start": { "jahr": 117, "ansicht": "sat", "kamera": "eurasien", "drehen": true },
-  "reiche": { "verfuegbar": "alle", "aktiv": ["rom", "han"] },
-  "ebenen": {
+  "zeitraum": {
+    "von": -300,
+    "bis": 480,
+    "epochen": [
+      "antike"
+    ]
+  },
+  "start": {
+    "jahr": 117,
+    "ansicht": "sat",
+    "kamera": "eurasien",
+    "drehen": true
+  },
+  "reiche": {
     "verfuegbar": "alle",
+    "aktiv": [
+      "rom",
+      "han"
+    ]
+  },
+  "ebenen": {
+    "verfuegbar": [
+      "orte",
+      "schlachten",
+      "vw",
+      "limes",
+      "handel",
+      "land",
+      "see",
+      "waren",
+      "gesandt",
+      "karawanen",
+      "strassen",
+      "schiff",
+      "hanseide"
+    ],
     "aktiv": {
-      "orte": false, "schlachten": true, "vw": false,
-      "handel": false, "land": true, "see": true, "waren": true, "gesandt": true, "karawanen": false,
-      "strassen": false, "strassen_ehemals": false, "strassen_animieren": true, "schiff": false,
-      "zh": true, "bilder": false
+      "orte": false,
+      "schlachten": true,
+      "vw": false,
+      "handel": false,
+      "land": true,
+      "see": true,
+      "waren": true,
+      "gesandt": true,
+      "karawanen": false,
+      "strassen": false,
+      "strassen_ehemals": false,
+      "strassen_animieren": true,
+      "schiff": false
     }
   },
   "fokuspunkte": [
-    { "id": "rom", "name": "Rom", "knopf": "→ Rom", "lat": 41.5, "lng": 14, "alt": 1.0 },
-    { "id": "china", "name": "China/Han", "knopf": "→ China", "lat": 34, "lng": 108, "alt": 1.1 },
-    { "id": "eurasien", "name": "Eurasien", "knopf": "Eurasien", "lat": 36, "lng": 62, "alt": "standard" }
+    {
+      "id": "rom",
+      "name": "Rom",
+      "knopf": "→ Rom",
+      "lat": 41.5,
+      "lng": 14,
+      "alt": 1.0
+    },
+    {
+      "id": "china",
+      "name": "China/Han",
+      "knopf": "→ China",
+      "lat": 34,
+      "lng": 108,
+      "alt": 1.1
+    },
+    {
+      "id": "eurasien",
+      "name": "Eurasien",
+      "knopf": "Eurasien",
+      "lat": 36,
+      "lng": 62,
+      "alt": "standard"
+    }
   ],
   "lehrerhinweise": {
     "ordner": "lehrerhinweise/",
     "reiter": [
-      { "id": "reihe", "titel": "Unterrichtsreihe", "datei": "01_unterrichtsreihe.md" },
-      { "id": "kompetenz", "titel": "Kompetenzziele", "datei": "02_kompetenzziele.md" },
-      { "id": "handlung", "titel": "Handlungsziele", "datei": "03_handlungsziele.md" },
-      { "id": "sach", "titel": "Sachanalyse", "datei": "04_sachanalyse.md" },
-      { "id": "didaktik", "titel": "Methodisch-didaktische Analyse", "datei": "05_methodisch_didaktische_analyse.md" },
-      { "id": "verlauf", "titel": "Verlaufsplan", "datei": "06_verlaufsplan.md" }
+      {
+        "id": "reihe",
+        "titel": "Unterrichtsreihe",
+        "datei": "01_unterrichtsreihe.md"
+      },
+      {
+        "id": "kompetenz",
+        "titel": "Kompetenzziele",
+        "datei": "02_kompetenzziele.md"
+      },
+      {
+        "id": "handlung",
+        "titel": "Handlungsziele",
+        "datei": "03_handlungsziele.md"
+      },
+      {
+        "id": "sach",
+        "titel": "Sachanalyse",
+        "datei": "04_sachanalyse.md"
+      },
+      {
+        "id": "didaktik",
+        "titel": "Methodisch-didaktische Analyse",
+        "datei": "05_methodisch_didaktische_analyse.md"
+      },
+      {
+        "id": "verlauf",
+        "titel": "Verlaufsplan",
+        "datei": "06_verlaufsplan.md"
+      }
     ]
   },
   "daten": {
-    "vignetten": { "datei": "vignetten.json", "art": "ersetzen" }
+    "vignetten": {
+      "datei": "vignetten.json",
+      "art": "ersetzen"
+    }
   }
 }
