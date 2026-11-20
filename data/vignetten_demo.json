@@ -1,0 +1,330 @@
+{
+  "_hinweis": "Nur zur Vorschau der Bausteine: index.html?vignetten=demo",
+  "reiche": {
+    "rom": {
+      "modus": "wiederholung",
+      "titel": "Wiederholung (Beispiel)",
+      "vignetten": [
+        {
+          "id": "demo-1",
+          "titel": "Beispiel: Text, Merke, Erzählung, Quelle",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "So sieht ein **Textbaustein** aus. Ein *kursives* Wort geht auch.\n\nEine Leerzeile beginnt einen neuen Absatz."
+            },
+            {
+              "typ": "merke",
+              "text": "Ein Merke-Kasten hebt das Wichtigste hervor."
+            },
+            {
+              "typ": "erzaehlung",
+              "titel": "Erzählung",
+              "text": "Hier stünde eine kurze, erfundene Geschichte. Der Hinweis darüber erscheint automatisch."
+            },
+            {
+              "typ": "quelle",
+              "titel": "Beispielquelle",
+              "text": "Hier stünde ein kurzer Quellenauszug.",
+              "nachweis": "Hier stünde der Nachweis der Quelle."
+            }
+          ],
+          "quellen": [
+            "Hier stehen die Belege der Vignette."
+          ]
+        },
+        {
+          "id": "demo-2",
+          "titel": "Beispiel: Bild, Musik, Video",
+          "bloecke": [
+            {
+              "typ": "bild",
+              "src": "img/earth-schematic.png",
+              "alt": "Schematische Weltkarte",
+              "titel": "Ein Bild",
+              "unterschrift": "Bildunterschrift.",
+              "lizenz": "Lizenz: eigene Darstellung nach Natural Earth (gemeinfrei)."
+            },
+            {
+              "typ": "audio",
+              "src": "media/beispiel.mp3",
+              "titel": "Musik",
+              "unterschrift": "Fehlt die Datei, erscheint dieser Hinweis.",
+              "lizenz": "Lizenz: …"
+            },
+            {
+              "typ": "video",
+              "src": "media/beispiel.mp4",
+              "titel": "Video",
+              "lizenz": "Lizenz: …"
+            }
+          ]
+        },
+        {
+          "id": "demo-3",
+          "titel": "Beispiel: alle Quizarten",
+          "bloecke": [
+            {
+              "typ": "einfach",
+              "frage": "Welche Farbe hat das Römische Reich auf dem Globus?",
+              "antworten": [
+                {
+                  "text": "Rot",
+                  "richtig": true
+                },
+                {
+                  "text": "Gelb",
+                  "feedback": "Gelb ist das Han-Reich."
+                },
+                {
+                  "text": "Grün"
+                }
+              ],
+              "tipp": "Schau auf den Knopf im Menü.",
+              "feedback": {
+                "richtig": "Genau.",
+                "falsch": "Schau noch einmal auf den Globus."
+              }
+            },
+            {
+              "typ": "mehrfach",
+              "frage": "Welche Knöpfe gibt es im Menü?",
+              "antworten": [
+                {
+                  "text": "Satellit",
+                  "richtig": true
+                },
+                {
+                  "text": "Schematisch",
+                  "richtig": true
+                },
+                {
+                  "text": "Mondansicht",
+                  "feedback": "Eine Mondansicht gibt es nicht."
+                }
+              ]
+            },
+            {
+              "typ": "wahrfalsch",
+              "frage": "Stimmt das?",
+              "aussagen": [
+                {
+                  "text": "Die Zeitleiste ist unten.",
+                  "richtig": true
+                },
+                {
+                  "text": "Das Menü ist rechts.",
+                  "richtig": false,
+                  "feedback": "Das Menü ist links."
+                }
+              ]
+            },
+            {
+              "typ": "luecke",
+              "frage": "Fülle die Lücken.",
+              "text": "Die Zeitleiste ist {{unten}}, das Menü ist {{links}}.",
+              "woerter": [
+                "unten",
+                "links",
+                "oben"
+              ]
+            },
+            {
+              "typ": "zuordnen",
+              "frage": "Was gehört zusammen?",
+              "paare": [
+                {
+                  "links": "Römisches Reich",
+                  "rechts": "rot"
+                },
+                {
+                  "links": "Han-Reich",
+                  "rechts": "gelb"
+                }
+              ]
+            },
+            {
+              "typ": "reihenfolge",
+              "frage": "Ordne die Zahlen von klein nach groß.",
+              "elemente": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ]
+            },
+            {
+              "typ": "zahl",
+              "frage": "Wie viele Reiter hat die Schriftrolle?",
+              "antwort": 2,
+              "toleranz": 0,
+              "erklaerung": "Vignetten (bzw. Wiederholung) und Karte."
+            }
+          ]
+        }
+      ]
+    },
+    "*": {
+      "modus": "vignetten",
+      "vignetten": [
+        {
+          "id": "demo-1",
+          "titel": "Beispiel: Text, Merke, Erzählung, Quelle",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "So sieht ein **Textbaustein** aus. Ein *kursives* Wort geht auch.\n\nEine Leerzeile beginnt einen neuen Absatz."
+            },
+            {
+              "typ": "merke",
+              "text": "Ein Merke-Kasten hebt das Wichtigste hervor."
+            },
+            {
+              "typ": "erzaehlung",
+              "titel": "Erzählung",
+              "text": "Hier stünde eine kurze, erfundene Geschichte. Der Hinweis darüber erscheint automatisch."
+            },
+            {
+              "typ": "quelle",
+              "titel": "Beispielquelle",
+              "text": "Hier stünde ein kurzer Quellenauszug.",
+              "nachweis": "Hier stünde der Nachweis der Quelle."
+            }
+          ],
+          "quellen": [
+            "Hier stehen die Belege der Vignette."
+          ]
+        },
+        {
+          "id": "demo-2",
+          "titel": "Beispiel: Bild, Musik, Video",
+          "bloecke": [
+            {
+              "typ": "bild",
+              "src": "img/earth-schematic.png",
+              "alt": "Schematische Weltkarte",
+              "titel": "Ein Bild",
+              "unterschrift": "Bildunterschrift.",
+              "lizenz": "Lizenz: eigene Darstellung nach Natural Earth (gemeinfrei)."
+            },
+            {
+              "typ": "audio",
+              "src": "media/beispiel.mp3",
+              "titel": "Musik",
+              "unterschrift": "Fehlt die Datei, erscheint dieser Hinweis.",
+              "lizenz": "Lizenz: …"
+            },
+            {
+              "typ": "video",
+              "src": "media/beispiel.mp4",
+              "titel": "Video",
+              "lizenz": "Lizenz: …"
+            }
+          ]
+        },
+        {
+          "id": "demo-3",
+          "titel": "Beispiel: alle Quizarten",
+          "bloecke": [
+            {
+              "typ": "einfach",
+              "frage": "Welche Farbe hat das Römische Reich auf dem Globus?",
+              "antworten": [
+                {
+                  "text": "Rot",
+                  "richtig": true
+                },
+                {
+                  "text": "Gelb",
+                  "feedback": "Gelb ist das Han-Reich."
+                },
+                {
+                  "text": "Grün"
+                }
+              ],
+              "tipp": "Schau auf den Knopf im Menü.",
+              "feedback": {
+                "richtig": "Genau.",
+                "falsch": "Schau noch einmal auf den Globus."
+              }
+            },
+            {
+              "typ": "mehrfach",
+              "frage": "Welche Knöpfe gibt es im Menü?",
+              "antworten": [
+                {
+                  "text": "Satellit",
+                  "richtig": true
+                },
+                {
+                  "text": "Schematisch",
+                  "richtig": true
+                },
+                {
+                  "text": "Mondansicht",
+                  "feedback": "Eine Mondansicht gibt es nicht."
+                }
+              ]
+            },
+            {
+              "typ": "wahrfalsch",
+              "frage": "Stimmt das?",
+              "aussagen": [
+                {
+                  "text": "Die Zeitleiste ist unten.",
+                  "richtig": true
+                },
+                {
+                  "text": "Das Menü ist rechts.",
+                  "richtig": false,
+                  "feedback": "Das Menü ist links."
+                }
+              ]
+            },
+            {
+              "typ": "luecke",
+              "frage": "Fülle die Lücken.",
+              "text": "Die Zeitleiste ist {{unten}}, das Menü ist {{links}}.",
+              "woerter": [
+                "unten",
+                "links",
+                "oben"
+              ]
+            },
+            {
+              "typ": "zuordnen",
+              "frage": "Was gehört zusammen?",
+              "paare": [
+                {
+                  "links": "Römisches Reich",
+                  "rechts": "rot"
+                },
+                {
+                  "links": "Han-Reich",
+                  "rechts": "gelb"
+                }
+              ]
+            },
+            {
+              "typ": "reihenfolge",
+              "frage": "Ordne die Zahlen von klein nach groß.",
+              "elemente": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ]
+            },
+            {
+              "typ": "zahl",
+              "frage": "Wie viele Reiter hat die Schriftrolle?",
+              "antwort": 2,
+              "toleranz": 0,
+              "erklaerung": "Vignetten (bzw. Wiederholung) und Karte."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,8 +1,14 @@
 Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
 - globe.gl (MIT) und three.js (MIT), vendor/globe.gl.min.js
 - d3 (ISC), vendor/d3.min.js
-- Erdtexturen aus dem Paket three-globe (MIT): img/earth-blue-marble.jpg (NASA Blue Marble, gemeinfrei),
-  img/earth-topology.png, img/night-sky.png
+- Erdtexturen aus dem Paket three-globe (MIT): img/earth-blue-marble.jpg (NASA Blue Marble, gemeinfrei; nur noch
+  Rückfall für Geräte mit kleinem Texturlimit), img/earth-topology.png, img/night-sky.png
+- Satellitenbild img/earth-blue-marble-8k.jpg: NASA Earth Observatory, Blue Marble Next Generation w/ Topography
+  and Bathymetry, Juli 2004 (Reto Stöckli, NASA Earth Observatory), gemeinfrei. Quelle: world.topo.bathy.200407.3x21600x10800.jpg
+  über https://visibleearth.nasa.gov/ (Dateiserver assets.science.nasa.gov), verkleinert auf 8192×4096.
+- Satelliten-Kacheln img/tiles/{z}/{x}/{y}.jpg (Nahansicht): gleiche Quelle und Lizenz (gemeinfrei). Stufe 6 aus der
+  21600×10800-Fassung, Stufen 7–8 aus den 500-m-Teilbildern world.topo.bathy.200407.3x21600x21600.{B1,B2,C1,C2,D1,D2}.jpg,
+  umgerechnet in Web-Mercator-Kacheln mit build_kacheln.py.
 - Küstenlinien: Natural Earth (gemeinfrei) über world-atlas (ISC), vereinfacht -> data/land*.json
 - Reichsgrenzen (data/reiche.json): eigene, handgezeichnete, stark vereinfachte Näherungen. KEINE Atlasdaten.
 - Handelsverbindungen (data/handel.json): eigene, schematisch handgezeichnete Routen und eigene Zusammenstellung.
@@ -11,3 +17,11 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
 - Symbole (Schwerter, Gesandtschaft): eigene SVG-Zeichnungen.
 - Schematische Globus-Textur img/earth-schematic.png: aus Natural Earth (gemeinfrei) über world-atlas 2.0.2 (ISC),
   land-50m.json, gezeichnet mit d3 (build_schema_textur.py).
+- Römische Straßen (data/roemerstrassen.json): Itiner-e static version 2024 (de Soto, Pažout, Brughmans u. a.,
+  Scientific Data 12, 2025, Nr. 1731), Zenodo DOI 10.5281/zenodo.17122148, Lizenz CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). Verändert: nur Hauptstraßen, ohne Wasserwege, vereinfacht und
+  verkettet (build_roemerstrassen.py).
+- Schülertexte (data/texte.json) und Kartenskizzen: eigene Texte bzw. eigene Darstellungen (CC0). Belege und Lizenzen
+  der verwendeten Literatur: data/literatur.json, Regeln: docs/GRUNDREGELN.md.
+- Quellenseiten in quellen/oeffentlich/: gemeinfreie Werke (Plinius d. Ä., Hirth 1885, Schoff 1912; OCR von archive.org
+  bzw. Text von LacusCurtius). quellen/lokal/ wird nicht veröffentlicht.

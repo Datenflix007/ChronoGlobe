@@ -1,0 +1,786 @@
+{
+ "_hinweis": "Schülertexte zu den Handelswegen. Fußnoten: q = Titel-ID aus literatur.json, s = Seite (bzw. Buch,Paragraph bei antiken Quellen; 'online' bei Online-Artikeln, dann 'abschnitt'), art = vgl (sinngemäß) | zitat (wörtlich, im Text übersetzt) | quelle (antike Stelle). beleg = wörtliche Stelle im Original, die tools/check_zitate.py auf der angegebenen Seite sucht. In den Texten verweist [n] auf die Fußnote n. Wortzahlen: A 80-100, B 130-160, C 180-220 (ohne Fußnotenzeichen).",
+ "texte": [
+  {
+   "id": "seidenstrasse",
+   "titel": "Die Seidenstraße als Landweg",
+   "kurz": "Ein Netz aus vielen Wegen",
+   "farbe": "#ffcf6b",
+   "fussnoten": [
+    {
+     "n": 1,
+     "q": "waugh2007",
+     "s": "4",
+     "art": "vgl",
+     "beleg": "it also uses the term in the plural for routes both east and west of the Pamirs"
+    },
+    {
+     "n": 2,
+     "q": "hirth1885",
+     "s": "70",
+     "art": "vgl",
+     "beleg": "wanted to make profit out of their trade with us",
+     "zusatz": "Übers. des Weilüe, 3. Jh."
+    },
+    {
+     "n": 3,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "The Sogdians were then the pupils and apprentices of the Kushan merchants"
+    },
+    {
+     "n": 4,
+     "q": "plinius",
+     "s": "6,54",
+     "art": "quelle",
+     "beleg": "primi sunt hominum qui noscantur Seres"
+    },
+    {
+     "n": 5,
+     "q": "waugh2007",
+     "s": "1",
+     "art": "vgl",
+     "beleg": "Ferdinand Freiherr von Richthofen’s publication of the term “die Seidenstrasse,”"
+    },
+    {
+     "n": 6,
+     "q": "mertens2019",
+     "s": "4",
+     "art": "vgl",
+     "beleg": "may represent the first usage of the term"
+    },
+    {
+     "n": 7,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "written around 100 BCE and based on reports by the earliest Chinese envoys to Central Asia"
+    },
+    {
+     "n": 8,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "They are skilful at commerce and will haggle over a fraction of a cent"
+    },
+    {
+     "n": 9,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "developing a market for Chinese silk in India, Iran, and the Hellenized Near East"
+    },
+    {
+     "n": 10,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Growth",
+     "art": "vgl",
+     "beleg": "From the 5th to the 7th century, the Sogdians were the principal long-distance caravan merchants in Central Asia"
+    },
+    {
+     "n": 11,
+     "q": "plinius",
+     "s": "12,84",
+     "art": "quelle",
+     "beleg": "miliens centena milia sestertium annis omnibus India et Seres et paeninsula illa imperio nostro adimunt"
+    },
+    {
+     "n": 12,
+     "q": "hirth1885",
+     "s": "70",
+     "art": "vgl",
+     "beleg": "unless these go in caravans, they cannot pass the country",
+     "zusatz": "Übers. des Weilüe, 3. Jh."
+    },
+    {
+     "n": 13,
+     "q": "waugh2007",
+     "s": "3",
+     "art": "vgl",
+     "beleg": "the Serer, those connected with the trade in silk, or Serica, the land of silk"
+    }
+   ],
+   "niveaus": {
+    "A": "Die Seidenstraße war keine einzelne Straße. Es war ein Netz aus vielen Wegen zwischen China und dem Mittelmeer, auch über hohe Gebirge.[1] Fast kein Händler reiste die ganze Strecke. Die Waren gingen von Hand zu Hand. Die Parther zum Beispiel wollten selbst am Handel verdienen. Deshalb ließen sie Gesandte aus dem Westen nicht nach China durch.[2] Auch Händler aus dem Kuschanreich und später die Sogder waren wichtige Zwischenhändler.[3] So kam Seide aus China bis nach Rom.[4] Den Namen „Seidenstraße“ gab es in der Antike noch nicht. Bekannt gemacht hat ihn der Geograph Ferdinand von Richthofen im Jahr 1877.[5]",
+    "B": "Zwischen China und dem Römischen Reich gab es keine einzelne Straße, sondern ein Netz aus vielen Wegen. Sie führten durch Wüsten und Oasen und über Gebirge wie den Pamir.[1] Um 100 vor Christus schrieb der chinesische Geschichtsschreiber Sima Qian über Zentralasien. Er stützte sich auf Berichte der ersten chinesischen Gesandten.[7] Die Menschen dort beschreibt er als geschickte Händler.[8] Kaufleute aus Baktrien und dem Kuschanreich merkten bald, dass man mit chinesischer Seide in Indien, im Iran und am Mittelmeer viel verdienen konnte.[9] Unterwegs wechselten die Waren mehrmals den Besitzer. Die Parther ließen Gesandte aus dem Westen nicht nach China reisen, weil sie selbst am Handel verdienen wollten.[2] Ein chinesischer Bericht sagt, im fernen Westen könne man nur in Karawanen sicher reisen.[12] In Rom war Seide ein teures Luxusgut.[4] Den Begriff „Seidenstraße“ machte erst Ferdinand von Richthofen 1877 bekannt.[5]",
+    "C": "Die „Seidenstraße“ war kein fester Weg, sondern ein weit verzweigtes Netz von Handelswegen. Schon Ferdinand von Richthofen sprach 1877 auch von mehreren „Seidenstraßen“ östlich und westlich des Pamir.[1][5] Der Historiker Matthias Mertens fand heraus, dass das Wort wohl schon 1838 beim Geographen Carl Ritter vorkommt.[6] Richthofen hat den Begriff also nicht erfunden, aber bekannt gemacht. Chinesische Quellen zeigen, wie der Handel funktionierte. Der Geschichtsschreiber Sima Qian stützte sich um 100 vor Christus auf Berichte der ersten Gesandten nach Zentralasien.[7] Kaufleute aus Baktrien und dem Kuschanreich verkauften chinesische Seide weiter nach Indien, in den Iran und in den Mittelmeerraum. Die Sogder lernten das Handwerk bei ihnen.[9][3] Ein chinesischer Bericht aus dem 3. Jahrhundert erklärt, warum Rom und China nie direkt verbunden waren: Die Parther wollten am Handel verdienen und ließen Gesandte aus dem Westen nicht durch.[2] Vom 5. bis zum 7. Jahrhundert waren die Sogder die wichtigsten Karawanenhändler Zentralasiens.[10] Die Römer nannten das ferne Volk, von dem die Seide kam, „Serer“.[13] In Rom klagte Plinius der Ältere, Indien, die Serer und Arabien nähmen dem Reich jedes Jahr mindestens 100 Millionen Sesterzen ab.[11] Ob diese Zahl stimmt, können wir nicht überprüfen."
+   },
+   "glossar": [
+    {
+     "wort": "Etappenhandel",
+     "erklaerung": "Handel in Abschnitten: Händler bringen Waren nur ein Stück weit und verkaufen sie an die nächsten Händler weiter."
+    },
+    {
+     "wort": "Zwischenhändler",
+     "erklaerung": "Händler, die Waren kaufen und weiterverkaufen, ohne sie selbst herzustellen oder zu verbrauchen."
+    },
+    {
+     "wort": "Oase",
+     "erklaerung": "Ort mit Wasser und Pflanzen mitten in der Wüste; wichtige Rastplätze und Städte."
+    },
+    {
+     "wort": "Karawane",
+     "erklaerung": "Gruppe von Reisenden mit Lasttieren (zum Beispiel Kamelen), die gemeinsam und dadurch sicherer reist."
+    },
+    {
+     "wort": "Kuschanreich",
+     "erklaerung": "Reich in Zentralasien und Nordindien im 1. bis 3. Jahrhundert nach Christus."
+    },
+    {
+     "wort": "Sogder",
+     "erklaerung": "Volk aus Sogdien, dem Gebiet zwischen Ferghana und dem Partherreich."
+    },
+    {
+     "wort": "Serer",
+     "erklaerung": "Römischer Name für das ferne Volk, von dem die Seide kam; Serica hieß „Land der Seide“.",
+     "fn": 13
+    }
+   ],
+   "abbildung": {
+    "skizze": "netz",
+    "titel": "Kartenskizze: Die Seidenstraße als Netz",
+    "text": "Mittelroute und Nordweg (gelb) sowie kurze Etappen zwischen Handelsorten. Eigene schematische Darstellung; Küstenlinien: Natural Earth (gemeinfrei).",
+    "lizenz": "eigene Darstellung, CC0"
+   },
+   "quellenauszug": [
+    {
+     "titel": "Ein chinesischer Bericht über den fernen Westen (Weilüe, 3. Jahrhundert)",
+     "text": "„Sie wollten immer Gesandte nach China schicken. Aber die Parther wollten am Handel mit uns verdienen und ließen sie nicht durch ihr Land ziehen.“",
+     "nachweis": "Weilüe (3. Jh.), vereinfachte deutsche Übertragung nach der englischen Übersetzung bei Hirth, China and the Roman Orient, 1885, S. 70 (gemeinfrei).",
+     "hinweis": "„Sie“ meint die Bewohner von Da Qin, dem Römischen Orient."
+    },
+    {
+     "titel": "Plinius der Ältere über die Seide (um 77 n. Chr.)",
+     "text": "„Die ersten Menschen, die man dort kennt, sind die Serer. Berühmt sind sie für die ‚Wolle‘ ihrer Wälder: Sie kämmen den weißen Flaum von den Blättern, die sie mit Wasser benetzen. Daraus entsteht für unsere Frauen die doppelte Arbeit, die Fäden aufzulösen und neu zu weben. Mit so viel Mühe und aus so fernen Ländern wird das geholt, damit sich eine vornehme Dame in der Öffentlichkeit in durchscheinendem Stoff zeigen kann.“",
+     "nachweis": "Plin. nat. 6,54; eigene, vereinfachte Übersetzung aus dem Lateinischen (Text gemeinfrei).",
+     "hinweis": "Plinius glaubte, Seide wachse an Bäumen. Tatsächlich wird sie aus den Kokons der Seidenraupe gewonnen."
+    }
+   ],
+   "woher": {
+    "quellen": "Chinesische Geschichtswerke wie das Shiji des Sima Qian (um 100 v. Chr.) und das Weilüe (3. Jh.), römische Autoren wie Plinius der Ältere (1. Jh.) und Forschungen zur Geschichte des Begriffs „Seidenstraße“.",
+    "nichtwissen": "Wie viel Seide wirklich gehandelt wurde, wissen wir nicht. Die Zahl des Plinius ist ausdrücklich eine Schätzung „nach geringster Berechnung“. Kein antiker Händler hat einen Bericht über eine Reise von Rom bis China hinterlassen, der uns überliefert wäre; Wege einzelner Waren lassen sich meist nicht verfolgen."
+   },
+   "auftraege": [
+    "Erkläre mit eigenen Worten, warum Forscher lieber von „Seidenstraßen“ (Mehrzahl) sprechen. Nutze dazu die Kartenskizze.",
+    "Lies den Auszug aus dem Weilüe. Warum ließen die Parther die Gesandten nicht durch? Was bedeutete das für den Handel zwischen Rom und China?"
+   ]
+  },
+  {
+   "id": "rueckgang",
+   "titel": "Nach der Han-Zeit: Der Landhandel wird kleinteiliger",
+   "kurz": "Kein Ende, sondern ein Wandel",
+   "farbe": "#e8b04a",
+   "fussnoten": [
+    {
+     "n": 1,
+     "q": "waugh2007",
+     "s": "3",
+     "art": "vgl",
+     "beleg": "under the latter Han the trade revived to flourish for about a century down to ca. 150 CE"
+    },
+    {
+     "n": 2,
+     "q": "waugh2007",
+     "s": "10",
+     "art": "zitat",
+     "beleg": "der Seidenhandel zu Lande nahm wahrscheinlich bedeutend ab",
+     "zusatz": "Richthofen 1877, zit. nach"
+    },
+    {
+     "n": 3,
+     "q": "waugh2007",
+     "s": "3",
+     "art": "vgl",
+     "beleg": "in the fourth and fifth centuries, Chinese ships made their way into the Indian Ocean"
+    },
+    {
+     "n": 4,
+     "q": "shahbazi2002",
+     "s": "online",
+     "abschnitt": "Wars with Rome",
+     "art": "vgl",
+     "beleg": "Repeated skirmishes led to a new large-scale war in 260"
+    },
+    {
+     "n": 5,
+     "q": "shahbazi2002",
+     "s": "online",
+     "abschnitt": "Wars with Rome",
+     "art": "vgl",
+     "beleg": "there were three campaigns"
+    },
+    {
+     "n": 6,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "Written in 313 in the Gansu corridor, these show the presence of Sogdian merchant communities in the main cities of the region"
+    },
+    {
+     "n": 7,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "Sogdian communities of Luoyang had been decimated by famine"
+    },
+    {
+     "n": 8,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "They also show that the merchants were organized within networks"
+    },
+    {
+     "n": 9,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "It is hard to tell what became of the great trade during the following century"
+    },
+    {
+     "n": 10,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "in 439 the Sogdian merchants were the main foreign merchants in Gansu"
+    },
+    {
+     "n": 11,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Growth",
+     "art": "vgl",
+     "beleg": "it was by caravan routes, rather than by sea, that Persia received most of its silk"
+    },
+    {
+     "n": 12,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Growth",
+     "art": "vgl",
+     "beleg": "the Tang empire sent more than 10 percent of its fiscal receipts to the West"
+    },
+    {
+     "n": 13,
+     "q": "waugh2007",
+     "s": "5",
+     "art": "vgl",
+     "beleg": "during the post- Han period, the West in effect forgot what it had known about China"
+    },
+    {
+     "n": 14,
+     "q": "delavaissiere2004",
+     "s": "online",
+     "abschnitt": "Origins",
+     "art": "vgl",
+     "beleg": "a fact which gives evidence of the replacement of Bactrian merchants by Sogdians"
+    }
+   ],
+   "niveaus": {
+    "A": "Nach dem Ende der Han-Zeit in China änderte sich der Handel auf den Landwegen. Er hörte aber nicht auf! Er wurde kleinteiliger: Sogdische Händler lebten in vielen Städten und arbeiteten in Netzen zusammen.[6][8] Im Westen führten Rom und das Perserreich mehrere Kriege gegeneinander.[5] Forscher sind sich nicht einig. Der Geograph Richthofen meinte 1877, der Seidenhandel zu Lande habe stark abgenommen.[2] Neuere Forschung zeigt dagegen, dass die Sogder ihre Netze sogar ausbauten.[10] Die kleinen Kamel-Karawanen auf der Karte sind ein Modell für diesen Etappenhandel.",
+    "B": "Nach Richthofen blühte der Handel zwischen China und dem Westen bis etwa 150 nach Christus.[1] Nach dem Ende der Han-Dynastie änderte sich viel. Im Westen kämpften Rom und das neue Perserreich: König Schapur I. führte drei Feldzüge gegen Rom, und 260 begann ein neuer großer Krieg.[5][4] Der Handel hörte trotzdem nicht auf. Briefe sogdischer Händler aus dem Jahr 313 zeigen, dass sie in vielen Städten Chinas lebten und in Netzen zusammenarbeiteten.[6][8] Dieselben Briefe berichten, dass eine Hungersnot die sogdische Gemeinde in Luoyang schwer traf.[7] Manche Forscher meinen, der Seidenhandel über Land sei damals stark zurückgegangen.[2] Er wies auch darauf hin, dass im 4. und 5. Jahrhundert chinesische Schiffe in den Indischen Ozean fuhren.[3] Andere betonen: Um 439 waren Sogder die wichtigsten fremden Händler in Nordwestchina.[10] Der Handel wurde also regionaler und kleinteiliger, aber er blieb bestehen.",
+    "C": "Die Zeit nach der Han-Dynastie gilt oft als Zeit des Niedergangs der Seidenstraße. Richthofen schrieb 1877, „der Seidenhandel zu Lande nahm wahrscheinlich bedeutend ab“.[2] Er meinte auch, der Westen habe nach der Han-Zeit vergessen, was er über China wusste.[13] Tatsächlich gab es Krisen: Rom und das Sasanidenreich führten Kriege; der Perserkönig Schapur I. unternahm drei Feldzüge gegen Rom.[5] Im Jahr 260 begann ein neuer großer Krieg.[4] Doch neuere Forschung zeichnet ein anderes Bild. Die sogdischen „Alten Briefe“, 313 in Gansu geschrieben, zeigen Gemeinschaften sogdischer Händler in vielen Städten, die in Netzen organisiert waren.[6][8] Dieselben Briefe berichten, dass eine Hungersnot die indische und die sogdische Gemeinde in Luoyang schwer getroffen hatte.[7] Was danach aus dem Fernhandel wurde, ist schwer zu sagen.[9] Sicher ist: Sogdische Händler lösten baktrische ab[14], und um 439 waren sie die wichtigsten fremden Kaufleute in Gansu.[10] Noch um 550 kam nach einem byzantinischen Bericht der größte Teil der Seide auf Karawanenwegen nach Persien, nicht über das Meer.[11] Der Handel hörte also nicht auf, sondern veränderte seine Form. Später, in der Tang-Zeit, schickte China sogar riesige Mengen Seide nach Westen.[12]"
+   },
+   "glossar": [
+    {
+     "wort": "Han-Dynastie",
+     "erklaerung": "Chinesisches Kaiserhaus zur selben Zeit wie das Römische Kaiserreich."
+    },
+    {
+     "wort": "Sasaniden",
+     "erklaerung": "Persisches Herrscherhaus, das auf die Parther folgte; im 3. Jahrhundert ein starker Gegner Roms."
+    },
+    {
+     "wort": "„Alte Briefe“",
+     "erklaerung": "Briefe sogdischer Händler, geschrieben im Jahr 313 in Gansu (Nordwestchina)."
+    },
+    {
+     "wort": "Netzwerk",
+     "erklaerung": "Viele Händler und Familien an verschiedenen Orten, die sich gegenseitig helfen und Waren weitergeben."
+    },
+    {
+     "wort": "Tang-Zeit",
+     "erklaerung": "Spätere Epoche der chinesischen Geschichte, unter anderem im 7. und 8. Jahrhundert."
+    }
+   ],
+   "abbildung": {
+    "skizze": "etappen",
+    "titel": "Kartenskizze: Vom durchgehenden Weg zum Etappenhandel",
+    "text": "Blass: die durchgehende Mittelroute. Kräftig: kurze Etappen zwischen benachbarten Handelsorten, wie sie die Kamel-Karawanen auf dem Globus zeigen. Modell, keine genaue Karte. Eigene Darstellung; Küstenlinien: Natural Earth (gemeinfrei).",
+    "lizenz": "eigene Darstellung, CC0"
+   },
+   "quellenauszug": [
+    {
+     "titel": "Wie Forscher früher dachten: Ferdinand von Richthofen (1877)",
+     "text": "„Der Seidenhandel zu Lande nahm wahrscheinlich bedeutend ab.“",
+     "nachweis": "Ferdinand von Richthofen, China, Bd. 1, Berlin 1877 (gemeinfrei), zitiert nach Waugh, Silk Roads, S. 10.",
+     "hinweis": "Eine Forschungsmeinung von 1877, keine Quelle aus der Antike. Neuere Funde wie die „Alten Briefe“ zeigen ein anderes Bild."
+    },
+    {
+     "titel": "Die sogdischen „Alten Briefe“ (313): kein wörtlicher Auszug",
+     "text": "Die Übersetzung der Briefe ist urheberrechtlich geschützt. In eigenen Worten: Ein sogdischer Händler schrieb in Gansu einen Brief nach Samarkand. Er berichtet, dass eine Hungersnot die indische und die sogdische Händlergemeinde in Luoyang schwer getroffen hatte.",
+     "nachweis": "Vgl. de la Vaissière, Sogdian Trade, Abschn. „Origins“.",
+     "hinweis": ""
+    }
+   ],
+   "woher": {
+    "quellen": "Die sogdischen „Alten Briefe“ (313), chinesische Geschichtswerke, die Inschrift Schapurs I. und römische Berichte über die Kriege, der byzantinische Reisende Kosmas (um 550) und archäologische Funde.",
+    "nichtwissen": "Was im 4. Jahrhundert aus dem großen Fernhandel wurde, ist schwer zu sagen. Wie viele Waren gehandelt wurden, wissen wir nicht. Ob der Handel eher zurückging oder sich nur verlagerte, wird in der Forschung unterschiedlich beurteilt."
+   },
+   "auftraege": [
+    "Stelle die beiden Forschungsmeinungen in einer Tabelle gegenüber: Was spricht für einen Rückgang des Landhandels, was dagegen?",
+    "Beobachte die Kamel-Karawanen auf dem Globus vor und nach 220 n. Chr. Beschreibe den Unterschied und erkläre, warum die Darstellung ein Modell ist."
+   ]
+  },
+  {
+   "id": "seeweg",
+   "titel": "Der Seeweg nach Indien",
+   "kurz": "Der Monsun als Fahrplan",
+   "farbe": "#5fd8ff",
+   "fussnoten": [
+    {
+     "n": 1,
+     "q": "plinius",
+     "s": "6,104",
+     "art": "quelle",
+     "beleg": "Indos vento hippalo navigant diebus XL ad primum emporium Indiae Muzirim"
+    },
+    {
+     "n": 2,
+     "q": "plinius",
+     "s": "6,104",
+     "art": "quelle",
+     "beleg": "non expetendum propter vicinos piratas"
+    },
+    {
+     "n": 3,
+     "q": "tripati2017",
+     "s": "1618",
+     "art": "vgl",
+     "beleg": "has credited Hippalus (~45 CE), the Greek mariner, with the discovery of monsoon winds"
+    },
+    {
+     "n": 4,
+     "q": "tripati2017",
+     "s": "1619",
+     "art": "vgl",
+     "beleg": "The Indian and Arab sailors exploited monsoon winds to sail between their countries much before the westerners"
+    },
+    {
+     "n": 5,
+     "q": "tripati2017",
+     "s": "1619",
+     "art": "vgl",
+     "beleg": "scholars believed that Hippalus was the name given to the wind"
+    },
+    {
+     "n": 6,
+     "q": "schoff1912",
+     "s": "228",
+     "art": "zitat",
+     "beleg": "not for a discovery new to the world, but for freeing the Roman Empire from Arabian monopoly"
+    },
+    {
+     "n": 7,
+     "q": "schoff1912",
+     "s": "230",
+     "art": "vgl",
+     "beleg": "the navigation of the Indian Ocean began from the Persian Gulf and Arabia"
+    },
+    {
+     "n": 8,
+     "q": "casson1990",
+     "s": "200",
+     "art": "vgl",
+     "beleg": "inland through the desert under guard and under security to the public warehouse"
+    },
+    {
+     "n": 9,
+     "q": "casson1990",
+     "s": "200",
+     "art": "vgl",
+     "beleg": "the loan agreements at Muziris"
+    },
+    {
+     "n": 10,
+     "q": "casson1990",
+     "s": "200",
+     "art": "vgl",
+     "beleg": "Gangetic nard, 60 containers"
+    },
+    {
+     "n": 11,
+     "q": "casson1990",
+     "s": "205",
+     "art": "vgl",
+     "beleg": "had a value of just short of 1155 talents"
+    },
+    {
+     "n": 12,
+     "q": "casson1990",
+     "s": "203",
+     "art": "vgl",
+     "beleg": "the journey from Berenice, the Red Sea port furthest from Koptos, took at most twelve days"
+    },
+    {
+     "n": 13,
+     "q": "casson1990",
+     "s": "205",
+     "art": "vgl",
+     "beleg": "assure protection of the caravan against brigands"
+    },
+    {
+     "n": 14,
+     "q": "plinius",
+     "s": "6,104",
+     "art": "quelle",
+     "beleg": "navigare incipiunt aestate media"
+    },
+    {
+     "n": 15,
+     "q": "plinius",
+     "s": "6,106",
+     "art": "quelle",
+     "beleg": "ex India renavigant mense Aegyptio Tybi incipiente, nostro Decembri"
+    },
+    {
+     "n": 16,
+     "q": "tripati2017",
+     "s": "1622",
+     "art": "vgl",
+     "beleg": "has undergone many revisions, and cannot be precisely dated"
+    },
+    {
+     "n": 17,
+     "q": "casson1990",
+     "s": "200",
+     "art": "vgl",
+     "beleg": "ivory, sound condition"
+    },
+    {
+     "n": 18,
+     "q": "casson1990",
+     "s": "195",
+     "art": "vgl",
+     "beleg": "mid-second A.D."
+    }
+   ],
+   "niveaus": {
+    "A": "Neben den Landwegen gab es einen Seeweg nach Indien. Römische Schiffe fuhren über das Rote Meer und den Indischen Ozean. Wichtig waren die Monsunwinde. Sie wehen im Jahr regelmäßig in wechselnde Richtungen. Plinius berichtet: Die Schiffe brachen im Hochsommer auf und erreichten in etwa 40 Tagen den Hafen Muziris in Indien.[14][1] Zurück fuhren sie ab Dezember.[15] Unterwegs drohten Seeräuber.[2] Gehandelt wurden zum Beispiel Elfenbein und wertvolle Duftöle.[17][10] Die Römer waren nicht die Ersten: Indische und arabische Seeleute nutzten die Monsunwinde schon lange vor ihnen.[4]",
+    "B": "Der Seeweg nach Indien begann in Häfen am Roten Meer wie Berenike. Von dort brachten Karawanen die Waren in höchstens zwölf Tagen durch die Wüste nach Koptos am Nil.[12] Die Schiffe nutzten die Monsunwinde wie einen Fahrplan. Laut Plinius brachen sie im Hochsommer auf, erreichten in etwa 40 Tagen den Hafen Muziris und fuhren ab Dezember zurück.[14][1][15] Ein Papyrus aus dem 2. Jahrhundert, der Muziris-Papyrus,[18] erwähnt Kreditverträge, die in Muziris geschlossen wurden.[9] Zur Ladung gehörten Narde aus dem Gangesgebiet und Elfenbein.[10][17] Die Ladung eines einzigen Schiffes war ein Vermögen wert.[11] Gefahren gab es viele: Seeräuber an der Küste und Räuber in der Wüste.[2][13] Der Periplus, ein Handbuch für Kaufleute, nennt einen Griechen namens Hippalos als Entdecker des Monsuns.[3] Das ist umstritten: Indische und arabische Seeleute kannten die Winde schon viel früher.[4] Manche Forscher halten „Hippalos“ ohnehin nur für den Namen eines Windes.[5]",
+    "C": "Für den Handel mit Indien war das Meer oft wichtiger als die Landwege. Die Schifffahrt im Indischen Ozean begann nicht bei den Römern, sondern im Persischen Golf und in Arabien.[7] Die Römer nutzten die Monsunwinde wie einen Fahrplan: Im Hochsommer ging es los, nach etwa 40 Tagen erreichten die Schiffe Muziris, und ab Dezember fuhren sie zurück.[14][1][15] Der Periplus Maris Erythraei schreibt die „Entdeckung“ des Monsuns einem Griechen namens Hippalos zu.[3] Diese Erzählung ist umstritten. Plinius kennt „Hippalus“ als Namen eines Windes, und manche Forscher halten ihn deshalb für den Namen des Windes, nicht eines Menschen.[5] Schon 1912 meinte Wilfred Schoff, man solle Hippalos „nicht für eine Entdeckung, die der Welt neu war“, in Erinnerung behalten.[6] Wie wertvoll der Handel war, zeigt der Muziris-Papyrus: Die Ladung eines einzigen Schiffes war fast 1155 Talente wert.[11] Der Vertrag regelt auch, dass die Waren bewacht durch die Wüste zu einem öffentlichen Lager gebracht werden.[8] Von Berenike am Roten Meer brachten Karawanen die Waren in höchstens zwölf Tagen nach Koptos am Nil.[12] Unterwegs mussten sie vor Räubern geschützt werden.[13] Auch der Periplus selbst ist schwer zu datieren.[16]"
+   },
+   "glossar": [
+    {
+     "wort": "Monsun",
+     "erklaerung": "Wind, der mit den Jahreszeiten seine Richtung wechselt. Seefahrer konnten so im Sommer hin- und im Winter zurückfahren."
+    },
+    {
+     "wort": "Periplus Maris Erythraei",
+     "erklaerung": "Griechisches Handbuch für Seefahrer und Kaufleute aus dem 1. Jahrhundert. Es beschreibt Häfen und Waren am Roten Meer und im Indischen Ozean."
+    },
+    {
+     "wort": "Papyrus",
+     "erklaerung": "Schreibmaterial aus der Papyruspflanze. In Ägypten haben sich viele Papyri mit Verträgen und Briefen erhalten."
+    },
+    {
+     "wort": "Kreditvertrag",
+     "erklaerung": "Vertrag, in dem jemand Geld leiht und verspricht, es später zurückzuzahlen."
+    },
+    {
+     "wort": "Narde",
+     "erklaerung": "Wertvolles Duftöl. Im Muziris-Papyrus ist von Narde vom Ganges die Rede."
+    },
+    {
+     "wort": "Talent",
+     "erklaerung": "Sehr große Geldeinheit in der Antike; kleinere Einheit war die Drachme."
+    },
+    {
+     "wort": "Muziris",
+     "erklaerung": "Hafen an der Südwestküste Indiens, den Plinius „ersten Handelsplatz Indiens“ nennt."
+    }
+   ],
+   "abbildung": {
+    "skizze": "monsun",
+    "titel": "Kartenskizze: Der Monsun als Fahrplan",
+    "text": "Hinfahrt im Sommer mit dem Südwestmonsun, Rückfahrt im Winter mit dem Nordostmonsun. Häfen: Berenike, Koptos, Muziris. Eigene schematische Darstellung; Küstenlinien: Natural Earth (gemeinfrei).",
+    "lizenz": "eigene Darstellung, CC0"
+   },
+   "quellenauszug": [
+    {
+     "titel": "Plinius der Ältere über die Fahrt nach Indien (um 77 n. Chr.)",
+     "text": "„Man beginnt die Fahrt mitten im Sommer … Nach Indien segelt man mit dem Wind Hippalus in 40 Tagen bis zum ersten Handelsplatz Indiens, Muziris. Er ist nicht zu empfehlen, weil in der Nähe Seeräuber sitzen … Aus Indien fährt man zu Beginn des ägyptischen Monats Tybi zurück, das ist unser Dezember.“",
+     "nachweis": "Plin. nat. 6,104 und 6,106; eigene, vereinfachte Übersetzung aus dem Lateinischen (Text gemeinfrei).",
+     "hinweis": "Bei Plinius ist „Hippalus“ der Name eines Windes."
+    }
+   ],
+   "woher": {
+    "quellen": "Der Periplus Maris Erythraei (1. Jh.), Plinius der Ältere, der Muziris-Papyrus (2. Jh., heute in Wien) und Texte und Funde aus Indien.",
+    "nichtwissen": "Ob es Hippalos wirklich gab, wissen wir nicht. Der Periplus lässt sich nicht genau datieren. Wie viele Schiffe jedes Jahr fuhren, ist unbekannt."
+   },
+   "auftraege": [
+    "Erkläre mit der Kartenskizze, warum der Monsun für die Seefahrer wie ein „Fahrplan“ war.",
+    "„Hippalos, der Entdecker“: Vergleiche, was der Periplus behauptet und was Forscher heute dazu sagen. Wer hat den Monsun „entdeckt“?"
+   ]
+  },
+  {
+   "id": "zhenghe",
+   "titel": "Die Reisen des Zheng He (1405–1433)",
+   "kurz": "Flotten für den Kaiser",
+   "farbe": "#5fdc8a",
+   "fussnoten": [
+    {
+     "n": 1,
+     "q": "wade2004",
+     "s": "3",
+     "art": "vgl",
+     "beleg": "Muslim lad from Yun-nan, surnamed Ma, captured during the Ming invasion of the region and castrated to serve as a palace eunuch"
+    },
+    {
+     "n": 2,
+     "q": "wade2004",
+     "s": "3",
+     "art": "vgl",
+     "beleg": "Zhu Di assumed the reign title “Yong-le”"
+    },
+    {
+     "n": 3,
+     "q": "wade2004",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "sent abroad by the Yong-le Emperor on seven occasions"
+    },
+    {
+     "n": 4,
+     "q": "wade2004",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "close to 30,000 persons on seven voyages to more than 30 distant lands in Asia and Africa",
+     "zusatz": "Wade gibt hier die traditionelle Sicht wieder"
+    },
+    {
+     "n": 5,
+     "q": "wade2004",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "brought many of the foreign rulers back to China to offer tribute to the imperial court"
+    },
+    {
+     "n": 6,
+     "q": "wade2004",
+     "s": "19",
+     "art": "zitat",
+     "beleg": "proto maritime colonialism"
+    },
+    {
+     "n": 7,
+     "q": "wade2004",
+     "s": "13",
+     "art": "vgl",
+     "beleg": "which comprised military garrisons-cum-treasuries, were established at Malacca"
+    },
+    {
+     "n": 8,
+     "q": "wade2004",
+     "s": "14",
+     "art": "vgl",
+     "beleg": "The Ming fleet reported 5,000 persons killed"
+    },
+    {
+     "n": 9,
+     "q": "wade2004",
+     "s": "20",
+     "art": "vgl",
+     "beleg": "The death of the Yong-le emperor was a factor, as was the huge expense of the missions"
+    },
+    {
+     "n": 10,
+     "q": "wade2004",
+     "s": "20",
+     "art": "vgl",
+     "beleg": "Senior civil ministers had been arguing against the missions for decades"
+    },
+    {
+     "n": 11,
+     "q": "church2005",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "equivalent to 447 ft by 183 ft (138.4 m by 56 m)"
+    },
+    {
+     "n": 12,
+     "q": "church2005",
+     "s": "38",
+     "art": "vgl",
+     "beleg": "A ship of about 200-250 ft would make much more sense than the 450 ft one"
+    },
+    {
+     "n": 13,
+     "q": "church2005",
+     "s": "16",
+     "art": "vgl",
+     "beleg": "Fei Xin’s 48 treasure ships"
+    },
+    {
+     "n": 14,
+     "q": "church2005",
+     "s": "16",
+     "art": "vgl",
+     "beleg": "for the 62 ships mentioned in the Ming shi"
+    },
+    {
+     "n": 15,
+     "q": "church2005",
+     "s": "13",
+     "art": "vgl",
+     "beleg": "one hundred treasure ships"
+    },
+    {
+     "n": 16,
+     "q": "church2005",
+     "s": "22",
+     "art": "vgl",
+     "beleg": "between 27,000 and 28,000"
+    },
+    {
+     "n": 17,
+     "q": "church2005",
+     "s": "5",
+     "art": "vgl",
+     "beleg": "the official documents concerning the voyages were all destroyed during the Chenghua"
+    },
+    {
+     "n": 18,
+     "q": "wade2004",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "the impending 600th anniversary of the first voyage by Zheng He"
+    },
+    {
+     "n": 19,
+     "q": "church2005",
+     "s": "1",
+     "art": "vgl",
+     "beleg": "the 28-year period of Zheng He’s maritime expeditions"
+    },
+    {
+     "n": 20,
+     "q": "wade2004",
+     "s": "14",
+     "art": "zitat",
+     "beleg": "feigned surrender but secretly plotted to attack the Imperial army",
+     "zusatz": "Ming shi-lu, zit. nach"
+    },
+    {
+     "n": 21,
+     "q": "wade2004",
+     "s": "2",
+     "art": "vgl",
+     "beleg": "polities of what is today Southeast Asia and the Indian Ocean"
+    }
+   ],
+   "steckbrief": [
+    {
+     "k": "Name",
+     "v": "Zheng He; Familienname ursprünglich Ma",
+     "fn": 1
+    },
+    {
+     "k": "Herkunft",
+     "v": "muslimische Familie aus Yunnan (Südwestchina); als Junge gefangen genommen, später Eunuch am Hof",
+     "fn": 1
+    },
+    {
+     "k": "Auftraggeber",
+     "v": "Kaiser Yongle (Zhu Di) aus der Ming-Dynastie",
+     "fn": 2
+    },
+    {
+     "k": "Fahrten",
+     "v": "sieben große Flottenfahrten von 1405 bis 1433",
+     "fn": 3
+    },
+    {
+     "k": "Ziele",
+     "v": "Südostasien, Indischer Ozean bis nach Afrika",
+     "fn": 4
+    },
+    {
+     "k": "Flotte",
+     "v": "laut Quellen etwa 27 000 bis 28 000 Mann; Zahl und Größe der Schiffe umstritten",
+     "fn": 16
+    }
+   ],
+   "vignette": {
+    "hinweis": "Erfundene Rahmenerzählung. Die Person Li ist ausgedacht; die Sachinhalte sind in den Fußnoten belegt.",
+    "text": "Mein Name ist Li. Ich bin Matrose in der Flotte des Admirals Zheng He. Unser Kaiser Yongle hat uns ausgeschickt.[2][3] Wir sind fast 28 000 Männer, so viele wie die Einwohner einer großen Stadt.[16] In Malakka machen wir halt. Hier haben unsere Soldaten ein befestigtes Lager mit Vorratshäusern gebaut.[7] An Bord haben wir Gesandte fremder Herrscher. Sie reisen mit uns zum Kaiserhof, um dort Geschenke zu überreichen.[5] Erobern wollen wir angeblich nichts. Doch mein Freund war dabei, als unsere Flotte gegen den Seeräuber Chen Zuyi kämpfte. Tausende starben.[8][20] Wenn ich nach Hause komme, werde ich gefragt werden: Wart ihr Gäste oder Herren über das Meer?"
+   },
+   "niveaus": {
+    "A": "Zheng He stammte aus einer muslimischen Familie in Südwestchina. Als Junge wurde er gefangen genommen und diente später am Kaiserhof.[1] Kaiser Yongle schickte ihn mit großen Flotten auf Reisen.[2] Zwischen 1405 und 1433 fuhr er siebenmal los: nach Südostasien, durch den Indischen Ozean bis nach Afrika.[18][19][3][4] Zur Flotte gehörten etwa 28 000 Mann.[16] Die Flotte brachte Geschenke. Fremde Herrscher schickten Gesandte mit Gaben an den Kaiserhof.[5] Nach dem Tod des Kaisers wurden die teuren Fahrten eingestellt.[9] Wie groß die Schiffe wirklich waren, ist bis heute umstritten.[11][12]",
+    "B": "Zheng He kam aus einer muslimischen Familie in Yunnan. Als Junge wurde er von Ming-Truppen gefangen genommen und wurde Eunuch am Hof des Prinzen Zhu Di. Als dieser Kaiser wurde, nannte er sich Yongle.[1][2] Er schickte Zheng He siebenmal mit großen Flotten aus.[3] Die Fahrten von 1405 bis 1433 führten nach Südostasien, durch den Indischen Ozean und bis nach Afrika.[18][19][21][4] In der Flotte fuhren etwa 27 000 bis 28 000 Menschen.[16] Fremde Herrscher kamen mit nach China und brachten dem Kaiser Tribut. So zeigte China seine Macht.[5] In Malakka entstand ein befestigtes Lager mit Vorräten.[7] Nicht immer ging es friedlich zu: Gegen den Seeräuber Chen Zuyi kämpfte die Flotte, Tausende starben.[8] Nach dem Tod Yongles endeten die Fahrten. Sie waren sehr teuer, und hohe Beamte waren schon lange dagegen.[9][10] Wie groß die „Schatzschiffe“ waren, ist umstritten.[11][12]",
+    "C": "Zheng He, geboren als Ma in einer muslimischen Familie in Yunnan, kam als gefangener Junge an den Hof und wurde Eunuch. Er stand dem Prinzen Zhu Di nahe, der sich als Kaiser Yongle nannte.[1][2] In dessen Auftrag führte er sieben große Flottenfahrten an.[3] Die traditionelle Sicht beschreibt ihn als Boten des Friedens, der mit fast 30 000 Menschen über 30 Länder in Asien und Afrika erreichte.[4] Der Historiker Geoff Wade widerspricht: Er spricht von einem „frühen See-Kolonialismus“, weil die Ming wichtige Häfen mit Gewalt oder Drohungen kontrollieren wollten.[6] Als Beleg nennt er befestigte Stützpunkte wie in Malakka und Kämpfe mit Tausenden Toten.[7][8] Umstritten sind auch Zahlen: Für die Flotte nennen die Quellen 48, 62 oder 100 Schatzschiffe.[13][14][15] Die Begleiter Fei Xin und Gong Zhen nennen in ihren Berichten jeweils andere Zahlen.[13][15] Die Ming-Geschichte gibt eine Länge von 44 zhang an, etwa 138 Meter. Sally Church hält 60 bis 75 Meter für viel wahrscheinlicher.[11][12] Für das Ende der Fahrten nennt Wade mehrere Gründe: den Tod Yongles, die hohen Kosten und den langen Widerstand hoher Beamter.[9][10] Viele amtliche Akten zu den Fahrten gelten als verloren.[17]"
+   },
+   "leitfrage": "Wer hat eigentlich wen „entdeckt“?",
+   "glossar": [
+    {
+     "wort": "Ming-Dynastie",
+     "erklaerung": "Chinesisches Kaiserhaus, in dessen Dienst Zheng He stand."
+    },
+    {
+     "wort": "Eunuch",
+     "erklaerung": "Kastrierter Mann im Dienst des Kaiserhofs. Eunuchen konnten am Hof sehr mächtig werden."
+    },
+    {
+     "wort": "Tribut",
+     "erklaerung": "Abgabe oder Geschenk an einen Herrscher, mit dem man seine Oberhoheit anerkennt."
+    },
+    {
+     "wort": "Prestige",
+     "erklaerung": "Ansehen und Ruhm, die jemand bei anderen genießt."
+    },
+    {
+     "wort": "Stützpunkt",
+     "erklaerung": "Befestigter Ort mit Lager und Soldaten, an dem eine Flotte Halt machen und Vorräte lagern kann."
+    },
+    {
+     "wort": "zhang",
+     "erklaerung": "Chinesisches Längenmaß, etwa 3,1 Meter (44 zhang entsprechen etwa 138 Metern).",
+     "fn": 11
+    }
+   ],
+   "abbildung": {
+    "skizze": "zhenghe",
+    "titel": "Kartenskizze: Die sieben Fahrten des Zheng He",
+    "text": "Hinwege der sieben Fahrten (grün) und die wichtigsten Häfen. Schematisch nach den Daten dieses Tafelbilds. Eigene Darstellung; Küstenlinien: Natural Earth (gemeinfrei).",
+    "lizenz": "eigene Darstellung, CC0"
+   },
+   "quellenauszug": [
+    {
+     "titel": "Aus den „Wahrhaftigen Aufzeichnungen“ der Ming (Ming Shilu), kurzes Belegzitat",
+     "text": "Der Seeräuber Chen Zuyi habe „sich zum Schein ergeben, aber heimlich einen Angriff auf das kaiserliche Heer geplant“.",
+     "nachweis": "Ming Shilu, zitiert nach Wade, Zheng He Voyages, S. 14 (englische Übersetzung von Geoff Wade, kurzes Belegzitat nach § 51 UrhG; deutsche Übertragung d. Verf.).",
+     "hinweis": "So begründet die offizielle Chronik den Kampf. Ob das stimmt, wissen wir nur aus chinesischer Sicht."
+    }
+   ],
+   "woher": {
+    "quellen": "Die offizielle Ming-Geschichte (Ming shi), die „Wahrhaftigen Aufzeichnungen“ (Ming Shilu), Berichte von Begleitern wie Fei Xin und Gong Zhen sowie Inschriften.",
+    "nichtwissen": "Wie groß die Schatzschiffe waren und wie viele es gab, ist unklar; die Quellen widersprechen sich. Viele amtliche Akten gelten als verloren. Warum die Fahrten endeten, wird unterschiedlich gewichtet."
+   },
+   "auftraege": [
+    "Vergleiche die zwei Sichtweisen auf Zheng He: Friedensbote oder früher See-Kolonialismus? Welche Belege nennt Geoff Wade für seine Sicht?",
+    "Erkläre, warum Forscher die Angabe von 44 zhang für die Schatzschiffe bezweifeln. Was müsste man finden, um die Frage zu klären?"
+   ]
+  }
+ ]
+}

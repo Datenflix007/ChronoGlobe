@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lehrkraft-Ansicht: Schülertexte zu den Handelswegen</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--txt:#1d2430;--mut:#5b6675;--line:#d6dbe2;--acc:#1f6d9c;--bg:#f7f5ef;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:24px 16px 60px}
+  main{max-width:1100px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px} h2{font-size:21px;margin:0 0 10px}
+  .intro{color:var(--mut);max-width:780px}
+  nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 24px}
+  nav a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--txt);text-decoration:none}
+  section.text{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:14px;padding:18px 20px;margin:0 0 28px}
+  .niv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:12px 0}
+  .niv>div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+  .niv h3{font-size:14px;margin:0 0 4px;color:var(--acc)}
+  .niv .wz{font-size:12px;color:var(--mut)}
+  .niv ol{font-size:12.5px;color:var(--mut);padding-left:18px}
+  .fnz{font-size:.7em;color:var(--acc)}
+  .tx-h{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:700;margin:0 0 6px}
+  .tx-steckbrief,.tx-vignette,.tx-quelle,.tx-woher,.tx-glossar,.tx-auftraege,.tx-anm{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+  .tx-steckbrief dl,.tx-glossar dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0}
+  .tx-steckbrief dt,.tx-glossar dt{font-weight:650} dd{margin:0}
+  .tx-vignette{border-style:dashed} .tx-fiktion{color:#9a5b00;font-size:13px}
+  .tx-leitfrage{font-weight:700;text-align:center;font-size:17px}
+  .tx-fig svg{width:100%;max-width:560px;height:auto;border:1px solid var(--line);border-radius:8px;display:block}
+  .tx-fig figcaption{font-size:12.5px;color:var(--mut)}
+  .tx-quelle blockquote{margin:6px 0;padding:6px 12px;border-left:3px solid #c9a227;font-family:Georgia,serif}
+  .tx-nachweis,.tx-qhinweis{font-size:12.5px;color:var(--mut);margin:3px 0}
+  .tx-anm li{font-size:12.5px;color:var(--mut)}
+  .gemeinsam{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#eef1f5}
+  .wrap{overflow-x:auto}
+  .ok{color:#1b7a3a;font-weight:650} .lok{color:#9a5b00;font-weight:650}
+  @media (max-width:900px){ .niv,.gemeinsam{grid-template-columns:1fr} }
+  @media print{ nav{display:none} body{background:#fff} section.text{break-inside:avoid-page} }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lehrkraft-Ansicht: Schülertexte zu den Handelswegen</h1>
+  <p class="intro">Alle vier Texte mit den Niveaus A, B und C nebeneinander, dazu Steckbrief, Erzählung, Glossar, Kartenskizze, Quellenauszüge, „Woher wissen wir das?“, Arbeitsaufträge und Anmerkungen. Zitierweise nach dem Merkblatt „Zitation“ des Historischen Instituts der FSU Jena. Die Belege sind mit <code>python tools/check_zitate.py</code> gegen die abgelegten Quellenseiten geprüft; Regeln in <code>docs/GRUNDREGELN.md</code>.</p>
+  <nav id="nav"></nav>
+  <div id="texte"></div>
+  <section class="text" style="--c:#1f6d9c" id="literatur">
+    <h2>Quellen- und Literaturverzeichnis</h2>
+    <div class="wrap"><table><thead><tr><th>Titel</th><th>Art</th><th>Lizenz</th><th>Ablage</th></tr></thead><tbody id="litbody"></tbody></table></div>
+    <p class="tx-nachweis">Ablage „öffentlich“: Seitentexte liegen im Repository (gemeinfrei). Ablage „lokal“: urheberrechtlich geschützt, nur auf dem Rechner der Lehrkraft unter <code>quellen/lokal/</code>, nicht veröffentlicht.</p>
+  </section>
+  <p><a href="index.html">← zurück zum Tafelbild</a></p>
+</main>
+<script src="vendor/d3.min.js"></script>
+<script src="js/texte.js"></script>
+<script>
+(function () {
+  function load(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
+  function el(t, c, x) { var e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; }
+  Promise.all(['data/texte.json', 'data/literatur.json', 'data/land.json', 'data/handel.json', 'data/zhenghe.json'].map(load)).then(function (r) {
+    var T = r[0].texte, LIT = {}; r[1].titel.forEach(function (t) { LIT[t.id] = t; });
+    var land = r[2].type === 'Feature' ? r[2] : { type: 'Feature', geometry: r[2].geometry || r[2] };
+    var D = { land: land, handel: r[3], zhenghe: r[4] }, box = document.getElementById('texte'), nav = document.getElementById('nav');
+    T.forEach(function (t) {
+      var a = el('a', null, t.titel); a.href = '#' + t.id; nav.appendChild(a);
+      var s = el('section', 'text'); s.id = t.id; s.style.setProperty('--c', t.farbe);
+      s.appendChild(el('h2', null, t.titel));
+      var niv = el('div', 'niv');
+      ['A', 'B', 'C'].forEach(function (n) {
+        var d = el('div'); d.appendChild(el('h3', null, 'Niveau ' + n));
+        var txt = t.niveaus[n], nm = Texte.nummerieren([txt]);
+        d.appendChild(el('div', 'wz', txt.replace(/\[\d+\]/g, '').split(/\s+/).filter(Boolean).length + ' Wörter'));
+        var p = el('p'); txt.split(/(\[\d+\])/).forEach(function (x) { var m = /^\[(\d+)\]$/.exec(x); if (m) p.appendChild(el('sup', 'fnz', String(nm.map[+m[1]]))); else p.appendChild(document.createTextNode(x)); });
+        d.appendChild(p);
+        var ol = el('ol'); Texte.anmerkungen(t.fussnoten, nm.order, LIT).forEach(function (x) { ol.appendChild(el('li', null, x)); }); d.appendChild(ol);
+        niv.appendChild(d);
+      });
+      s.appendChild(niv);
+      // Gemeinsame Teile (Steckbrief, Erzählung, Abbildung, Glossar …): einmal mit Niveau B darstellen
+      var g = el('div');
+      Texte.render(g, t, LIT, D, { niveau: 'B' });
+      var txtB = g.querySelector('.tx-text'); if (txtB) txtB.remove();
+      s.appendChild(el('div', 'tx-h', 'Gemeinsame Bausteine (Anmerkungen hier zur Fassung B)'));
+      s.appendChild(g);
+      box.appendChild(s);
+    });
+    var a2 = el('a', null, 'Literatur'); a2.href = '#literatur'; nav.appendChild(a2);
+    var tb = document.getElementById('litbody');
+    r[1].titel.slice().sort(function (a, b) { return a.verz.localeCompare(b.verz, 'de'); }).forEach(function (t) {
+      var tr = el('tr'); tr.appendChild(el('td', null, t.verz)); tr.appendChild(el('td', null, t.typ)); tr.appendChild(el('td', null, t.lizenz));
+      var ab = el('td', t.ablage === 'lokal' ? 'lok' : 'ok', t.ablage === 'lokal' ? 'lokal' : 'öffentlich'); tr.appendChild(ab); tb.appendChild(tr);
+    });
+  }).catch(function (e) { document.getElementById('texte').textContent = 'Daten konnten nicht geladen werden (bitte über einen Webserver öffnen): ' + e.message; });
+})();
+</script>
+</body>
+</html>
