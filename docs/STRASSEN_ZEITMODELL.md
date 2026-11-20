@@ -87,6 +87,8 @@ Damit das Netz von den schon gezeichneten Straßen aus wächst und keine Linie l
 - `ueber_see: true`: Anschluss über das Meer (Inseln, Überfahrten). Hier wird nicht auf die Elternlinie gewartet.
 - `anschluss`: id der Elternlinie. 4 Linien ohne Ausbauzeitraum (`beginn_min` = `beginn_max`) erscheinen ohne Fenster.
 
+**Andere Straßendaten geprüft:** ORBIS (Stanford) und die AWMC/DARMC-Straßen (Liste von Project MERCURY) haben keine Jahreszahlen und sind gröber als Itiner-e. Einzelheiten in `docs/DATENQUELLEN.md`.
+
 ## Genauere Datierungen ergänzen
 
 - Direkt in `data/roemerstrassen.json` je Linie `zeit.beginn_min`/`beginn_max` setzen und `zeit.datierung` sowie `zeit.quelle_datierung` mit Beleg angeben. Achtung: `build_strassen_zeit.py` setzt diese Werte aus `zeit.regional` neu. Dauerhafte Einzelbelege gehören deshalb in eine eigene Liste im Skript.

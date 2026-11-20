@@ -89,6 +89,7 @@ Lokal testen: `python3 -m http.server` im Ordner, dann http://localhost:8000 (ni
 - `data/roemerstrassen.json`: Geometrie aus `build_roemerstrassen.py` (Itiner-e, Zenodo, CC BY 4.0). Dazu kommt ein Zeitmodell je Linie (`zeit`), angereichert mit `build_strassen_zeit.py` (Itiner-e-Belege, Regionskorrektur).
   - Anzeige je Jahr: Ausbau, römische Nutzung, danach optional „ehemalige Trassen“.
   - Einzelheiten und was belegt bzw. modelliert ist: `docs/STRASSEN_ZEITMODELL.md`.
+  - Geprüfte weitere Quellen (ORBIS, Project MERCURY, Hanson-Städte, Pleiades) und Empfehlung: `docs/DATENQUELLEN.md`.
   - Tests: `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`.
 - Schematische Ansicht: `img/earth-schematic-8k.png` und Kacheln `img/tiles_schem/` aus Natural Earth 1:10 Mio. Die Abdeckung ist dieselbe wie bei den Satelliten-Kacheln. Neu erzeugen mit `python build_schema_kacheln.py <land-10m.json>` (world-atlas 2.0.2).
 - Satellitenbild:
