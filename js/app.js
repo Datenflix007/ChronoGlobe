@@ -63,6 +63,25 @@
      Früher wurde das ganze Festland als ein riesiges 3D-Polygon gezeichnet; das ergab Risse und Flackern. */
   var SCHEM_URL = 'img/earth-schematic.png', LANDF = null;
   function schemTexture() { return SCHEM_URL; }
+  /* Satellitenbild: NASA Blue Marble Next Generation (Juli 2004) in 8192×4096. Geräte, deren Grafikkarte
+     so große Texturen nicht kann (manche ältere Tablets), bekommen die alte 4096er-Fassung. */
+  function satTexture() {
+    var max = 0; try { max = globe.renderer().capabilities.maxTextureSize; } catch (e) {}
+    return max >= 8192 ? 'img/earth-blue-marble-8k.jpg' : 'img/earth-blue-marble.jpg';
+  }
+  /* Anisotrope Filterung: Gebiete am schräg gesehenen Globusrand bleiben scharf. Die Textur lädt asynchron. */
+  function scharfStellen(url) {
+    var n = 0;
+    (function warte() {
+      var m = globe.globeMaterial && globe.globeMaterial(), map = m && m.map;
+      if (map && map.image && String(map.image.src || '').indexOf(url) >= 0) {
+        var a = globe.renderer().capabilities.getMaxAnisotropy();
+        if (map.anisotropy !== a) { map.anisotropy = a; map.needsUpdate = true; }
+        return;
+      }
+      if (++n < 100) setTimeout(warte, 200);
+    })();
+  }
 
   function capColor(f) {
     var p = f.properties || {};
@@ -109,7 +128,9 @@
   }
   function applyMode() {
     var sat = state.mode === 'sat';
-    globe.globeImageUrl(sat ? 'img/earth-blue-marble.jpg' : schemTexture());
+    var tex = sat ? satTexture() : schemTexture();
+    globe.globeImageUrl(tex);
+    scharfStellen(tex);
     globe.bumpImageUrl(sat ? 'img/earth-topology.png' : '');
     globe.backgroundImageUrl(sat ? 'img/night-sky.png' : '');
     globe.backgroundColor(sat ? '#000010' : '#14202e');
