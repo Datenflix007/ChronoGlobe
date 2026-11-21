@@ -71,14 +71,31 @@ Stand der Prüfung: 20.11.2026. Geprüft wurden ORBIS und die Datensatzliste von
 
 | Link | Inhalt | Warum nicht |
 |---|---|---|
-| sciengine …70310B4E… (Cheng/Zhang 2018) | Reisen von 15 Reisenden der Mongolenzeit 1218–1353 (u. a. Marco Polo, Ibn Battuta), GIS | Zeitleiste hat eine Lücke 480–1400; geeignet für einen späteren Abschnitt „Mongolenreich“ |
-| sciengine …FD62111B… (Xu/Zhang 2018) | Tang-Seidenstraße 618–907, Linien und Stationen jahrgenau | liegt in der Lücke der Zeitleiste |
+| sciengine …70310B4E… (Cheng/Zhang 2018) | Reisen von 15 Reisenden der Mongolenzeit 1218–1353 (u. a. Marco Polo, Ibn Battuta), GIS | **seit 21.11.2026 übernommen** (Reiseberichte), siehe `docs/HANDELSNETZE.md` |
+| sciengine …FD62111B… (Xu/Zhang 2018) | Tang-Seidenstraße 618–907, Linien und Stationen jahrgenau | **seit 21.11.2026 übernommen**, siehe `docs/HANDELSNETZE.md` |
 | PMC6936881 (Lancuo u. a. 2019) | Modell der Tang–Tibet-Straße (Least-Cost-Pfad) | Tang-Zeit; Modell, keine Belegdaten |
 | Frachetti u. a. 2017 (Nature, UCL-Manuskript) | Hochlandrouten der Seidenstraße aus Weidewegen der Nomaden (Flussakkumulation) | Modellergebnis ohne frei verfügbare Geodaten; als Hintergrund für Schülertexte nutzbar |
 | dlyj 10.11821/dlyj020210210 | GIS-Rekonstruktion der Südlichen Seidenstraße in China | Seite lädt Inhalte per Skript; Daten nicht frei zugänglich gefunden |
 | dlyj 52820 (Lin u. a. 2022) | Dichte und Wirkung der Seidenstraßen (Regression; Knoten Rom, Chang’an, Samarkand) | Auswertung, keine Geodaten; Ergebnisse taugen als Hintergrund |
 | LSE WP 371 (Cheng 2024) | Transportkosten Yangtze-Region vs. England, Ming–Qing; Auseinanderlaufen nach 1700 | betrifft 1600–1800, außerhalb der Zeitleiste |
 | gis.harvard.edu/china-historical-gis (CHGIS) | Verwaltungseinheiten Chinas ab 222 v. Chr. | Seite blockiert automatische Abrufe; Lizenz vor Übernahme prüfen |
+
+## Handels- und Verkehrsnetze (seit 21.11.2026)
+
+Eigenes Menü mit Landwegen, Wasserwegen und Reiseberichten. Ausführlich mit Datenmodell, Download und Prüfergebnissen: `docs/HANDELSNETZE.md`.
+
+| Netz | Quelle | Lizenz |
+|---|---|---|
+| Weihrauchstraße Petra – Gaza | Zohar, Erickson-Gini 2019; Zenodo 10.5281/zenodo.3413625; Zeitraum nach UNESCO 1107 | CC BY 4.0 |
+| Seidenstraße der Tang | Xu, Zhang 2018; Science Data Bank 10.57760/sciencedb.587 | CC BY 4.0 |
+| Straßen der Levante (VIA-TARIQ) | Pažout 2026, Version 1.1; Zenodo 10.5281/zenodo.21981430 | CC BY 4.0 |
+| Wegenetz der islamischen Welt | al-Ṯurayyā Gazetteer nach G. Cornu 1983 | CC BY 4.0 |
+| Reisende der Mongolenzeit | Cheng, Zhang 2018; Science Data Bank 10.57760/sciencedb.622 | CC BY 4.0 |
+
+Nicht übernommen:
+- ArcGIS-Weihrauchstraßen: keine offene Lizenz.
+- Ming-Postnetz: CC0, aber späte Ming-Zeit nach 1453, daher zurückgestellt.
+- Südliche Seidenstraße, CHGIS, Kaiserkanal (GeoDOI), OWTRAD: nicht verfügbar bzw. nicht prüfbar.
 | silkroad.fudan.edu.cn | Seidenstraßen-GIS der Fudan-Universität | nur Web-Anwendung, kein Download |
 | zenodo.org/records/22734751 | – | Abruf blockiert (403); Inhalt nicht geprüft |
 

@@ -215,8 +215,8 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths()));
-    globe.pointsData(hanStationen(state.year));
+    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths(), netzePaths()));
+    globe.pointsData(hanStationen(state.year).concat(netzeOrte()));
     refreshHtml(); vwDrehenBald();
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -293,11 +293,13 @@
       .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.zeiten ? 0.0013 : d.kind === 'waren' ? 0.0015 : 0.0016; }).htmlElement(htmlEl).htmlTransitionDuration(0);
     initTradeGlobe();
     globe.pointLat('lat').pointLng('lng').pointAltitude(0.0025).pointResolution(10).pointsTransitionDuration(0)
-      .pointRadius(function (s) { return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
-      .pointColor(function (s) { return HS_FARBE[s.typ] || '#d8c7a8'; })
-      .pointLabel(function (s) { var t = el('div', 'gtip'); t.appendChild(el('b', null, s.py + ' (' + s.zh + ')')); t.appendChild(el('br'));
+      .pointRadius(function (s) { if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
+      .pointColor(function (s) { return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
+      .pointLabel(function (s) { var t = el('div', 'gtip');
+        if (s.netzort) { t.appendChild(el('b', null, netzOrtTitel(s))); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.typ + ' · ' + s.netzM.name + ' · Klick für Infos')); return t.outerHTML; }
+        t.appendChild(el('b', null, s.py + ' (' + s.zh + ')')); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(s.typ + ' · Seidenstraße der Han · Klick für Infos')); return t.outerHTML; })
-      .onPointClick(function (s) { if (s && s.hanstation) openHanStation(s); });
+      .onPointClick(function (s) { if (s && s.hanstation) openHanStation(s); else if (s && s.netzort) openNetzOrt(s); });
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
     globe.controls().addEventListener('change', zoomPruefen);
@@ -439,16 +441,17 @@
   function normYear(y, prev) {
     y = Math.max(YMIN, Math.min(YMAX, Math.round(y)));
     if (y === 0) y = prev != null && prev > 0 ? -1 : 1;   // historische Zählung: auf 1 v. Chr. folgt 1 n. Chr.
-    if (y > ANTIKE_ENDE && y < SEGS[1].von) {
-      if (prev != null && y !== prev) y = y > prev ? SEGS[1].von : ANTIKE_ENDE;
-      else y = y - ANTIKE_ENDE < SEGS[1].von - y ? ANTIKE_ENDE : SEGS[1].von;
+    var ende = SEGS[0].bis;   // ohne Mittelalter-Teil: 480, sonst 1400 (kein Zeitsprung)
+    if (y > ende && y < SEGS[1].von) {
+      if (prev != null && y !== prev) y = y > prev ? SEGS[1].von : ende;
+      else y = y - ende < SEGS[1].von - y ? ende : SEGS[1].von;
     }
     return y;
   }
   function buildTicks() {
     var ticks = $('#ticks'); ticks.innerHTML = '';
     SEGS.forEach(function (S0, si) { if (S0.aus) return; (S0.teile || [S0]).forEach(function (S, ti, alle) {
-      for (var y = S.von; ti < alle.length - 1 ? y < S.bis : y <= S.bis; y += S.tick) {
+      for (var y = Math.ceil(S.von / S.tick) * S.tick; ti < alle.length - 1 || S.mittel ? y < S.bis : y <= S.bis; y += S.tick) {
         var t = document.createElement('div'); t.style.left = pct(y) + '%';
         if (y % S.major) { t.className = 'tick minor'; }
         else {
@@ -472,7 +475,7 @@
       d.addEventListener('click', function () { if (!(state.year >= S.von && state.year <= S.bis)) setYear(S.start); });
       bar.appendChild(d);
     }); });
-    if (SEGS[0].aus || SEGS[1].aus) return;   // nur ein Abschnitt: kein Zeitsprung
+    if (SEGS[0].aus || SEGS[1].aus || SEGS[1].a <= SEGS[0].b) return;   // nur ein Abschnitt oder lückenlos: kein Zeitsprung
     var g = el('div', 'epgap', '≈'); g.style.left = SEGS[0].b * 100 + '%'; g.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%';
     g.title = 'Zeitsprung: ' + fmtYear(SEGS[0].bis) + ' bis ' + fmtYear(SEGS[1].von) + ' ist nicht dargestellt';
     bar.appendChild(g);
@@ -480,7 +483,7 @@
   function buildLanes() {
     var lanes = $('#lanes'); lanes.innerHTML = '';
     var zero = document.createElement('div'); zero.className = 'zero'; zero.style.left = pct(0) + '%'; lanes.appendChild(zero);
-    if (!SEGS[0].aus && !SEGS[1].aus) { var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap); }
+    if (!SEGS[0].aus && !SEGS[1].aus && SEGS[1].a > SEGS[0].b) { var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap); }
     var cur = document.createElement('div'); cur.className = 'cursor'; lanes.appendChild(cur);
     var shown = DATA.reihen.filter(function (r) { return M(r).haupt || state.on[r]; });
     shown.forEach(function (r) {
@@ -551,7 +554,7 @@
       var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
       var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
       stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
-      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key;
+      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + netzeSchluessel(y);
     }
     stateKey.zv = null;
     var ids = [];
@@ -560,7 +563,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y);
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -581,7 +584,7 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths()));
+      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths()));
       if (state.vw) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
@@ -1298,6 +1301,181 @@
     });
   }
 
+  /* ---------- Handels- und Verkehrsnetze aus Forschungsdaten (data/netze/, build_netze.py, js/netze.js) ----------
+     Register data/netze/index.json; die Netzdateien werden erst geladen, wenn ein Netz eingeschaltet wird (lokal, keine
+     fremden Server). Sichtbar nach Jahr – unabhängig davon, welche Reiche eingeblendet sind. Format: docs/HANDELSNETZE.md. */
+  var NETZE = { index: null, an: {}, daten: {}, laden: {}, obj: {} };
+  var DATIERUNG_TXT = { jahrgenau: 'jahrgenau (eigene Jahre je Strecke)', zeitraum: 'Zeitraum des Datensatzes (Strecken nicht einzeln datiert)',
+    reisedatum: 'Reisedaten aus Reiseberichten (Monat)', modell: 'modelliert' };
+  var NETZ_GRUPPE_TK = { land: 'land', wasser: 'see', reise: 'reise' };
+  function initNetze(ix) {
+    NETZE.index = ix && Array.isArray(ix.netze) ? ix : null;
+    if (!NETZE.index) { $('#netzSec').hidden = true; return; }
+    netzMenuBauen();
+  }
+  function netzMeta(id) { return NETZE.index ? NETZE.index.netze.filter(function (n) { return n.id === id; })[0] : null; }
+  function netzeVerfuegbar() { return NETZE.index ? NETZE.index.netze.filter(function (n) { return n.status === 'verfuegbar'; }) : []; }
+  function netzLaden(id) {
+    var m = netzMeta(id); if (!m || !m.datei) return Promise.resolve(null);
+    if (NETZE.daten[id]) return Promise.resolve(NETZE.daten[id]);
+    if (!NETZE.laden[id]) {
+      var chip = $('.chip.netz[data-netz="' + id + '"]'); if (chip) chip.classList.add('laedt');
+      NETZE.laden[id] = daten('netz_' + id, m.datei).then(function (d) {
+        var fehler = Netze.pruefen(d); if (fehler.length) console.warn('Netz ' + id + ': ' + fehler.length + ' Hinweise', fehler.slice(0, 10));
+        NETZE.daten[id] = Netze.vorbereiten(d);
+        var obj = {};   // Pfadobjekte je Linie (bleiben dieselben, nur der Stil ändert sich)
+        d.linien.forEach(function (l) { obj[l.id] = l.teile.map(function (t, i) { return { id: 'n-' + l.id + '-' + i, netzlinie: l, netzM: m, pts: t, stil: 'aktiv' }; }); });
+        (d.orte || []).forEach(function (o) { o.netzort = true; o.netzM = m; });
+        NETZE.obj[id] = obj;
+        if (chip) chip.classList.remove('laedt');
+        lastKey = ''; setYear(state.year);
+        return NETZE.daten[id];
+      }).catch(function (e) { console.warn(e); if (chip) chip.classList.remove('laedt'); toast('Netz „' + m.name + '“ konnte nicht geladen werden.'); delete NETZE.laden[id]; return null; });
+    }
+    return NETZE.laden[id];
+  }
+  function netzSetzen(id, v) {
+    NETZE.an[id] = v; chipSetzen('.chip.netz[data-netz="' + id + '"]', v);
+    if (v) netzLaden(id);
+  }
+  function netzeSchluessel(y) {
+    return Object.keys(NETZE.an).filter(function (id) { return NETZE.an[id] && NETZE.daten[id]; }).sort()
+      .map(function (id) { return id + Netze.schluessel(NETZE.daten[id], y); }).join(',') + state.mode;
+  }
+  function netzePaths() {
+    var y = state.year, out = [];
+    Object.keys(NETZE.an).forEach(function (id) {
+      if (!NETZE.an[id] || !NETZE.daten[id]) return;
+      Netze.linienImJahr(NETZE.daten[id], y).forEach(function (x) { NETZE.obj[id][x.linie.id].forEach(function (o) { o.stil = x.stil; out.push(o); }); });
+    });
+    return out;
+  }
+  function netzeOrte() {
+    var y = state.year, out = [];
+    Object.keys(NETZE.an).forEach(function (id) { if (NETZE.an[id] && NETZE.daten[id]) out.push.apply(out, Netze.orteImJahr(NETZE.daten[id], y)); });
+    return out;
+  }
+  function netzRgba(hex, a) { var c = rgb(hex); if (state.mode === 'schem') c = c.map(function (v) { return Math.round(v * 0.45); }); return 'rgba(' + c.join(',') + ',' + a + ')'; }
+  function netzLinienFarbe(d) {
+    var l = d.netzlinie, m = d.netzM, hex = m.farbe;
+    if (m.id === 'viatariq') hex = l.post ? '#8fc7ff' : l.hadsch ? '#9be89b' : hex;   // Post und Pilgerweg eigens gekennzeichnet
+    var a = d.stil === 'blass' ? 0.45 : d.stil === 'gereist' ? 0.6 : (m.id === 'viatariq' && !l.haupt) || m.id === 'thurayya' ? 0.62 : 0.92;
+    return netzRgba(hex, a);
+  }
+  function netzUnsicher(l) { return l.lage === 'hypothetisch' || l.beleg === 'gering'; }
+  function netzStrich(d) {
+    var m = d.netzM.id;
+    if (m === 'thurayya' || m === 'viatariq') return null;   // viele kurze Abschnitte: dünne Linie
+    if (m === 'mongolen') return d.stil === 'aktiv' ? 2 : d.stil === 'gereist' ? 1.3 : 0.9;
+    return m === 'petra_gaza' ? 2.2 : 1.4;
+  }
+  function netzOrtFarbe(o) { return netzRgba(o.netzM.farbe, 0.95); }
+  function netzOrtTitel(o) { return o.name + (o.zh ? ' (' + o.zh + ')' : o.ar ? ' (' + o.ar + ')' : ''); }
+  function netzZeile(b, m, d) {
+    row(b, 'Datierung', DATIERUNG_TXT[d.datierung.typ] + '. ' + d.datierung.text);
+    if (d.hinweis) row(b, 'Hinweis', d.hinweis).classList.add('twarn');
+    row(b, 'Daten', d.quelle.zitat);
+    row(b, 'Lizenz', d.quelle.lizenz + (d.quelle.geaendert ? ' · verändert: ' + d.quelle.geaendert : ''));
+    var x = el('button', 'small tmore', 'Alle Quellen der Netze'); x.type = 'button'; x.addEventListener('click', function () { openNetzQuellen(); }); b.appendChild(x);
+  }
+  function openNetzLinie(l, m) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'netzlinie', netz: m.id, id: l.id };
+    var d = NETZE.daten[m.id];
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk ' + NETZ_GRUPPE_TK[m.gruppe], m.name));
+      var h = el('h3', null, l.name || m.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      if (l.zh) row(b, 'Originalname', l.zh);
+      if (m.id === 'mongolen' && l.__reise) {
+        row(b, 'Reisende', l.__reise.reisender + ' (' + l.__reise.reisender_zh + ')');
+        row(b, 'Bericht', l.__reise.bericht);
+        row(b, 'Ganze Reise', Netze.spanne(l.__reise.von, l.__reise.bis));
+      }
+      row(b, m.id === 'mongolen' ? 'Etappe' : 'Zeitraum', Netze.zeitText(l));
+      var p = Netze.periode(d, l.von); if (p) row(b, 'Periode', p.name + ' (' + p.dynastien + ')');
+      if (l.km) row(b, 'Länge', 'rund ' + l.km.toLocaleString('de-DE') + ' km');
+      if (m.id === 'viatariq') {
+        row(b, 'Art', l.haupt ? 'Hauptstraße' : 'Nebenstraße');
+        if (l.post) row(b, 'Staatliche Post', 'Teil des barīd, der staatlichen Post: Kuriere, Nachrichten und Beamte reisten von Station zu Station. Eine Postroute ist keine Handelsroute.');
+        if (l.hadsch) row(b, 'Pilgerweg', 'Teil eines Hadsch-Weges nach Mekka. Pilgerkarawanen nahmen oft Waren mit, der Weg ist aber zuerst ein Pilgerweg.');
+        if (l.itinerar && !l.post && !l.hadsch) row(b, 'Bekannte Route', l.itinerar);
+        if (l.quelle_mittelalter) row(b, 'Quelle', l.quelle_mittelalter + ' (mittelalterlicher Text)');
+        if (l.literatur) row(b, 'Forschung', l.literatur);
+        row(b, 'Sicherheit', 'Existenz: ' + l.beleg + ' · Lage: ' + l.lage);
+      }
+      if (m.id === 'tang') row(b, 'Bedeutung', 'Über diese Straßen liefen Gesandtschaften, Truppen, Mönche und der Handel mit Seide, Pferden und Tee. Poststationen und Garnisonen sicherten den Weg.');
+      if (m.id === 'thurayya') row(b, 'Was gezeigt wird', 'Ein Abschnitt des Wegenetzes, wie es arabische Geografen beschrieben: von Ort zu Ort mit Entfernungen in Tagesreisen bzw. Meilen. Gezeigt ist ein Weg, nicht der Umfang des Handels darauf.');
+      if (m.id === 'petra_gaza') row(b, 'Bedeutung', 'Auf diesem Weg brachten nabatäische Karawanen Weihrauch und Myrrhe aus Südarabien über Petra an den Mittelmeerhafen Gaza. Festungen, Rastplätze und Zisternen sicherten die Wüstenstrecke.');
+      netzZeile(b, m, d);
+    });
+  }
+  function openNetzOrt(o) {
+    if (!darfLokal('routen')) return; var m = o.netzM; INFO_NEU = { art: 'netzort', netz: m.id, id: o.id };
+    var d = NETZE.daten[m.id];
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk ' + NETZ_GRUPPE_TK[m.gruppe], m.name + ' · ' + o.typ));
+      var h = el('h3', null, netzOrtTitel(o)); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Art', o.typ);
+      if (o.heute && o.heute !== o.name) row(b, 'Heute', o.heute);
+      if (o.region) row(b, 'Region', o.region);
+      if (o.__reise) row(b, 'Station der Reise', o.__reise.reisender + ' (' + Netze.spanne(o.__reise.von, o.__reise.bis) + ')' + (o.jahr ? ', erreicht ' + o.jahr : ''));
+      else row(b, 'Belegt für', Netze.spanne(o.von, o.bis));
+      if (o.text) row(b, 'Beschreibung (aus dem Datensatz, englisch)', o.text);
+      if (o.literatur) row(b, 'Forschung', o.literatur);
+      netzZeile(b, m, d);
+    });
+  }
+  var NETZ_STATUS = { verfuegbar: 'eingebunden (dieses Menü)', bestehend: 'eingebunden (andere Stelle im Menü)', nicht_verfuegbar: 'geprüft – nicht verfügbar', nicht_lizenziert: 'geprüft – keine passende Lizenz', zurueckgestellt: 'geprüft – zurückgestellt (Zeitraum)' };
+  function openNetzQuellen() {
+    if (!NETZE.index) return; INFO_NEU = { art: 'netzquellen' };
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk land', 'Handels- und Verkehrsnetze'));
+      var h = el('h3', null, 'Quellenübersicht'); h.id = 'tinfoTitle'; b.appendChild(h);
+      b.appendChild(el('p', 'nq-intro', 'Alle Netze stammen aus veröffentlichten Forschungsdaten. Sie liegen im Projekt und werden ohne fremde Server geladen. Geprüfte, aber nicht übernommene Quellen stehen mit Grund dabei.'));
+      ['verfuegbar', 'bestehend', 'zurueckgestellt', 'nicht_verfuegbar', 'nicht_lizenziert'].forEach(function (st) {
+        var L = NETZE.index.netze.filter(function (n) { return n.status === st; }); if (!L.length) return;
+        b.appendChild(el('h4', 'nq-h', NETZ_STATUS[st]));
+        L.forEach(function (n) {
+          var g = (NETZE.index.gruppen.filter(function (x) { return x.id === n.gruppe; })[0] || {}).name || n.gruppe;
+          var box = el('div', 'nq'); var t = el('b', null, n.name); if (n.farbe) t.style.setProperty('--c', n.farbe); box.appendChild(t);
+          box.appendChild(el('span', 'nq-m', g + (n.von != null ? ' · ' + Netze.spanne(n.von, n.bis) : '') + (n.datierung ? ' · ' + (DATIERUNG_TXT[n.datierung] || n.datierung) : '') + (n.lizenz ? ' · ' + n.lizenz : '')));
+          box.appendChild(el('span', 'nq-q', n.quelle || ''));
+          if (n.ort) box.appendChild(el('span', 'nq-q', 'Im Menü: ' + n.ort));
+          if (n.grund) box.appendChild(el('span', 'nq-g', n.grund));
+          b.appendChild(box);
+        });
+      });
+      b.appendChild(el('p', 'nq-intro', 'Ausführlich: docs/HANDELSNETZE.md und docs/DATENQUELLEN.md im Projekt.'));
+    });
+  }
+  function netzMenuBauen() {
+    var box = $('#netzGruppen'); box.innerHTML = '';
+    NETZE.index.gruppen.forEach(function (g) {
+      var alle = NETZE.index.netze.filter(function (n) { return n.gruppe === g.id; }), da = alle.filter(function (n) { return n.status === 'verfuegbar'; });
+      var sec = el('div', 'netz-gruppe'); sec.dataset.gruppe = g.id;
+      sec.appendChild(el('h3', 'hsub-h', g.name));
+      if (g.hinweis) sec.appendChild(el('p', 'hint netz-hint', g.hinweis));
+      da.forEach(function (n) {
+        var b = el('button', 'chip plain netz'); b.type = 'button'; b.dataset.netz = n.id; b.setAttribute('aria-pressed', 'false');
+        b.style.setProperty('--c', n.farbe); b.title = n.kurz + ' · Quelle: ' + n.quelle + ' · ' + n.lizenz;
+        b.appendChild(el('i')); b.appendChild(el('span', null, n.name)); b.appendChild(el('small', null, Netze.spanne(n.von, n.bis)));
+        b.addEventListener('click', function () {
+          var v = !NETZE.an[n.id], o = {}; o[n.id] = v; setState({ netze: o });
+          if (v && (state.year < n.von || state.year > n.bis)) {
+            var ziel = Math.max(YMIN, Math.min(YMAX, n.von));
+            if (n.von >= YMIN && n.von <= YMAX && darfLokal('zeit')) { setYear(ziel); toast(n.name + ': ' + Netze.spanne(n.von, n.bis) + ' – Zeitleiste auf ' + fmtYear(state.year) + ' gestellt.'); }
+            else toast(n.name + ': ' + Netze.spanne(n.von, n.bis) + '. Dieser Zeitraum liegt außerhalb der Zeitleiste dieses Tafelbilds.');
+          }
+        });
+        sec.appendChild(b);
+      });
+      var weitere = alle.filter(function (n) { return n.status === 'bestehend'; });
+      if (weitere.length) sec.appendChild(el('p', 'hint netz-hint', 'Außerdem unter „Handel & Austausch“: ' + weitere.map(function (n) { return n.name; }).join(', ') + '.'));
+      var fehlt = alle.filter(function (n) { return /^(nicht_|zurueck)/.test(n.status); });
+      if (fehlt.length) sec.appendChild(el('p', 'hint netz-hint netz-fehlt', 'Geprüft, nicht übernommen: ' + fehlt.map(function (n) { return n.name.replace(/ \(.*\)$/, ''); }).join(', ') + '.'));
+      box.appendChild(sec);
+    });
+  }
+
   /* ---------- Layer „Römische Straßen“ (Itiner-e, CC BY 4.0) ---------- */
   /* Zeitmodell (js/strassenzeit.js): Linien erscheinen in der modellierten Ausbauphase, sind in der römischen
      Nutzungsphase voll sichtbar und danach nur im Referenzmodus als blasse, gestrichelte „ehemalige Trassen“.
@@ -1501,6 +1679,7 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.netzlinie) return netzLinienFarbe(d);
     if (d.strasse) return strassenFarbe(d);
     if (d.orbis) return orbisFarbe(d);
     if (d.limes) return d.limTeil === 'rand' ? (state.mode === 'schem' ? '#fffaf0' : '#1a0c04') : (state.mode === 'schem' ? mix(LIMES_ART[d.limes.art].farbe, '#000000', 0.45) : LIMES_ART[d.limes.art].farbe);
@@ -1522,6 +1701,7 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.netzlinie) return netzUnsicher(d.netzlinie) ? [0.07, 0.06][i] : [1, 0][i];
     if (d.vw) return d.vwArt === 'fluss' ? [0.02, 0.045][i] : [1, 0][i];   // fließende Partikel auf dem Strom
     if (d.eu) return [1, 0][i];
     if (d.strasse) return strassenDash(d, i);
@@ -1538,6 +1718,7 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.netzlinie) return netzStrich(d);
     if (d.vw) return d.vwArt === 'band' ? (d.vw.__laeuft ? 22 : 9) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 9 : 4) : d.vwArt === 'fluss' ? 2.6 : (d.vw.__laeuft ? 5.5 : 2.2);
     if (d.eu) return 2;
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
@@ -1562,6 +1743,12 @@
       .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.netzlinie) {
+          var nl = d.netzlinie, rz = nl.__reise;
+          t.appendChild(el('b', null, (rz ? rz.reisender + ': ' : '') + (nl.name || d.netzM.name))); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode(d.netzM.name + ' · ' + Netze.zeitText(nl) + (nl.post ? ' · staatliche Post' : nl.hadsch ? ' · Pilgerweg' : '') + (netzUnsicher(nl) ? ' · unsicher' : '') + ' · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.strasse) {
           var nm = d.L.zeit && d.L.zeit.itinere && d.L.zeit.itinere.namen;
           t.appendChild(el('b', null, d.stil === 'ehemals' ? 'Ehemalige römische Trasse' : 'Römische Straße' + (nm && nm.length ? ': ' + nm[0] : ''))); t.appendChild(el('br'));
@@ -1597,7 +1784,8 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
-        if (d.strasse) openStrassenLinie(d);
+        if (d.netzlinie) openNetzLinie(d.netzlinie, d.netzM);
+        else if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
         else if (d.hanlinie) openHanLinie(d.hanlinie);
         else if (d.limes) openLimes(d.limes);
@@ -2133,7 +2321,7 @@
     return res;
   }
   function refreshGlobeMing() {
-    globe.pointsData([]);
+    globe.pointsData(netzeOrte());
     var zv = CUR_ZV || zhVisible(state.year);
     CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
     globe.polygonsData(visiblePolys().concat(mingAn() ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
@@ -2141,7 +2329,7 @@
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
     globe.pathColor(pathColor).pathStroke(pathStroke);
-    pfadeSetzen(zhPaths(zv));
+    pfadeSetzen(zhPaths(zv).concat(netzePaths()));
     zv.aktiv.forEach(function (v, i) { if (v.__flag.__el) v.__flag.__el.style.setProperty('--dy', (-14 - i * 28) + 'px'); });
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -2575,6 +2763,7 @@
     $('#tglKar').addEventListener('click', function () { setTrade('karawanen', !TRADE.karawanen); });
     $('#tglSchiff').addEventListener('click', function () { setTrade('schiff', !TRADE.schiff); });
     $('#tglHanSeide').addEventListener('click', function () { setTrade('hanseide', !TRADE.hanseide); });
+    $('#btnNetzQuellen').addEventListener('click', function () { openNetzQuellen(); });
     // Entdeckungsfahrten des Zheng He (unter Handel & Austausch)
     $('#tglZh').addEventListener('click', function () { setState({ zh: { on: !ZH.on } }); });
     $('#btnZhInfo').addEventListener('click', function () { openText('zhenghe'); });
@@ -2678,6 +2867,7 @@
   function chipSetzen(sel, v) { var b = $(sel); if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); } }
   function kopie(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
   function gleich(a, b) { return JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b); }
+  function netzeZustand() { var o = {}; netzeVerfuegbar().forEach(function (n) { o[n.id] = !!NETZE.an[n.id]; }); return o; }
   function getState() {
     var pov = globe ? globe.pointOfView() : { lat: 36, lng: 62, altitude: 2.7 };
     var reiche = {}; DATA.reihen.forEach(function (r) { reiche[r] = !!state.on[r]; });
@@ -2692,6 +2882,7 @@
       handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff, hanseide: TRADE.hanseide },
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
+      netze: netzeZustand(),
       niveau: TX_NIV,
       fenster: kopie(FENSTER)
     };
@@ -2736,6 +2927,10 @@
         });
         if ('bilder' in t.zh && !!t.zh.bilder !== BILDER.an) { BILDER.an = !!t.zh.bilder; chipSetzen('#tglBilder', BILDER.an); PENS.forEach(function (q) { zhSchiffStil(q.schiff); }); }
       }
+      if (t.netze) Object.keys(t.netze).forEach(function (id) {
+        var m = netzMeta(id); if (!m || m.status !== 'verfuegbar' || !!t.netze[id] === !!NETZE.an[id]) return;
+        netzSetzen(id, !!t.netze[id]); neu = true;
+      });
       if (t.niveau && t.niveau !== TX_NIV && /^[ABC]$/.test(t.niveau)) {
         TX_NIV = t.niveau; try { localStorage.setItem('tafelbild.niveau', TX_NIV); } catch (e) {}
         if (FENSTER.info && FENSTER.info.art === 'text' && !('fenster' in t)) infoOeffnen(FENSTER.info);
@@ -2779,6 +2974,12 @@
     else if (d.art === 'hanstation') { var hs = HANSEIDE && finde(HANSEIDE.stationen, d.id); if (hs) openHanStation(hs); }
     else if (d.art === 'limes') { var la = LIMES && finde(LIMES.abschnitte, d.id); if (la) openLimes(la, d.kastell ? LIMES.kastelle.filter(function (k) { return k.name === d.kastell; })[0] : null); }
     else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
+    else if (d.art === 'netzquellen') openNetzQuellen();
+    else if (d.art === 'netzlinie' || d.art === 'netzort') netzLaden(d.netz).then(function (nd) {
+      if (!nd) return;
+      if (d.art === 'netzort') { var no = finde(nd.orte, d.id); if (no) openNetzOrt(no); }
+      else { var nl = finde(nd.linien, d.id); if (nl) openNetzLinie(nl, netzMeta(d.netz)); }
+    });
     else if (d.art === 'text') openText(d.id, d.zurueck);
   }
   function modalOeffnen(id) {
@@ -2847,6 +3048,17 @@
     ];
     S.von = von; YMIN = Math.min(YMIN, von);
   }
+  /* Freies Erkunden (ohne Tafelbild-Zeitraum): Die Lücke 480–1400 wird zum Teil „Mittelalter“ mit eigenem Maßstab,
+     damit die mittelalterlichen Netze (Tang, Levante, Mongolenzeit …) erreichbar sind. Tafelbilder behalten ihren Zuschnitt. */
+  function mittelalterEinrichten() {
+    var tb = window.CG && CG.tafelbild; if (tb && tb.zeitraum) return;
+    var S = SEGS[0], T = SEGS[1], ende = 0.64, f = function (x) { return x * ende / S.b; };
+    var basis = S.teile || [{ von: S.von, bis: S.bis, a: S.a, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }];
+    basis.forEach(function (t) { t.a = f(t.a); t.b = f(t.b); });
+    basis.push({ von: S.bis, bis: T.von, a: ende, b: T.a, takt: 30, tick: 100, major: 200, alt: 400, start: 700, kurz: true, mittel: true,
+      name: 'Mittelalter', sub: 'Tang, Kalifate, Mongolenzeit' });
+    S.teile = basis; S.b = T.a; S.bis = T.von;
+  }
   /* Abschnitte außerhalb des Tafelbild-Zeitraums ausblenden; bleibt einer übrig, nimmt er die ganze Breite ein */
   function abschnitteZuschneiden() {
     var tb = window.CG && CG.tafelbild, z = tb && tb.zeitraum; if (!z) return;
@@ -2864,7 +3076,7 @@
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
-    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder' };
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
   function fokusZustand(f) {
@@ -2885,6 +3097,7 @@
     if ('handel' in a) t.handel.on = !!a.handel;
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
     t.zh = {}; if ('zh' in a) t.zh.on = !!a.zh; if ('bilder' in a) t.zh.bilder = !!a.bilder;
+    if (Array.isArray(a.netze)) { t.netze = {}; a.netze.forEach(function (id) { t.netze[id] = true; }); }
     return t;
   }
   function tafelbildAnwenden(tb) {
@@ -2976,13 +3189,14 @@
     daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
     daten('han_seidenstrasse', 'data/han_seidenstrasse.json').catch(function (e) { console.warn(e); return null; }),
     daten('limes', 'data/limes.json').catch(function (e) { console.warn(e); return null; }),
+    daten('netze', 'data/netze/index.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); initLimes(res[12]); VIG = res[13];
-    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); abschnitteZuschneiden();
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); initLimes(res[12]); VIG = res[14];
+    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); mittelalterEinrichten(); abschnitteZuschneiden();
     if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
-    initTrade(); initZh(); buildZhChips();
+    initTrade(); initZh(); buildZhChips(); initNetze(res[13]);
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
@@ -3000,7 +3214,7 @@
         sichtbar: strassenPaths(state.year).length, aufGlobus: globe.pathsData().filter(function (d) { return d.strasse; }).length,
         stile: globe.pathsData().filter(function (d) { return d.strasse; }).reduce(function (a, d) { a[d.stil] = (a[d.stil] || 0) + 1; return a; }, {}) }; },
       state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible,
-      getState: getState, applyState: applyState, setState: setState };
+      getState: getState, applyState: applyState, setState: setState, netze: NETZE, netzePaths: netzePaths, netzeOrte: netzeOrte, segs: SEGS };
     window.ChronoGlobe = { getState: getState, applyState: applyState, setState: setState, abonnieren: abonnieren,
       setzeRechte: function (fn) { DARF = typeof fn === 'function' ? fn : function () { return true; }; }, globe: globe, homeAlt: homeAlt };
     document.dispatchEvent(new CustomEvent('chronoglobe:bereit'));

@@ -121,6 +121,20 @@
       </div>
     </div>
   </section>
+  <section id="netzSec">
+    <details class="netz-box" id="netzBox">
+      <summary><h2>Handels- und Verkehrsnetze</h2><small>Forschungsdaten</small></summary>
+      <div id="netzGruppen"></div>
+      <div class="tlegend netz-leg" aria-label="Legende Netze">
+        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#8fc7ff"/></svg>staatliche Post (Levante)</div>
+        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#9be89b"/></svg>Pilgerweg (Hadsch)</div>
+        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="5 4"/></svg>Lage oder Existenz unsicher</div>
+        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#ff8fb1;opacity:.35"/></svg>abgeschlossene Reise</div>
+      </div>
+      <div class="row"><button id="btnNetzQuellen" class="small" type="button">Quellenübersicht</button></div>
+      <p class="hint">Linien zeigen <b>belegte Wege</b>, nicht die Menge des Handels darauf. Das Mittelalter (480–1400) hat im freien Erkunden einen eigenen Teil der Zeitleiste.</p>
+    </details>
+  </section>
   <section>
     <h2>Globus</h2>
     <button id="tglOrte" class="chip plain" aria-pressed="false">Orte anzeigen</button>
@@ -243,6 +257,7 @@
     <p><b>Völkerwanderung</b> (Menü → Globus): Die Züge der Hunnen, Goten, Vandalen, Sueben, Burgunder, Alamannen, Angeln und Sachsen wachsen mit der Zeitleiste (255–456 n. Chr.). Die Wege sind schematisch.</p>
     <p><b>Seidenstraße der Han (Stationen):</b> rekonstruierte Hauptlinien und Verkehrspunkte (Poststationen, Pässe, Kommandanturen …) nach dem Datensatz von Hu Yumeng, Yan Bo und Zhang Ping (China Scientific Data 2018; Science Data Bank, DOI 10.57760/sciencedb.611, CC BY 4.0). Sichtbar mit dem Han-Reich, 202 v. bis 220 n. Chr.</p>
     <p><b>Grenzanlagen (Limes)</b> (Menü → Globus): Hadrianswall, Antoninuswall, Obergermanisch-Raetischer Limes, Rhein- und Donaugrenze, Limes Arabicus und Fossatum Africae, je mit eigener Signatur und Kastellen. Sie erscheinen mit dem Römischen Reich, solange sie in Gebrauch waren. Verläufe schematisch über bekannte Kastellorte gelegt; Jahreszahlen gerundet.</p>
+    <p><b>Handels- und Verkehrsnetze:</b> Weihrauchstraße Petra – Gaza (Zohar/Erickson-Gini 2019), Seidenstraße der Tang (Xu/Zhang 2018), Straßen der Levante (VIA-TARIQ, Pažout 2026), Wegenetz der islamischen Welt (al-Ṯurayyā nach G. Cornu) und Reisende der Mongolenzeit (Cheng/Zhang 2018), jeweils CC BY 4.0. Alle Angaben unter „Quellenübersicht“ im Menü.</p>
     <p><b>Frühe Hochkulturen</b> (nur im freien Modus, Zeitleiste ganz links): Mesopotamien, Ägypten, Indus-Kultur, Hethiter, China unter Shang und Zhou sowie das Perserreich, 3500–300 v. Chr. Die Flächen sind nur grob angedeutet, viele Jahreszahlen Näherungen („um“).</p>
     <p><b>Europa (Kontext):</b> Franken, Alamannen, West- und Ostgoten, Sueben, Vandalen, Burgunder, das Reich von Soissons, das Reich Odoakers und die Angelsachsen sind als Nachfolgestaaten Westroms zur Orientierung eingezeichnet (vereinfacht, bis 480 n. Chr.). Sie öffnen keine Schriftrolle.</p>
     <p><b>Schriftrolle:</b> Ein Klick auf ein eingeblendetes Reich (oder „Schriftrolle öffnen“ im Infoband) öffnet eine Schriftrolle mit <b>Vignetten</b> (beim Römischen Reich: <b>Wiederholung</b> mit Aufgaben und Rückmeldung) und der <b>Karte</b> des Reichs. Quiz-Ergebnisse bleiben nur in der geöffneten Seite und werden nicht gespeichert.</p>
@@ -274,6 +289,7 @@
 <script src="js/texte.js"></script>
 <script src="js/vignetten.js"></script>
 <script src="js/strassenzeit.js"></script>
+<script src="js/netze.js"></script>
 <script src="js/session.js"></script>
 <script src="js/tafelbild.js"></script>
 <script src="js/app.js"></script>

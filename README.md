@@ -29,6 +29,7 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 - `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
+- `node tests/netze.test.js`, `python tests/test_netze_browser.py`: Handels- und Verkehrsnetze.
 - `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise sowie Literatur- und Fußnoten-IDs.
 
 ## Wissenschaftliche Datengrundlage
@@ -98,6 +99,17 @@ Die Seite [Datenquellen & wissenschaftliche Grundlagen](quellen.html) dokumentie
   - Quelle: Forschungsdaten von Hu, Yan und Zhang (2018, Science Data Bank, CC BY 4.0).
   - Sichtbar mit dem Han-Reich, 202 v. bis 220 n. Chr.; Klick auf eine Station zeigt ihre Rolle für Handel und Verkehr.
   - Daten: `data/han_seidenstrasse.json` aus `build_han_seidenstrasse.py`. Siehe `docs/DATENQUELLEN.md`.
+- **Handels- und Verkehrsnetze** (Menü, aufklappbar; Gruppen Landwege, Wasserwege, Reiseberichte):
+  - Fünf Netze aus offenen Forschungsdaten (CC BY 4.0):
+    - Weihrauchstraße Petra – Gaza
+    - Seidenstraße der Tang
+    - Straßen der Levante (VIA-TARIQ, 650–1517)
+    - Wegenetz der islamischen Welt (al-Ṯurayyā, 9./10. Jh.)
+    - Reisende der Mongolenzeit
+  - Jedes Netz ist nur in seinem Zeitraum sichtbar. Postwege, Pilgerwege und Reiseberichte sind als solche gekennzeichnet.
+  - Klick auf eine Linie oder einen Ort öffnet eine Infokarte mit Datierung und Quelle; „Quellenübersicht“ listet alle Netze, auch die geprüften, aber nicht übernommenen.
+  - Im freien Erkunden hat die Zeitleiste dafür einen Teil **Mittelalter** (480–1400); Tafelbilder bleiben unverändert.
+  - Daten: `data/netze/`, erzeugt mit `build_netze.py`. Siehe `docs/HANDELSNETZE.md`.
 - **Grenzanlagen (Limes)** (Menü → Globus, standardmäßig aus):
   - Hadrianswall, Antoninuswall, Obergermanisch-Raetischer Limes, Rhein- und Donaugrenze, Limes Arabicus, Fossatum Africae.
   - Je Bauart eine eigene Signatur über dunkler Kontur (Steinmauer, Rasenwall, Palisade, Flussgrenze, Grenzstraße, Graben), dazu Kastelle als Turm-Symbole mit Infokarte.

@@ -32,7 +32,7 @@ def serve(route):
 FP_JS = """(() => {
   const T = window.%s, g = T.globe, q = s => document.querySelector(s);
   const h = a => a.slice().sort().join(',');
-  const pressed = [...document.querySelectorAll('#panel button[aria-pressed]')].map(b => (b.id || b.dataset.r || b.dataset.nr || b.textContent.trim()) + '=' + b.getAttribute('aria-pressed'));
+  const pressed = [...document.querySelectorAll('#panel button[aria-pressed]')].map(b => (b.dataset.netz ? 'netz:' + b.dataset.netz : b.id || b.dataset.r || b.dataset.nr || b.textContent.trim()) + '=' + b.getAttribute('aria-pressed'));
   return {
     jahr: q('#yearOut').textContent,
     state: { mode: T.state.mode, on: T.state.on, orte: T.state.orte, schlachten: T.state.schlachten, vw: T.state.vw, year: T.state.year, epoche: T.state.epoche, rotate: T.state.rotate },
@@ -127,8 +127,8 @@ def ohne_haefen(e):
     return e
 def ohne_neue(e):
     if not isinstance(e, dict): return e
-    # neue Schalter nach dem Ausgangszustand (Seidenstraße der Han, standardmäßig aus)
-    if 'gedrueckt' in e: e['gedrueckt'] = [x for x in e['gedrueckt'] if x.split('=')[0] not in NEU and x.split('=')[0] not in ('tglHanSeide', 'tglLimes')]
+    # neue Schalter nach dem Ausgangszustand (Seidenstraße der Han, Limes, Handels- und Verkehrsnetze; standardmäßig aus)
+    if 'gedrueckt' in e: e['gedrueckt'] = [x for x in e['gedrueckt'] if x.split('=')[0] not in NEU and x.split('=')[0] not in ('tglHanSeide', 'tglLimes') and not x.startswith('netz:')]
     if isinstance(e.get('trade'), dict) and e['trade'].get('hanseide') is False: del e['trade']['hanseide']
     if 'state' in e and isinstance(e['state'].get('on'), dict): e['state']['on'] = {k: v for k, v in e['state']['on'].items() if k not in NEU}
     return e

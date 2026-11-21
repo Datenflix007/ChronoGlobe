@@ -44,6 +44,21 @@ Drittkomponenten (alle lokal eingebunden, keine externen Anfragen)
   in the Han dynasty (两汉丝绸之路交通数据集), China Scientific Data 3 (2018) 3, DOI 10.11922/csdata.2018.0016.zh;
   Science Data Bank, DOI 10.57760/sciencedb.611, Lizenz CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
   Verändert: Linien vereinfacht, Typen übersetzt, Perioden zusammengeführt (build_han_seidenstrasse.py).
+- Handels- und Verkehrsnetze (data/netze/, build_netze.py; Register data/netze/index.json), jeweils Lizenz CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). Verändert: umgerechnet, vereinfacht, übersetzt (Einzelheiten in
+  den Dateien unter quelle.geaendert und in docs/HANDELSNETZE.md):
+  · data/netze/petra_gaza.json: Motti Zohar, Tali Erickson-Gini, The ‘Incense Road’ from Petra to Gaza: an analysis
+    using GIS and cost functions, IJGIS 2019; Daten Zenodo, DOI 10.5281/zenodo.3413625.
+  · data/netze/tang.json: Xu Xueqiang, Zhang Ping, A dataset of the east-central section of the Silk Road in Tang
+    dynasty (618–907), China Scientific Data 3 (2018), DOI 10.11922/csdata.2018.0015.zh; Science Data Bank,
+    DOI 10.57760/sciencedb.587.
+  · data/netze/viatariq.json: Adam Pažout, Geospatial data for the Medieval road system in the Levant (Bilād al-Šām),
+    Version 1.1, Zenodo 2026, DOI 10.5281/zenodo.21981430 (Projekt VIA-TARIQ, EU Horizon Europe MSCA Nr. 101151931).
+  · data/netze/thurayya.json: al-Ṯurayyā Gazetteer Project, https://github.com/althurayya/althurayya.github.io;
+    nach Georgette Cornu, Atlas du monde arabo-islamique à l’époque classique, IXe–Xe siècles, Leiden 1983.
+  · data/netze/mongolen.json: Cheng Jun, Zhang Ping, A tourist routes GIS dataset of the Silk Road in the Mongol-Yuan
+    dynasty, China Scientific Data 3 (2018), DOI 10.11922/csdata.2018.0017.zh; Science Data Bank,
+    DOI 10.57760/sciencedb.622.
 - Grenzanlagen (data/limes.json): eigene, schematische Verläufe über bekannte Kastellorte; Angaben nach gängigen
   Überblicksdarstellungen und der UNESCO-Welterbeliste „Grenzen des Römischen Reiches“ (CC0).
 - Frühe Hochkulturen (data/fruehe_reiche.json): eigene, grob angedeutete Umrisse (build_fruehe_kulturen.py),

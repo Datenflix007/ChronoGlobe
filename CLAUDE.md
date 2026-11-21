@@ -23,6 +23,8 @@ ChronoGlobe ist eine statische Seite ohne Build-Schritt: globe.gl, d3 und reines
      - `node tests/strassenzeit.test.js`
      - `python tests/test_strassen_browser.py`
      - `python tests/test_session.py`
+     - `node tests/netze.test.js`
+     - `python tests/test_netze_browser.py`
 3. **Neue Tafelbilder:**
    - Aus `tafelbilder/_vorlage/` anlegen und in `tafelbilder/index.json` eintragen.
    - Anleitung: `docs/TAFELBILD_ERSTELLEN.md`.
@@ -47,4 +49,5 @@ ChronoGlobe ist eine statische Seite ohne Build-Schritt: globe.gl, d3 und reines
 - `docs/ARCHITEKTUR.md`: Kern, Zustand, Modi, Synchronisierung, Rechte
 - `docs/TAFELBILD_ERSTELLEN.md`: neues Tafelbild Schritt für Schritt
 - `docs/SETUP.md`: Supabase für Live-Sessions einrichten
+- `docs/HANDELSNETZE.md`: Handels- und Verkehrsnetze (Datenmodell, Zeitfilter, Quellen, Download)
 - `docs/VIGNETTEN.md`, `docs/STRASSEN_ZEITMODELL.md`, `docs/DATENQUELLEN.md`, `docs/GRUNDREGELN.md`

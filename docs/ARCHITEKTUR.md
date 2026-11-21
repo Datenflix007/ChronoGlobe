@@ -16,7 +16,7 @@
 Ladereihenfolge in `app.html`:
 
 ```
-vendor (globe.gl, d3) → texte.js → vignetten.js → strassenzeit.js
+vendor (globe.gl, d3) → texte.js → vignetten.js → strassenzeit.js → netze.js
 → session.js   stellt CGSession bereit; lädt Supabase nur in Session-Seiten nach
 → tafelbild.js bestimmt Modus und Tafelbild; CG.bereit, CG.daten
 → app.js       Engine: wartet auf CG.bereit, lädt Kern- und Tafelbild-Daten, startet
@@ -42,6 +42,8 @@ Wenn alles steht, löst `app.js` das Ereignis `chronoglobe:bereit` aus. Darauf s
 - **Zeitleiste:** Abschnitte stehen in `SEGS`. Ein Abschnitt kann mehrere lineare Teile mit eigenem Maßstab haben (`teile`).
   - Beispiel: Die frühen Hochkulturen sind ein Vorlauf des ersten Abschnitts; `zeitleisteEinrichten` legt ihn nur an, wenn solche Reiche geladen sind.
   - `pct`/`yearAt` rechnen über alle Teile; zwischen nicht anschließenden Teilen liegt ein Zeitsprung.
+  - Freies Erkunden ohne Tafelbild-Zeitraum: `mittelalterEinrichten` füllt die Lücke 480–1400 mit dem Teil „Mittelalter“
+    (für die Handels- und Verkehrsnetze, `docs/HANDELSNETZE.md`). Tafelbilder mit `zeitraum` behalten den Zeitsprung.
 
 ## Zentraler Zustand (`js/app.js`)
 
@@ -56,10 +58,12 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
   handel: { on, land, see, waren, gesandt, karawanen, strassen, schiff },
   strassen: { ehemals, animieren },
   zh: { on, fahrten: { 1: true, … 7: true }, bilder },
+  netze: { petra_gaza, tang, viatariq, thurayya, mongolen },   // Handels- und Verkehrsnetze (data/netze/index.json)
   niveau: 'A' | 'B' | 'C',
   fenster: {
     rolle: null | { reich, reiter: 'vig' | 'karte', vignette: 'liste' | <Nummer> },
     info:  null | { art: 'route'|'ort'|'kontakt'|'zh'|'zhhafen'|'zhhintergrund'|'orbis'|'strasse'|'strassen', id }
+                | { art: 'netzlinie'|'netzort', netz, id } | { art: 'netzquellen' }
                 | { art: 'text', id, zurueck: { art, id } | null },
     waren: null | 'handel' | 'zh',
     modal: null | 'hilfe' | 'lehrer'

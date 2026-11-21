@@ -45,6 +45,7 @@ Ein Tafelbild ist ein Ordner `tafelbilder/<id>/`. Er legt fest, was vom Kern (Gl
 - `orte`, `schlachten`, `vw` (Völkerwanderung), `limes` (Grenzanlagen)
 - `handel`; darunter `land`, `see`, `waren`, `gesandt`, `karawanen`, `strassen`, `schiff`
 - `zh` (Zheng He), `bilder` (Abbildungen statt Symbole)
+- `netze` (Menü „Handels- und Verkehrsnetze“); in `aktiv` als Liste von Netz-ids, z. B. `"netze": ["tang"]` (ids in `data/netze/index.json`, siehe `docs/HANDELSNETZE.md`)
 - Nur in `aktiv`: `strassen_ehemals`, `strassen_animieren`
 
 **Fokuspunkte**
