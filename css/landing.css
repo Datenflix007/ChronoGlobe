@@ -39,6 +39,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 .held .sub{margin:0;color:#c4d2e2;font-size:clamp(16px,1.7vw,19px);line-height:1.55;max-width:560px}
 .held-knoepfe{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px}
 .knopf.gross{padding:14px 22px;font-size:17px;border-radius:14px}
+.quellen-sprung{max-width:31ch;text-align:center}
 .knopf.glas{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);backdrop-filter:blur(8px)}
 .knopf.prim{box-shadow:0 0 0 0 rgba(92,194,255,.6);animation:leuchten 2.8s ease-in-out infinite}
 @keyframes leuchten{0%,100%{box-shadow:0 6px 22px rgba(92,194,255,.25)}50%{box-shadow:0 6px 34px rgba(92,194,255,.55)}}

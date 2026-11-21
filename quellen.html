@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101a27">
+<title>Datenquellen &amp; wissenschaftliche Grundlagen · ChronoGlobe</title>
+<meta name="description" content="Verwendete Datensätze, Literatur, Quellen und wissenschaftliche Grenzen von ChronoGlobe.">
+<link rel="icon" href="img/icons/favicon.png" type="image/png">
+<link rel="stylesheet" href="css/quellen.css">
+<script src="js/quellen.js" defer></script>
+</head>
+<body>
+<div class="sterne" aria-hidden="true"></div>
+
+<header class="seitenkopf">
+  <a class="marke" href="index.html" aria-label="Zur ChronoGlobe-Startseite">
+    <img src="img/icons/favicon.png" alt="" width="42" height="42">
+    <span>ChronoGlobe</span>
+  </a>
+  <nav class="kopfnav" aria-label="Hauptnavigation">
+    <a href="app.html?modus=frei">Globus</a>
+    <a href="index.html">Startseite</a>
+  </nav>
+</header>
+
+<main>
+  <section class="einstieg" aria-labelledby="seitentitel">
+    <p class="eyebrow">Transparenz zur Datengrundlage</p>
+    <h1 id="seitentitel">Datenquellen &amp; wissenschaftliche Grundlagen</h1>
+    <p class="lead">ChronoGlobe verbindet nachweislich eingebundene Forschungsdaten mit eigenen, ausdrücklich als solchen markierten didaktischen Rekonstruktionen. Dieses Register trennt beides von Literatur und nur recherchierten Projekten.</p>
+    <p class="hinweis">Historische Grenzen, Verkehrswege und Datierungen können je nach Quellenlage, Forschungsstand und didaktischer Darstellung vereinfacht, rekonstruiert oder umstritten sein. Ein Status beschreibt die technische Einbindung im Repository – nicht die vollständige historische Gewissheit.</p>
+  </section>
+
+  <section class="legende bereich" aria-labelledby="statusTitel">
+    <div>
+      <p class="eyebrow">Einordnung</p>
+      <h2 id="statusTitel">Was der Status bedeutet</h2>
+    </div>
+    <ul class="status-legende">
+      <li><span class="status status-used">Verwendet</span><span>nachweislich in einer lokalen Ebene oder einem Bildbestand eingebunden</span></li>
+      <li><span class="status status-partially_used">Teilweise verwendet</span><span>nur ausgewählte Daten oder abgeleitete Geometrien übernommen</span></li>
+      <li><span class="status status-scientific_basis">Wissenschaftliche Grundlage</span><span>für Kontext, Interpretation oder eigene Rekonstruktion dokumentiert</span></li>
+      <li><span class="status status-researched">Recherchiert</span><span>geprüft, aber nicht nachweislich integriert</span></li>
+      <li><span class="status status-origin_unclear">Herkunft ungeklärt</span><span>lokale Ebene vorhanden, externe Grundlage im Projekt nicht belastbar nachgewiesen</span></li>
+    </ul>
+  </section>
+
+  <section class="filterbereich bereich" aria-labelledby="registerTitel">
+    <div class="register-kopf">
+      <div>
+        <p class="eyebrow">Register</p>
+        <h2 id="registerTitel">Datensätze, Literatur und Quellen</h2>
+      </div>
+      <output id="treffer" aria-live="polite">Einträge werden geladen …</output>
+    </div>
+
+    <div class="filterleiste" aria-label="Quellen filtern">
+      <label class="suche" for="quellenSuche">
+        <span>Durchsuchen</span>
+        <input id="quellenSuche" type="search" placeholder="Titel, Autor:in, Ort, Ebene oder DOI" autocomplete="off">
+      </label>
+      <label class="kategorie" for="kategorieFilter">
+        <span>Kategorie</span>
+        <select id="kategorieFilter">
+          <option value="all">Alle Kategorien</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="statusfilter" aria-label="Nach Status filtern">
+      <button class="filter-knopf aktiv" type="button" data-status="all" aria-pressed="true">Alle</button>
+      <button class="filter-knopf" type="button" data-status="used" aria-pressed="false">Verwendet</button>
+      <button class="filter-knopf" type="button" data-status="partially_used" aria-pressed="false">Teilweise verwendet</button>
+      <button class="filter-knopf" type="button" data-status="scientific_basis" aria-pressed="false">Wissenschaftliche Grundlage</button>
+      <button class="filter-knopf" type="button" data-status="researched" aria-pressed="false">Recherchiert</button>
+      <button class="filter-knopf" type="button" data-status="origin_unclear" aria-pressed="false">Herkunft ungeklärt</button>
+    </div>
+  </section>
+
+  <p id="quelleFehler" class="fehler" role="alert" hidden></p>
+  <section id="quellenListe" class="quellenliste" aria-live="polite" aria-busy="true"></section>
+
+  <section class="zwei-spalten" aria-label="Wissenschaftliche Hinweise">
+    <article class="bereich erklaerung">
+      <p class="eyebrow">Lesart</p>
+      <h2>Von der Quelle zur Ebene</h2>
+      <p>Jeder Eintrag nennt, wenn vorhanden, die verwendeten lokalen Dateien, die sichtbare Ebene sowie Bearbeitungen wie Vereinfachung oder räumliche Zeitmodelle. Damit bleibt erkennbar, welche Geometrie importiert wurde und wo ChronoGlobe eine didaktische Darstellung ergänzt.</p>
+      <p>IDs aus <code>data/literatur.json</code> und den Fußnoten der Schülertexte werden gegen dieses Register geprüft. Weitere Datenzuordnungen stehen direkt an den jeweiligen Registereinträgen.</p>
+    </article>
+    <article class="bereich erklaerung">
+      <p class="eyebrow">Grenzen der Darstellung</p>
+      <h2>Wissenschaftliche Rekonstruktion</h2>
+      <p>Eine Quellenangabe ist keine Zusage, dass jeder Verlauf oder jedes Datum exakt belegt ist. Vor allem Grenzen, Handelslinien und Sichtbarkeitszeiten können zusammengefasst, räumlich vereinfacht oder als Szenario modelliert sein.</p>
+      <p>Freie Zugänglichkeit einer Publikation bedeutet zudem nicht automatisch, dass zugehörige GIS-Daten frei weitergegeben werden dürfen. Die konkrete Lizenz und bekannte Einschränkungen stehen deshalb bei jedem Eintrag.</p>
+    </article>
+  </section>
+</main>
+
+<footer class="fuss">
+  <span>ChronoGlobe · ein Projekt von Felix Staacke</span>
+  <a href="README.md">Projektbeschreibung</a>
+  <a href="LIZENZEN.txt">Hinweise &amp; Lizenzen</a>
+  <a href="index.html">Zur Startseite</a>
+</footer>
+</body>
+</html>

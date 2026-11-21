@@ -29,6 +29,16 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 - `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
+- `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise sowie Literatur- und Fußnoten-IDs.
+
+## Wissenschaftliche Datengrundlage
+
+Die Seite [Datenquellen & wissenschaftliche Grundlagen](quellen.html) dokumentiert die nachweislich eingebundenen Datensätze, eigene didaktische Rekonstruktionen, Literatur und nur recherchierte Projekte getrennt voneinander. Das zentrale Register liegt in `data/sources.json`.
+
+- Einen neuen Registereintrag nur mit dem Status versehen, den die lokalen Import- oder Nutzungsdateien belegen; fehlende Herkunft als solche markieren.
+- Bei einer neuen Datenebene die tatsächlichen lokalen Dateien unter `local_files` und die sichtbare Ebene unter `used_by_layers` hinterlegen.
+- `source_id` oder `source_ids` in Datenobjekten müssen auf eine ID im Register zeigen. Literatur-IDs aus `data/literatur.json` und Fußnoten-IDs aus `data/texte.json` werden ebenfalls geprüft.
+- Nach Änderungen `python tools/check_sources.py` ausführen. Die Prüfung validiert Verweise und Dateien, nicht die historische Aussage selbst.
 
 ## Bedienung
 - Oben rechts:
