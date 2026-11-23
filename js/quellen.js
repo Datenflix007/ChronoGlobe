@@ -12,6 +12,26 @@
   const normalise = (value) => String(value || '').toLocaleLowerCase('de-DE');
   const list = (value) => Array.isArray(value) ? value : [];
 
+  // Anzeigenamen für source_type (Werte in data/sources.json bleiben englische Schlüssel)
+  const TYPEN = {
+    academic_publication: 'Fachpublikation',
+    gis_dataset: 'GIS-Datensatz',
+    project_reconstruction: 'Eigene Rekonstruktion',
+    primary_source_dossier: 'Quellendossier',
+    earth_imagery: 'Erdbild / Textur',
+    reference_article: 'Nachschlageartikel',
+    research_project: 'Forschungsprojekt',
+    network_model: 'Netzwerkmodell',
+    base_map: 'Basiskarte',
+    reference_resource: 'Nachschlagewerk',
+    publication_with_primary_sources: 'Publikation mit Quellenübersetzungen',
+    primary_source_translation: 'Quellenübersetzung',
+    primary_source: 'Primärquelle',
+    research_archive: 'Forschungsarchiv',
+    dataset_catalogue: 'Datensatzkatalog',
+    gazetteer: 'Ortsverzeichnis (Gazetteer)'
+  };
+
   function element(name, className, text) {
     const node = document.createElement(name);
     if (className) node.className = className;
@@ -99,7 +119,7 @@
     list(source.categories).forEach((category) => {
       badges.append(element('span', 'badge', categoryNames.get(category) || category));
     });
-    if (source.source_type) badges.append(element('span', 'badge', source.source_type.replaceAll('_', ' ')));
+    if (source.source_type) badges.append(element('span', 'badge', TYPEN[source.source_type] || source.source_type.replaceAll('_', ' ')));
     card.append(badges);
 
     if (source.description) card.append(element('p', 'beschreibung', source.description));
@@ -222,6 +242,14 @@
     });
   }
 
+  function showStand(stand) {
+    const box = document.getElementById('registerStand');
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(stand || '');
+    if (!box || !match) return;
+    box.textContent = `Stand des Registers: ${Number(match[3])}.${Number(match[2])}.${match[1]} · ${list(state.registry.sources).length} Einträge`;
+    box.hidden = false;
+  }
+
   function setStatus(status) {
     state.status = status;
     statusButtons.forEach((button) => {
@@ -252,6 +280,7 @@
         throw new Error('Das Quellenregister hat nicht das erwartete Format.');
       }
       state.registry = registry;
+      showStand(registry.stand);
       populateCategories(registry);
       render();
     })

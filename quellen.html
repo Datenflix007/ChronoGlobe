@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101a27">
-<title>Datenquellen &amp; wissenschaftliche Grundlagen · ChronoGlobe</title>
+<title>Datensätze, Literatur &amp; Quellen · ChronoGlobe</title>
 <meta name="description" content="Verwendete Datensätze, Literatur, Quellen und wissenschaftliche Grenzen von ChronoGlobe.">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
 <link rel="stylesheet" href="css/quellen.css">
@@ -15,20 +15,21 @@
 
 <header class="seitenkopf">
   <a class="marke" href="index.html" aria-label="Zur ChronoGlobe-Startseite">
-    <img src="img/icons/favicon.png" alt="" width="42" height="42">
-    <span>ChronoGlobe</span>
+    <img class="logo" src="img/icons/favicon.png" alt="" width="56" height="56">
+    <span class="marke-name">ChronoGlobe</span>
   </a>
   <nav class="kopfnav" aria-label="Hauptnavigation">
-    <a href="app.html?modus=frei">Globus</a>
-    <a href="index.html">Startseite</a>
+    <a class="knopf glas" href="index.html"><span aria-hidden="true">←</span> Startseite</a>
+    <a class="knopf prim" href="app.html?modus=frei">Globus öffnen <span aria-hidden="true">→</span></a>
   </nav>
 </header>
 
 <main>
   <section class="einstieg" aria-labelledby="seitentitel">
     <p class="eyebrow">Transparenz zur Datengrundlage</p>
-    <h1 id="seitentitel">Datenquellen &amp; wissenschaftliche Grundlagen</h1>
+    <h1 id="seitentitel">Datensätze, Literatur <span class="verlauf">und Quellen</span></h1>
     <p class="lead">ChronoGlobe verbindet nachweislich eingebundene Forschungsdaten mit eigenen, ausdrücklich als solchen markierten didaktischen Rekonstruktionen. Dieses Register trennt beides von Literatur und nur recherchierten Projekten.</p>
+    <p class="stand" id="registerStand" hidden></p>
     <p class="hinweis">Historische Grenzen, Verkehrswege und Datierungen können je nach Quellenlage, Forschungsstand und didaktischer Darstellung vereinfacht, rekonstruiert oder umstritten sein. Ein Status beschreibt die technische Einbindung im Repository – nicht die vollständige historische Gewissheit.</p>
   </section>
 
@@ -42,7 +43,6 @@
       <li><span class="status status-partially_used">Teilweise verwendet</span><span>nur ausgewählte Daten oder abgeleitete Geometrien übernommen</span></li>
       <li><span class="status status-scientific_basis">Wissenschaftliche Grundlage</span><span>für Kontext, Interpretation oder eigene Rekonstruktion dokumentiert</span></li>
       <li><span class="status status-researched">Recherchiert</span><span>geprüft, aber nicht nachweislich integriert</span></li>
-      <li><span class="status status-origin_unclear">Herkunft ungeklärt</span><span>lokale Ebene vorhanden, externe Grundlage im Projekt nicht belastbar nachgewiesen</span></li>
     </ul>
   </section>
 
@@ -74,7 +74,6 @@
       <button class="filter-knopf" type="button" data-status="partially_used" aria-pressed="false">Teilweise verwendet</button>
       <button class="filter-knopf" type="button" data-status="scientific_basis" aria-pressed="false">Wissenschaftliche Grundlage</button>
       <button class="filter-knopf" type="button" data-status="researched" aria-pressed="false">Recherchiert</button>
-      <button class="filter-knopf" type="button" data-status="origin_unclear" aria-pressed="false">Herkunft ungeklärt</button>
     </div>
   </section>
 
@@ -99,9 +98,10 @@
 
 <footer class="fuss">
   <span>ChronoGlobe · ein Projekt von Felix Staacke</span>
-  <a href="README.md">Projektbeschreibung</a>
-  <a href="LIZENZEN.txt">Hinweise &amp; Lizenzen</a>
-  <a href="index.html">Zur Startseite</a>
+  <a href="index.html">Startseite</a>
+  <a href="lehrkraft.html">Lehrkraft-Ansicht der Schülertexte</a>
+  <a href="LIZENZEN.txt">Lizenzen der Drittkomponenten</a>
+  <a href="app.html?modus=frei#hilfe">Hinweise &amp; Lizenzen</a>
 </footer>
 </body>
 </html>

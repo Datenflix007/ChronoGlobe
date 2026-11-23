@@ -30,13 +30,14 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
 - `node tests/netze.test.js`, `python tests/test_netze_browser.py`: Handels- und Verkehrsnetze.
-- `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise sowie Literatur- und Fußnoten-IDs.
+- `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise, Literatur- und Fußnoten-IDs sowie Vollständigkeit (jede Datei unter `data/` und `img/` im Register).
 
 ## Wissenschaftliche Datengrundlage
 
-Die Seite [Datenquellen & wissenschaftliche Grundlagen](quellen.html) dokumentiert die nachweislich eingebundenen Datensätze, eigene didaktische Rekonstruktionen, Literatur und nur recherchierte Projekte getrennt voneinander. Das zentrale Register liegt in `data/sources.json`.
+Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die nachweislich eingebundenen Datensätze, eigene didaktische Rekonstruktionen, Literatur und nur recherchierte Projekte getrennt voneinander. Das zentrale Register liegt in `data/sources.json`.
 
-- Einen neuen Registereintrag nur mit dem Status versehen, den die lokalen Import- oder Nutzungsdateien belegen; fehlende Herkunft als solche markieren.
+- Einen neuen Registereintrag nur mit dem Status versehen, den die lokalen Import- oder Nutzungsdateien belegen (Verwendet, Teilweise verwendet, Wissenschaftliche Grundlage, Recherchiert). Daten oder Bilder ohne belegbare Herkunft werden nicht eingebunden; die Herkunft vorher klären.
+- Nach jeder Änderung an Daten, Bildern oder Literatur das Register ergänzen und das Feld `stand` (JJJJ-MM-TT) in `data/sources.json` aktualisieren. Es erscheint oben auf der Quellenseite.
 - Bei einer neuen Datenebene die tatsächlichen lokalen Dateien unter `local_files` und die sichtbare Ebene unter `used_by_layers` hinterlegen.
 - `source_id` oder `source_ids` in Datenobjekten müssen auf eine ID im Register zeigen. Literatur-IDs aus `data/literatur.json` und Fußnoten-IDs aus `data/texte.json` werden ebenfalls geprüft.
 - Nach Änderungen `python tools/check_sources.py` ausführen. Die Prüfung validiert Verweise und Dateien, nicht die historische Aussage selbst.

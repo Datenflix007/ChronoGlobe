@@ -3,7 +3,9 @@
 
 Der Prüfer ist absichtlich konservativ: Er bestätigt keine historische
 Richtigkeit, sondern verhindert kaputte IDs, fehlende lokale Dateiverweise und
-nicht registrierte Literatur-/Fußnotenverweise.
+nicht registrierte Literatur-/Fußnotenverweise. Außerdem muss jede Datei unter
+data/ und img/ über local_files einem Registereintrag zugeordnet sein, damit das
+Verzeichnis der Datensätze aktuell bleibt.
 """
 
 from __future__ import annotations
@@ -17,6 +19,31 @@ from typing import Any, Iterable
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 REGISTRY_PATH = DATA / "sources.json"
+IMG = ROOT / "img"
+
+# Dateien, die keine Datengrundlage sind und deshalb nicht im Register stehen müssen.
+NICHT_REGISTRIERT = {
+    "data/sources.json",            # das Register selbst
+    "data/vignetten.json",          # eigene Schriftrollen-Texte (Format: docs/VIGNETTEN.md)
+    "data/vignetten_demo.json",     # Beispielinhalte für die Vignetten-Vorschau
+    "img/icons/favicon.png",        # Projektlogo
+}
+
+
+def registrierungspflichtig() -> list[str]:
+    """Alle Daten- und Bilddateien relativ zum Projektordner (Kachelordner als Ganzes)."""
+    pfade: list[str] = []
+    for path in sorted(DATA.rglob("*.json")):
+        pfade.append(path.relative_to(ROOT).as_posix())
+    for path in sorted(IMG.iterdir()):
+        if path.is_dir() and path.name != "icons":
+            pfade.append(path.relative_to(ROOT).as_posix() + "/")
+        elif path.is_file():
+            pfade.append(path.relative_to(ROOT).as_posix())
+    icons = IMG / "icons"
+    if icons.is_dir():
+        pfade.extend(p.relative_to(ROOT).as_posix() for p in sorted(icons.iterdir()) if p.is_file())
+    return [p for p in pfade if p not in NICHT_REGISTRIERT]
 
 
 def read_json(path: Path) -> Any:
@@ -75,8 +102,12 @@ def main() -> int:
         errors.append("sources.json: Feld 'status_labels' muss ein Objekt sein.")
         statuses = {}
 
+    if not isinstance(registry.get("stand"), str):
+        warnings.append("sources.json: Feld 'stand' (Datum der letzten Pflege, JJJJ-MM-TT) fehlt.")
+
     category_ids = {item.get("id") for item in categories if isinstance(item, dict)}
     known_ids: set[str] = set()
+    registrierte_pfade: set[str] = set()
     for index, source in enumerate(sources):
         label = f"sources[{index}]"
         if not isinstance(source, dict):
@@ -108,8 +139,8 @@ def main() -> int:
                 errors.append(f"{source_id}: primary_category fehlt in categories.")
 
         local_files = source.get("local_files", [])
-        if status in {"used", "partially_used", "origin_unclear"} and not local_files:
-            errors.append(f"{source_id}: verwendete oder unklare Quelle ohne local_files.")
+        if status in {"used", "partially_used"} and not local_files:
+            errors.append(f"{source_id}: verwendete Quelle ohne local_files.")
         if local_files and not isinstance(local_files, list):
             errors.append(f"{source_id}: local_files muss eine Liste sein.")
         elif isinstance(local_files, list):
@@ -119,6 +150,16 @@ def main() -> int:
                     errors.append(f"{source_id}: local_files enthält keinen gültigen Pfad.")
                 elif not (ROOT / path_value).exists():
                     errors.append(f"{source_id}: lokaler Pfad fehlt: {path_value}")
+                else:
+                    registrierte_pfade.add(path_value)
+
+    for pfad in registrierungspflichtig():
+        abgedeckt = any(
+            pfad == eintrag or (eintrag.endswith("/") and pfad.startswith(eintrag))
+            for eintrag in registrierte_pfade
+        )
+        if not abgedeckt:
+            warnings.append(f"{pfad}: Datei steht in keinem Registereintrag (local_files).")
 
     all_data: dict[str, Any] = {}
     for path in sorted(DATA.glob("*.json")):

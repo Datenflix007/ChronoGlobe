@@ -1,12 +1,12 @@
 {
-  "_hinweis": "Zentrales Quellenregister für ChronoGlobe. usage_status beschreibt den nachweisbaren Einbindungsstand, nicht die wissenschaftliche Qualität. Einträge mit researched sind geprüft oder als Recherchegrundlage vermerkt, aber nicht als Datenimport belegt.",
+  "_hinweis": "Zentrales Quellenregister für ChronoGlobe. usage_status beschreibt den nachweisbaren Einbindungsstand, nicht die wissenschaftliche Qualität. Einträge mit researched sind geprüft oder als Recherchegrundlage vermerkt, aber nicht als Datenimport belegt. Jede Datei unter data/ und img/ muss über local_files einem Eintrag zugeordnet sein (Prüfung: tools/check_sources.py). Bei neuen Daten oder Literatur hier und das Feld stand aktualisieren.",
   "schema_version": 1,
+  "stand": "2026-11-23",
   "status_labels": {
     "used": "Verwendet",
     "partially_used": "Teilweise verwendet",
     "scientific_basis": "Wissenschaftliche Grundlage",
-    "researched": "Recherchiert, nicht integriert",
-    "origin_unclear": "Herkunft ungeklärt"
+    "researched": "Recherchiert, nicht integriert"
   },
   "categories": [
     { "id": "reiche_grenzen", "label": "Historische Reiche und politische Grenzen" },
@@ -16,6 +16,7 @@
     { "id": "china_verkehr", "label": "Historische Verkehrsnetze Chinas" },
     { "id": "schifffahrt_binnenwasser", "label": "Schifffahrt und Binnenwasserstraßen" },
     { "id": "ereignisse_orte", "label": "Historische Ereignisse und Orte" },
+    { "id": "basiskarten", "label": "Basiskarten und Erdtexturen" },
     { "id": "fachliteratur_forschung", "label": "Ergänzende Fachliteratur und Forschungsprojekte" }
   ],
   "sources": [
@@ -120,8 +121,8 @@
       "description": "Moderne Küstenlinien und schematische Basiskarten; nicht als Quelle historischer Grenzen verwendet.",
       "historical_period": { "start": null, "end": null, "description": "Moderne physische Basiskarte" },
       "geographic_scope": ["global"],
-      "categories": ["reiche_grenzen"],
-      "primary_category": "reiche_grenzen",
+      "categories": ["basiskarten"],
+      "primary_category": "basiskarten",
       "source_type": "base_map",
       "usage_status": "used",
       "status_basis": "LIZENZEN.txt nennt Natural Earth als Quelle der Küstenlinien, land*.json und der schematischen Texturen.",
@@ -133,7 +134,11 @@
         { "path": "data/land.json", "role": "Küstenlinie auf dem Globus" },
         { "path": "data/land_rom.json", "role": "Basiskarte Rom" },
         { "path": "data/land_han.json", "role": "Basiskarte Han" },
-        { "path": "img/earth-schematic-8k.png", "role": "schematische Textur" }
+        { "path": "img/earth-schematic-8k.png", "role": "schematische Textur (1:10 Mio.)" },
+        { "path": "img/tiles_schem/", "role": "schematische Zoom-Kacheln (1:10 Mio.)" },
+        { "path": "img/earth-schematic.png", "role": "schematische Rückfall-Textur (1:50 Mio.)" },
+        { "path": "build_schema_kacheln.py", "role": "Erzeugung der schematischen Textur und Kacheln" },
+        { "path": "build_schema_textur.py", "role": "Erzeugung der Rückfall-Textur" }
       ],
       "used_by_layers": [
         { "id": "basiskarte", "label": "Küsten und schematische Grundkarte", "description": "keine historischen Grenzen" }
@@ -152,8 +157,8 @@
       "description": "Satelliten-Textur für den Globus und Zoom-Kacheln; keine historische Datenquelle.",
       "historical_period": { "start": null, "end": null, "description": "moderne Erdoberfläche" },
       "geographic_scope": ["global"],
-      "categories": ["reiche_grenzen"],
-      "primary_category": "reiche_grenzen",
+      "categories": ["basiskarten"],
+      "primary_category": "basiskarten",
       "source_type": "earth_imagery",
       "usage_status": "used",
       "status_basis": "LIZENZEN.txt dokumentiert die verwendete Bilddatei und die daraus erzeugten Kacheln.",
@@ -172,6 +177,37 @@
       "modifications": ["Auf 8192 × 4096 Pixel verkleinert", "in Web-Mercator-Kacheln umgerechnet"],
       "limitations": ["Moderne Bilddaten dienen nur als Hintergrund und belegen keine historischen Verhältnisse."],
       "citation": "NASA Earth Observatory, Blue Marble Next Generation with Topography and Bathymetry, Juli 2004."
+    },
+    {
+      "id": "three-globe-texturen",
+      "title": "Erdtexturen aus dem Paket three-globe",
+      "authors": ["Vasco Asturiano"],
+      "institution": "three-globe (Open-Source-Projekt)",
+      "publication_year": null,
+      "version": "Beispieltexturen des npm-Pakets three-globe",
+      "description": "Kleine Blue-Marble-Textur (Rückfall für Geräte mit kleinem Texturlimit und Globus der Startseite), Höhenrelief und Sternenhimmel; keine historische Datenquelle.",
+      "historical_period": { "start": null, "end": null, "description": "moderne Erdoberfläche bzw. Hintergrundbild" },
+      "geographic_scope": ["global"],
+      "categories": ["basiskarten"],
+      "primary_category": "basiskarten",
+      "source_type": "earth_imagery",
+      "usage_status": "used",
+      "status_basis": "LIZENZEN.txt nennt die drei Dateien als Texturen aus three-globe; js/app.js und js/landing-globus.js laden sie direkt.",
+      "doi": null,
+      "dataset_url": "https://github.com/vasturiano/three-globe/tree/master/example/img",
+      "canonical_url": "https://github.com/vasturiano/three-globe",
+      "license": { "name": "MIT", "url": "https://github.com/vasturiano/three-globe/blob/master/LICENSE", "note": "Paketlizenz; die Blue-Marble-Textur selbst geht auf NASA zurück und ist gemeinfrei." },
+      "local_files": [
+        { "path": "img/earth-blue-marble.jpg", "role": "kleine Satellitentextur (Rückfall, Startseite)" },
+        { "path": "img/earth-topology.png", "role": "Höhenrelief (Bump-Map) der Satellitenansicht" },
+        { "path": "img/night-sky.png", "role": "Sternenhimmel hinter dem Globus und auf den Seiten" }
+      ],
+      "used_by_layers": [
+        { "id": "satellit", "label": "Satellitenansicht", "description": "Relief und Hintergrund" }
+      ],
+      "modifications": ["unverändert übernommen"],
+      "limitations": ["Moderne Bilddaten dienen nur als Hintergrund und belegen keine historischen Verhältnisse."],
+      "citation": "Vasco Asturiano, three-globe, Beispieltexturen (MIT); Blue Marble: NASA Earth Observatory."
     },
     {
       "id": "reiche-eigene-rekonstruktion",
