@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<script src="js/csp.js?v=192c99afda"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b121c">
+<title>ChronoGlobe-Editor</title>
+<meta name="description" content="Änderungen und neue Themenebenen für ChronoGlobe vorschlagen – selbst zeichnen, Dateien importieren oder mit einer KI aus einem Datensatz erzeugen. Einreichen als Pull Request auf GitHub.">
+<link rel="icon" href="img/icons/favicon.png" type="image/png">
+<link rel="stylesheet" href="css/editor.css?v=8c5f4caa33">
+</head>
+<body>
+<header class="kopf">
+  <a class="marke" href="index.html" title="Startseite"><img src="img/icons/favicon.png" alt="" width="32" height="32"><span>ChronoGlobe</span></a>
+  <span class="kopf-titel">Editor</span>
+  <nav class="schritte" id="schritte" aria-label="Fortschritt" hidden>
+    <button type="button" data-schritt="art"><i>1</i><span>Art</span></button>
+    <button type="button" data-schritt="inhalt"><i>2</i><span>Inhalt</span></button>
+    <button type="button" data-schritt="belege"><i>3</i><span>Belege</span></button>
+    <button type="button" data-schritt="einreichen"><i>4</i><span>Einreichen</span></button>
+  </nav>
+  <div class="kopf-rechts">
+    <button type="button" id="btnUndo" class="ikon" title="Rückgängig (Strg+Z)" aria-label="Rückgängig" disabled>↶</button>
+    <button type="button" id="btnRedo" class="ikon" title="Wiederholen (Strg+Y)" aria-label="Wiederholen" disabled>↷</button>
+    <button type="button" id="btnKi" class="knopf ki-knopf" title="KI-Assistent: Prompt für einen Datensatz erzeugen und Antwort einlesen">✦ KI-Assistent</button>
+    <a class="knopf leise" href="app.html?modus=frei">Zum Globus</a>
+  </div>
+</header>
+
+<!-- ===== Start ===== -->
+<section id="start" class="start" aria-labelledby="hStart">
+  <div class="start-text">
+    <h1 id="hStart">Mach den Globus <span class="verlauf">besser</span>.</h1>
+    <p>Fehler korrigieren, ein Gebiet neu zeichnen oder eine ganz neue Ebene anlegen – von Pyramiden bis zu Klöstern. Jeder Vorschlag braucht Belege und wird vom Projektteam geprüft, bevor er erscheint.</p>
+  </div>
+  <div class="kacheln">
+    <button type="button" class="kachel" data-start="aenderung"><b class="sym">✎</b><b>Änderung vorschlagen</b><span>Gebiet, Ort, Route, Ereignis, Text oder Schriftrolle korrigieren</span></button>
+    <button type="button" class="kachel" data-start="neue-ebene"><b class="sym">◈</b><b>Neue Themenebene</b><span>Orte, Linien und Flächen selbst auf der Karte zeichnen</span></button>
+    <button type="button" class="kachel ki" data-start="ki"><b class="sym">✦</b><b>Mit KI aus einem Datensatz</b><span>Prompt für eine KI deiner Wahl erzeugen, Antwort einfügen, fertig</span></button>
+    <button type="button" class="kachel" data-start="import"><b class="sym">⇪</b><b>Datei importieren</b><span>GeoJSON, CSV oder JSON mit Koordinaten</span></button>
+  </div>
+  <p class="hint start-fuss">Dein Entwurf bleibt nur in diesem Browser. Es wird nichts hochgeladen, bis du selbst auf GitHub einreichst.</p>
+</section>
+
+<!-- ===== Arbeitsbereich ===== -->
+<main class="raster" id="arbeit" hidden>
+  <section class="spalte formular" aria-label="Beitrag bearbeiten">
+    <div class="karte" id="teilArt">
+      <div class="karte-kopf"><h2>Art des Beitrags</h2><button type="button" class="link" id="btnStart">Neu wählen</button></div>
+      <div class="segment" role="radiogroup" aria-label="Art des Beitrags">
+        <label><input type="radio" name="art" value="aenderung"><span>✎ Änderung</span></label>
+        <label><input type="radio" name="art" value="neue-ebene"><span>◈ Neue Themenebene</span></label>
+      </div>
+    </div>
+
+    <!-- Änderung -->
+    <div class="karte" id="teilAenderung" hidden>
+      <h2>Was soll geändert werden?</h2>
+      <label class="feld">Bereich <select id="zBereich"></select></label>
+      <label class="feld" id="zObjektFeld">Objekt
+        <input id="zSuche" type="search" placeholder="Suchen …" aria-label="Objekt suchen">
+        <select id="zObjekt" size="6"></select>
+      </label>
+      <div id="zAktuell" class="aktuell" hidden></div>
+      <label class="feld">Was ist falsch, was soll stattdessen gelten? <textarea id="vText" rows="4" placeholder="z. B. Die Provinz Dakien wurde 106 n. Chr. eingerichtet."></textarea></label>
+      <fieldset class="zeile">
+        <legend>Neue Werte (optional)</legend>
+        <label class="feld">Name <input id="vName" type="text"></label>
+        <label class="feld klein">von <input id="vVon" type="number" step="1" placeholder="-27"><output id="vVonTxt" class="jahr"></output></label>
+        <label class="feld klein">bis <input id="vBis" type="number" step="1" placeholder="476"><output id="vBisTxt" class="jahr"></output></label>
+      </fieldset>
+      <div class="geo">
+        <p class="hint">Neue Lage oder neuer Verlauf? Typ wählen und auf der Karte klicken. Die bisherige Geometrie ist grau gestrichelt.</p>
+        <div class="knoepfe">
+          <select id="vGeoTyp" aria-label="Typ der neuen Geometrie"><option value="">keine neue Geometrie</option><option value="punkt">Ort (Punkt)</option><option value="linie">Linie</option><option value="flaeche">Fläche</option></select>
+          <button type="button" data-geo="zurueck">Letzten Punkt entfernen</button>
+          <button type="button" data-geo="leeren">Leeren</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neue Ebene -->
+    <div class="karte" id="teilEbene" hidden>
+      <details class="ebene-meta" id="eMeta" open>
+        <summary><h2>Die Ebene</h2><span class="farbpunkt" id="eFarbpunkt"></span><span class="zusammen" id="eZusammen"></span></summary>
+        <div class="zeile">
+          <label class="feld breit">Name <input id="eName" type="text" placeholder="Pyramiden im Alten Ägypten"></label>
+          <label class="feld klein">Farbe <input id="eFarbe" type="color" value="#e0b040"></label>
+        </div>
+        <label class="feld">Worum geht es? <textarea id="eBeschreibung" rows="2" placeholder="Was zeigt die Ebene, und was lernt man daran?"></textarea></label>
+        <label class="feld">Hinweis zur Unsicherheit <textarea id="eHinweis" rows="2" placeholder="z. B. Datierungen nach der konventionellen Chronologie; umstritten ist …"></textarea></label>
+        <h3>Quellen der Ebene</h3>
+        <div id="eQuellen" class="liste"></div>
+        <button type="button" id="eQuelleNeu" class="klein-knopf">+ Quelle</button>
+      </details>
+    </div>
+    <div class="karte" id="teilObjekte" hidden>
+      <div class="karte-kopf"><h2>Objekte <small id="oAnzahl"></small></h2>
+        <div class="knoepfe eng">
+          <button type="button" data-neu="punkt" title="Neuer Ort">+ ● Ort</button>
+          <button type="button" data-neu="linie" title="Neue Linie">+ ╱ Linie</button>
+          <button type="button" data-neu="flaeche" title="Neue Fläche">+ ▰ Fläche</button>
+          <button type="button" id="oImport" title="Objekte aus GeoJSON, CSV oder JSON hinzufügen">⇪ Import</button>
+        </div>
+      </div>
+      <div class="zeile filter" id="oFilter">
+        <input id="oSuche" type="search" placeholder="Objekte suchen …" aria-label="Objekte suchen">
+        <select id="oSort" aria-label="Sortierung"><option value="liste">Reihenfolge</option><option value="zeit">nach Zeit</option><option value="name">nach Name</option></select>
+      </div>
+      <div id="oListe" class="objekte"></div>
+      <div id="oForm" class="oform" hidden>
+        <div class="zeile">
+          <label class="feld breit">Name <input id="oName" type="text"></label>
+          <label class="feld">Typ <select id="oTyp"><option value="punkt">● Ort</option><option value="linie">╱ Linie</option><option value="flaeche">▰ Fläche</option></select></label>
+        </div>
+        <div class="zeile">
+          <label class="feld klein">von <input id="oVon" type="number" step="1" placeholder="-2580"><output id="oVonTxt" class="jahr"></output></label>
+          <label class="feld klein">bis <input id="oBis" type="number" step="1" placeholder="leer = bleibt"><output id="oBisTxt" class="jahr"></output></label>
+          <label class="feld haken"><input id="oUnsicher" type="checkbox"> Lage oder Datierung unsicher</label>
+        </div>
+        <label class="feld">Beschreibung <textarea id="oBeschreibung" rows="2"></textarea></label>
+        <label class="feld">Beleg für dieses Objekt <input id="oBeleg" type="text" placeholder="z. B. Lehner 1997"></label>
+        <div class="zeile" id="oPunkt">
+          <label class="feld klein">Breite <input id="oLat" type="number" step="0.001" placeholder="29.979"></label>
+          <label class="feld klein">Länge <input id="oLng" type="number" step="0.001" placeholder="31.134"></label>
+        </div>
+        <p class="hint" id="oGeoHinweis"></p>
+        <div class="knoepfe">
+          <button type="button" data-geo="zurueck">↶ Letzten Punkt</button>
+          <button type="button" data-geo="leeren">Geometrie leeren</button>
+          <button type="button" id="oZeigen">⌖ Auf der Karte zeigen</button>
+          <button type="button" id="oKopie">⧉ Duplizieren</button>
+          <button type="button" id="oLoeschen" class="gefahr">Löschen</button>
+        </div>
+      </div>
+      <details class="werkzeuge"><summary>Werkzeuge für alle Objekte</summary>
+        <div class="knoepfe">
+          <button type="button" id="oTauschen" title="Falls Länge und Breite vertauscht wurden">⇄ Länge/Breite tauschen</button>
+          <button type="button" id="oAlleLoeschen" class="gefahr">Alle Objekte löschen</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- gemeinsam -->
+    <div class="karte" id="teilGemeinsam" hidden>
+      <h2 id="hBelege">Belege und Begründung</h2>
+      <p class="hint">Jeder Vorschlag braucht mindestens einen Beleg: Literatur, Quelle oder Datensatz. Umstrittenes bitte als umstritten kennzeichnen.</p>
+      <label class="feld">Titel des Beitrags <input id="bTitel" type="text" placeholder="z. B. Dakien: Jahr der Provinzgründung korrigieren"></label>
+      <label class="feld">Begründung <textarea id="bBegruendung" rows="3" placeholder="Warum ist die Änderung bzw. die Ebene richtig und sinnvoll für den Unterricht?"></textarea></label>
+      <div id="bBelege" class="liste"></div>
+      <button type="button" id="bBelegNeu" class="klein-knopf">+ Beleg</button>
+    </div>
+  </section>
+
+  <section class="spalte rechts">
+    <div class="karte kartenbox" id="kartenbox">
+      <div class="kartenkopf"><b id="kTitel">Karte</b><span class="hint" id="kHilfe">Klicken setzt Punkte · Punkte ziehen verschiebt sie · Rechtsklick auf einen Punkt löscht ihn</span></div>
+      <div class="karten-rahmen">
+        <svg id="karte" role="img" aria-label="Weltkarte zum Zeichnen"></svg>
+        <div class="werkzeugleiste" role="toolbar" aria-label="Kartenwerkzeuge">
+          <button type="button" id="kZeichnen" class="an" aria-pressed="true" title="Zeichnen: Klick setzt Punkte (Esc schaltet um)">✎</button>
+          <button type="button" id="kPlus" title="Hineinzoomen">+</button>
+          <button type="button" id="kMinus" title="Herauszoomen">−</button>
+          <button type="button" id="kFit" title="Alle Objekte einpassen">⤢</button>
+          <button type="button" id="kWelt" title="Ganze Welt">◯</button>
+        </div>
+        <div class="koord" id="kKoord" aria-live="off"></div>
+      </div>
+      <div class="zeitleiste">
+        <label class="haken"><input type="checkbox" id="zeitAn"> Zeitfilter</label>
+        <input type="range" id="zeitJahr" min="-3500" max="2000" step="10" value="-2500" disabled aria-label="Jahr">
+        <output id="zeitTxt" class="jahr">alle Jahre</output>
+      </div>
+      <p class="hint zeit-hint">Mit Zeitfilter: Reiche dieses Jahres erscheinen zur Orientierung, Objekte außerhalb ihres Zeitraums werden blass.</p>
+    </div>
+
+    <div class="karte" id="ausgabe">
+      <div class="karte-kopf"><h2>Prüfen und einreichen</h2><span class="status" id="status"></span></div>
+      <div id="kiPruefen" class="ki-pruefen" hidden>
+        <h3>✦ Prüfhinweise der KI</h3>
+        <ul id="kiListe"></ul>
+        <details id="kiAusgelassenBox" hidden><summary>Von der KI ausgelassen</summary><ul id="kiAusgelassen"></ul></details>
+      </div>
+      <ul id="pFehler" class="fehler"></ul>
+      <p id="pOk" class="ok" hidden>✓ Der Beitrag ist vollständig.</p>
+      <div class="knoepfe">
+        <button type="button" id="aVorschau" class="prim">Auf dem Globus ansehen</button>
+        <a id="aGithub" class="knopf prim" target="_blank" rel="noopener">Als Pull Request auf GitHub vorschlagen</a>
+      </div>
+      <div class="knoepfe">
+        <button type="button" id="aLaden">⤓ Als Datei</button>
+        <button type="button" id="aKopieren">JSON kopieren</button>
+        <button type="button" id="aNeu" class="gefahr">Neu beginnen</button>
+      </div>
+      <p class="hint" id="aGithubHinweis"></p>
+      <details><summary>Beitrag als JSON</summary><pre id="pJson"></pre></details>
+      <p class="hint">Für den Pull Request brauchst du ein kostenloses GitHub-Konto; GitHub legt dabei automatisch eine Kopie des Projekts an. Bitte keine Namen oder andere persönliche Daten in den Beitrag schreiben.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ===== KI-Assistent ===== -->
+<dialog id="kiDialog" class="ki-dialog" aria-labelledby="hKi">
+  <div class="dialog-kopf">
+    <h2 id="hKi">✦ KI-Assistent</h2>
+    <div class="reiter" role="tablist">
+      <button type="button" role="tab" id="kiTab1" aria-selected="true" data-ki="1">1 · Prompt erstellen</button>
+      <button type="button" role="tab" id="kiTab2" aria-selected="false" data-ki="2">2 · Antwort einfügen</button>
+    </div>
+    <button type="button" class="ikon" id="kiZu" aria-label="Schließen">✕</button>
+  </div>
+  <div class="dialog-inhalt" id="kiSeite1">
+    <p class="hint">Füge deinen Datensatz ein (Tabelle, Liste, GeoJSON, Text). Daraus entsteht ein Prompt, den du in eine KI deiner Wahl kopierst. Die KI antwortet mit einer JSON-Datei samt Anweisungen für diesen Editor. <b>Der Editor selbst schickt nichts an eine KI.</b></p>
+    <div class="segment klein" role="radiogroup" aria-label="Ziel">
+      <label><input type="radio" name="kiModus" value="neue-ebene" checked><span>◈ Neue Themenebene</span></label>
+      <label><input type="radio" name="kiModus" value="aenderung"><span>✎ Änderung vorschlagen</span></label>
+    </div>
+    <label class="feld">Thema (optional) <input id="kiThema" type="text" placeholder="z. B. Zikkurate in Mesopotamien"></label>
+    <label class="feld">Datensatz
+      <textarea id="kiDaten" rows="7" placeholder="name;lat;lng;von;quelle&#10;Ur;30.963;46.103;-2100;Woolley 1939&#10;…"></textarea>
+    </label>
+    <div class="knoepfe eng"><button type="button" id="kiDatei">⇪ Datei laden</button><span class="hint" id="kiDateiInfo"></span></div>
+    <label class="feld">Zusätzliche Wünsche (optional) <textarea id="kiWuensche" rows="2" placeholder="z. B. nur Orte vor 1000 v. Chr.; Beschreibungen für Klasse 6"></textarea></label>
+    <label class="feld">Dein Prompt <textarea id="kiPrompt" rows="8" readonly></textarea></label>
+    <p class="hint" id="kiGroesse"></p>
+    <div class="knoepfe">
+      <button type="button" id="kiKopieren" class="prim">Prompt kopieren</button>
+      <button type="button" id="kiSpeichern">Als .txt speichern</button>
+      <button type="button" id="kiWeiter">Weiter: Antwort einfügen →</button>
+    </div>
+  </div>
+  <div class="dialog-inhalt" id="kiSeite2" hidden>
+    <p class="hint">Kopiere die komplette Antwort der KI hierher – auch mit Text drumherum. Der Editor sucht das JSON, repariert kleine Fehler und zeigt, was er übernimmt.</p>
+    <label class="feld">Antwort der KI <textarea id="kiAntwort" rows="10" placeholder="```json&#10;{ &quot;format&quot;: &quot;chronoglobe-beitrag/1&quot;, … }&#10;```"></textarea></label>
+    <div class="knoepfe eng"><button type="button" id="kiAntwortDatei">⇪ Antwort aus Datei</button></div>
+    <div id="kiErgebnis" class="ki-ergebnis" hidden></div>
+    <div class="knoepfe">
+      <button type="button" id="kiErsetzen" class="prim" disabled>In den Editor übernehmen</button>
+      <button type="button" id="kiAnhaengen" disabled title="Nur die Objekte an die aktuelle Ebene anhängen">Nur Objekte anhängen</button>
+    </div>
+  </div>
+</dialog>
+
+<input type="file" id="datei" accept=".json,.geojson,.csv,.tsv,.txt,application/json,text/csv,text/plain" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/version.js?v=fe7239e757"></script>
+<script src="vendor/d3.min.js?v=7d28c4f53c"></script>
+<script src="js/themen.js?v=2b9969dcc6"></script>
+<script src="js/ki.js?v=ffa9e0abb1"></script>
+<script src="js/editor.js?v=f7b6044f33"></script>
+</body>
+</html>

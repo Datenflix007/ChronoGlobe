@@ -270,7 +270,7 @@
   });
   statusButtons.forEach((button) => button.addEventListener('click', () => setStatus(button.dataset.status || 'all')));
 
-  fetch('data/sources.json', { cache: 'no-store' })
+  fetch(window.cgUrl ? cgUrl('data/sources.json') : 'data/sources.json', window.cgUrl ? {} : { cache: 'no-store' })
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();

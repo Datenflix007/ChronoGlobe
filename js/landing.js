@@ -4,7 +4,7 @@
   var S = window.CGSession, lokal = S && S.lokal ? '&sync=lokal' : '';
   function $(s) { return document.querySelector(s); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  function json(u) { return fetch(u, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); }); }
+  function json(u) { var v = window.cgUrl ? cgUrl(u) : u; return fetch(v, v === u ? { cache: 'no-cache' } : {}).then(function (r) { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); }); }
 
   /* Galerie und Auswahl */
   var TB = [];

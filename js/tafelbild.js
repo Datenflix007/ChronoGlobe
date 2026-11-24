@@ -36,7 +36,8 @@
   };
 
   function json(url) {
-    return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
+    var v = window.cgUrl ? cgUrl(url) : url;   // mit Versionsangabe (js/version.js) darf der Cache greifen
+    return fetch(v, v === url ? { cache: 'no-cache' } : {}).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
   }
   function istObj(o) { return o && typeof o === 'object' && !Array.isArray(o); }
   /* Ergänzen: Objekte rekursiv, Listen werden angehängt (Einträge mit gleicher id ersetzen den Kerneintrag) */

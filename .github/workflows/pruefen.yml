@@ -1,0 +1,63 @@
+# Prüfungen aus CLAUDE.md (Regel 2) bei jedem Push und Pull Request.
+# Schnelle Prüfungen zuerst; die Browsertests brauchen Playwright mit Chromium (WebGL über SwiftShader).
+name: Prüfen
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Tafelbilder (Schema, IDs, Dateien)
+        run: python tools/check_tafelbilder.py
+
+      - name: Versionsangaben aktuell (tools/version_setzen.py)
+        run: python tools/version_setzen.py --pruefen
+
+      - name: Beiträge aus dem Editor (Schema, Belege)
+        run: node tools/check_beitraege.js
+
+      - name: Römerstraßen-Zeitmodell
+        run: node tests/strassenzeit.test.js
+
+      - name: Handels- und Verkehrsnetze
+        run: node tests/netze.test.js
+
+      - name: KI-Assistent und Import
+        run: node tests/ki.test.js
+
+      - name: Playwright einrichten
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Regression Tafelbild „Rom – Zentrum der Welt“
+        run: python tests/test_regression.py "app.html?tafelbild=rom-zentrum-der-welt"
+
+      - name: Römerstraßen im Browser
+        run: python tests/test_strassen_browser.py
+
+      - name: Netze im Browser
+        run: python tests/test_netze_browser.py
+
+      - name: Live-Session (lokaler Übertragungsweg)
+        run: python tests/test_session.py
+
+      - name: Content-Security-Policy
+        run: python tests/test_csp.py
+
+      - name: Editor
+        run: python tests/test_editor.py

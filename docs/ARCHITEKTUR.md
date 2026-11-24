@@ -154,3 +154,50 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 - **Rückfall B:** Darf die Rolle `anon` einen privaten Kanal in einem Projekt nicht abonnieren, meldet sich das Gerät einmalig anonym an (Supabase „Anonymous Sign-ins“, ohne Name und E-Mail) und versucht es erneut. Klappt auch das nicht, bleibt die Abfrage per RPC. Siehe `docs/SETUP.md`.
 - **Keine personenbezogenen Daten:** Schüler-Geräte schreiben nichts in die Datenbank. Die Presence-Meldung ist ein leeres Objekt unter einem zufälligen Schlüssel; die Lehrkraft sieht nur die Zahl.
 - **Mengen:** Der Free-Plan erlaubt 100 Realtime-Nachrichten/s, gezählt je Empfänger. 3 Updates/s reichen deshalb für etwa 30 Geräte. Die Kamera wird bei Schüler:innen zwischen den Updates geglättet.
+
+## Laden, Geräteprofil und Offline-Betrieb
+
+### Geräteprofil (`GERAET` in `js/app.js`)
+
+Beim Start wird eine Detailstufe bestimmt. Sie gehört zum Gerät, nicht zum Unterrichtszustand, und steht deshalb nicht in `getState`.
+
+| Stufe | Wann | Wirkung |
+|---|---|---|
+| `niedrig` | Smartphone (grober Zeiger, kurze Seite < 600 px), Datensparmodus, 2G/3G, ≤ 2 GB Arbeitsspeicher | 4k-Texturen, Kacheln bis Stufe 7, kein Sternenhimmel, kein Relief, Pixeldichte ≤ 1,5 |
+| `mittel` | Tablet, ≤ 4 GB Arbeitsspeicher | 8k-Texturen (wenn die Grafik sie kann), Pixeldichte ≤ 2 |
+| `hoch` | Laptop/PC | alles; ausgeschaltete Ebenen werden nach dem Start im Hintergrund vorgeladen |
+
+Erzwingen mit `app.html?detail=niedrig|mittel|hoch`; das Gerät merkt sich die Wahl (`localStorage` `cg.detail`), `?detail=auto` setzt zurück. Das CSS kann über `html[data-detail]` darauf reagieren.
+
+„Bewegung reduzieren“ (Systemeinstellung) schaltet die automatische Drehung und die Kameraflüge ab. `state.rotate` bleibt dabei unverändert. Ein Klick auf „Drehen“ geht vor.
+
+### Ebenen bei Bedarf (`NACHLADEN` in `js/app.js`)
+
+Römerstraßen, ORBIS, Han-Seidenstraße und Limes werden nicht mehr beim Start geladen. Sie kommen, sobald die Ebene eingeschaltet oder ein zugehöriges Infofenster geöffnet wird (auch über `applyState` in Live-Sessions). Bis dahin sind `STRASSEN`, `ORBIS`, `HANSEIDE` und `LIMES` `null`; alle Zeichenfunktionen kommen damit zurecht. Nach dem Laden zeichnet `setYear(state.year)` mit geleerten Schlüsseln neu. Die Netze (`data/netze/`) liefen schon vorher so.
+
+Eine neue große Ebene gehört in `NACHLADEN` (Schlüssel, Datei, `noetig()`, `fertig(d)`) und in die Zuordnung am Anfang von `infoOeffnen`.
+
+### Versionsangaben (`tools/version_setzen.py`, `js/version.js`)
+
+GitHub Pages lässt Dateien 10 Minuten im Browser-Cache. Damit nach einem Deploy kein Browser alte Skripte mit neuen Daten mischt:
+
+- Skripte und Stylesheets in den HTML-Seiten tragen `?v=<Inhalts-Hash>`.
+- `js/version.js` enthält die Hashes aller per `fetch` geladenen Dateien. `cgUrl('data/reiche.json')` hängt den passenden Hash an.
+- **Vor jedem Commit:** `python tools/version_setzen.py`. Die CI prüft das mit `--pruefen`. Optionaler Hook: `git config core.hooksPath tools/hooks`.
+
+### Service Worker (`sw.js`, `js/offline.js`)
+
+- Angemeldet nur über https (GitHub Pages). Lokal und in Tests nur mit `?sw=an`; `?sw=aus` meldet ab und leert die Caches.
+- HTML: zuerst Netz, sonst Cache. Kacheln: zuerst Cache. Alles andere: sofort aus dem Cache, im Hintergrund erneuern.
+- Beim Installieren wird nur geladen, was der Start braucht. „Für den Unterricht offline speichern“ (Fußzeile der Startseite) lädt alle Dateien aus `js/version.js` (ohne Kacheln).
+- Fremde Server (Supabase) laufen nie über den Service Worker.
+
+### Content-Security-Policy (`js/csp.js`)
+
+Erstes Skript im `<head>` jeder Seite. Es setzt die Richtlinie als Meta-Element (GitHub Pages kann keine eigenen Kopfzeilen senden):
+
+- Verbindungen nur zur eigenen Adresse. Supabase (`*.supabase.co`) nur auf Session-Seiten (`?session=`) und der Startseite.
+- Keine Inline-Skripte und kein `eval`. Neue Skripte gehören in eigene Dateien unter `js/`.
+- `style`-Attribute bleiben erlaubt.
+
+`tests/test_csp.py` prüft jede Seite. Die übrigen Browsertests laufen mit `bypass_csp=True`, weil Playwrights `wait_for_function` intern `eval` nutzt.

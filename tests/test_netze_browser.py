@@ -45,8 +45,8 @@ def andere(pg):
 
 with sync_playwright() as p:
     try: b = p.chromium.launch(channel='msedge', headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
-    except Exception: b = p.chromium.launch(headless=True)
-    pg = b.new_page(viewport={'width': 1500, 'height': 950})
+    except Exception: b = p.chromium.launch(headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
+    pg = b.new_page(viewport={'width': 1500, 'height': 950}, bypass_csp=True)
     fremd = []
     pg.route('**/*', lambda r: serve(r) if r.request.url.startswith(U) else (fremd.append(r.request.url), r.abort()))
     errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))

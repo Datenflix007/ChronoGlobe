@@ -76,6 +76,10 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(-
 .card.mini{padding:9px 12px;border-left-width:5px}
 .card.mini .k{color:var(--txt);font-weight:600;text-transform:none;letter-spacing:.2px;font-size:13px}
 .card.mini p{margin:3px 0 0;font-size:12.5px;line-height:1.4;color:var(--mut)}
+/* frühe Hochkulturen: Epoche und letztes Ereignis */
+.card.mini .epoche{font-size:11.5px;color:var(--c);filter:brightness(1.4);margin-top:2px}
+.card.mini .t{font-size:15px;margin:4px 0 1px}
+.card.mini .y{font-size:12px}
 .card.none{border-left-color:#566a80}
 /* Globus: Schlachten und Tooltips */
 .battle{position:relative;width:26px;height:26px;border-radius:50%;background:rgba(122,29,18,.9);border:2px solid #f5ecd2;color:#fff;display:grid;place-items:center;pointer-events:auto;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.6)}
@@ -850,14 +854,14 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .netz-gruppe .hsub-h{color:var(--txt)}
 .netz-hint{margin:-2px 0 6px;font-size:12px}
 .netz-fehlt{opacity:.75}
-.chip.netz{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:8px;row-gap:1px;padding:8px 10px;margin-bottom:6px;font-size:14px;line-height:1.25}
-.chip.netz::before,.chip.netz i{grid-row:1 / 3}
-.chip.netz i{width:16px;height:4px;border-radius:2px;background:var(--c)}
-.chip.netz span,.chip.netz small{grid-column:3}
-.chip.netz small{font-size:11.5px;color:var(--mut)}
-.chip.netz.on{background:rgba(255,255,255,.08);border-color:var(--c)}
-.chip.netz.on::before{background:var(--c);border-color:var(--c)}
-.chip.netz.laedt small::after{content:" · lädt …"}
+.chip.netz,.chip.thema{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:8px;row-gap:1px;padding:8px 10px;margin-bottom:6px;font-size:14px;line-height:1.25}
+.chip.netz::before,.chip.netz i,.chip.thema::before,.chip.thema i{grid-row:1 / 3}
+.chip.netz i,.chip.thema i{width:16px;height:4px;border-radius:2px;background:var(--c)}
+.chip.netz span,.chip.netz small,.chip.thema span,.chip.thema small{grid-column:3}
+.chip.netz small,.chip.thema small{font-size:11.5px;color:var(--mut)}
+.chip.netz.on,.chip.thema.on{background:rgba(255,255,255,.08);border-color:var(--c)}
+.chip.netz.on::before,.chip.thema.on::before{background:var(--c);border-color:var(--c)}
+.chip.netz.laedt small::after,.chip.thema.laedt small::after{content:" · lädt …"}
 .netz-leg{grid-template-columns:1fr}
 .netz-leg line{stroke:#c8a2ff;stroke-width:3}
 .tinfo .tk.reise{color:#ff8fb1}
@@ -869,3 +873,52 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .nq-m{font-size:12.5px;color:var(--mut)}
 .nq-q{font-size:13px}
 .nq-g{font-size:13px;color:#ffc58a}
+
+/* ----- Menü aufgeräumt: Gliederung, aufklappbare Gruppen, Legenden eingeklappt ----- */
+.panel{width:300px}
+.panel-body > section{padding-top:12px;margin:0 0 12px;border-top:1px solid var(--line)}
+.panel-body > section:first-child{padding-top:0;border-top:0}
+.panel-body > section:not(:has(:is(button,details):not([hidden]))){display:none}
+.fokus-row{flex-wrap:wrap;margin-top:8px}
+.fokus-row:not(:has(button)){display:none}
+.fokus-row .small{flex:1 1 auto;font-size:13px;padding:7px 8px}
+.reich-paar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.reich-paar .chip{margin:0;padding:9px 10px;gap:8px;font-size:14px;line-height:1.2}
+.reich-paar .chip i{width:14px;height:14px}
+/* aufklappbare Gruppen (Nachbarreiche, Europa, Legenden …) */
+.aufklapp{margin-top:8px}
+.aufklapp > summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;cursor:pointer;list-style:none;margin:0 0 8px;padding:2px 0}
+.aufklapp > summary::-webkit-details-marker{display:none}
+.aufklapp > summary::before{content:"▸";color:var(--mut);font-size:11px;transition:transform .2s}
+.aufklapp[open] > summary::before{transform:rotate(90deg)}
+.aufklapp > summary h2,.aufklapp > summary h3{margin:0}
+.aufklapp > summary h3{font-size:13px;font-weight:650;color:var(--txt)}
+.aufklapp > summary small{font-size:11px;color:var(--mut)}
+.aufklapp > summary:hover h3,.aufklapp > summary:hover h2{color:#fff}
+.netz-box{margin-top:0}
+.netz-box > summary small{flex-basis:100%;padding-left:19px}
+.legende-box{margin:8px 0}
+.legende-box > summary{margin-bottom:2px}
+.legende-box > summary h3{font-size:12px;font-weight:600;color:var(--mut)}
+.legende-box .tlegend{margin-top:4px}
+/* Reiche als Pillen in voller Länge statt abgeschnitten im festen Raster */
+.nb-grid{display:flex;flex-wrap:wrap;gap:6px}
+.chip.nb{width:auto;flex:0 1 auto;padding:6px 10px 6px 8px;border-radius:999px}
+.chip.nb span{white-space:normal;overflow:visible;text-overflow:clip}
+.allrow .small{padding:6px 4px}
+/* Globus-Ebenen kompakt in zwei Spalten */
+.ebenen-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ebenen-grid .limes-leg{grid-column:1 / -1;margin:0 0 2px}
+.chip.hs[hidden]{display:none}
+/* Zheng He: Fahrten als Pillen */
+.zh-block .hsub-grid{margin-bottom:6px}
+.zh-block .hsub-grid .chip.hs{margin:0}
+.zh-grid{display:flex;flex-wrap:wrap}
+.zh-grid .chip{width:auto;flex:0 1 auto;border-radius:999px;padding:6px 10px 6px 8px}
+.str-opt:not(.off){display:block}
+.str-opt .str-hint{margin-top:6px}
+#handelSub > .hint{margin-top:8px}
+.panel .tipp{margin-top:4px;font-size:12px}
+.hsub-grid .chip.hs.kar{grid-column:auto}
+/* Gruppen ohne sichtbare Reiche (z. B. in Tafelbildern) ganz ausblenden */
+.aufklapp:has(.nb-grid):not(:has(.chip.nb:not([hidden]))){display:none}

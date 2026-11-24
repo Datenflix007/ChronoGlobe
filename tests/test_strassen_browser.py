@@ -29,8 +29,8 @@ def serve(route):
 
 with sync_playwright() as p:
     try: b = p.chromium.launch(channel='msedge', headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
-    except Exception: b = p.chromium.launch(headless=True)
-    pg = b.new_page(viewport={'width': 1500, 'height': 950}); pg.route('http://localhost:8765/**', serve)
+    except Exception: b = p.chromium.launch(headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
+    pg = b.new_page(viewport={'width': 1500, 'height': 950}, bypass_csp=True); pg.route('http://localhost:8765/**', serve)
     errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
     pg.goto('http://localhost:8765/app.html?modus=frei'); pg.wait_for_function('window.' + T); pg.wait_for_timeout(2500)
     pg.evaluate(T + '.globe.controls().autoRotate=false; ' + T + '.globe.pointOfView({lat:44,lng:12,altitude:1.1},0); 0')
@@ -40,6 +40,8 @@ with sync_playwright() as p:
         return pg.evaluate("(() => { const g = %s.globe; return { poly: g.polygonsData().length, labels: g.labelsData().length, html: g.htmlElementsData().length,"
                            " andere: g.pathsData().filter(d => !d.strasse).map(d => d.id).sort().join(',') }; })()" % T)
     print('Römerstraßen – Browsertest')
+    # Römerstraßen werden bei Bedarf nachgeladen (js/app.js, NACHLADEN): hier ausdrücklich anstoßen und warten
+    pg.evaluate(T + ".ebeneLaden('strassen'); 0"); pg.wait_for_function(T + '.strassen().geladen > 0', timeout=15000)
     check('1. alle Linien geladen', st()['geladen'] == 819, str(st()))
 
     jahr(117); vorher = ebenen()

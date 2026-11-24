@@ -1,2 +1,6 @@
 .claude
 quellen/lokal/
+
+# Python-Zwischendateien
+__pycache__/
+*.pyc

@@ -6,7 +6,9 @@ Veröffentlicht unter **https://datenflix007.github.io/ChronoGlobe/**.
 <img width="946" height="631" alt="image" src="https://github.com/user-attachments/assets/62332721-ca48-4a0d-b88d-0c5059ea40fb" />
 
 ## Modi
+
 Die Startseite (`index.html`) bietet vier Wege:
+
 - **Freies Nutzen – Menschheitsgeschichte** (`app.html?modus=frei`): der ganze Globus mit allen Daten und vollem Menü, dazu links auf der Zeitleiste der Abschnitt **Frühe Hochkulturen** (3500–300 v. Chr.: Mesopotamien, Ägypten, Indus-Kultur, Hethiter, Shang/Zhou, Perserreich; nur angedeutet, `data/fruehe_reiche.json` aus `build_fruehe_kulturen.py`).
 - **Session erstellen** (Lehrkraft): Tafelbild wählen und starten. Es erscheinen Code, Link, QR-Code und Lehrer-Schlüssel; „Session fortsetzen“ listet frühere Sessions dieses Browsers.
 - **Session beitreten** (Schüler:innen): Code eingeben oder QR-Code scannen (`index.html?code=XXXXXX`). Ohne Menü; man folgt der Lehrkraft je nach Freigabe.
@@ -21,10 +23,12 @@ Live-Sessions brauchen ein eigenes Supabase-Projekt (`docs/SETUP.md`). Ohne Einr
 Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafelbild: `docs/TAFELBILD_ERSTELLEN.md`. Regeln für Änderungen (Kern oder einzelnes Tafelbild): `CLAUDE.md`.
 
 ## Einbinden
+
 - Das Repository über GitHub Pages veröffentlichen. Alle Pfade sind relativ; der Repo-Name spielt keine Rolle.
 - Lokal testen: `python -m http.server` im Ordner, dann http://localhost:8000 öffnen (nicht per Doppelklick).
 
 ## Tests
+
 - `python tests/test_regression.py "app.html?tafelbild=rom-zentrum-der-welt"`: Klickfolge gegen den gespeicherten Ausgangszustand. Ebenso `app.html?modus=frei`, dort ohne Lehrerhinweise.
 - `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
@@ -43,14 +47,18 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
 - Nach Änderungen `python tools/check_sources.py` ausführen. Die Prüfung validiert Verweise und Dateien, nicht die historische Aussage selbst.
 
 ## Bedienung
+
 - Oben rechts:
+
   - **Erste Schritte**: Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen.
   - **Lehrerhinweise**: Reiter aus `tafelbild.json` → `lehrerhinweise`. Die Markdown-Dateien liegen im Tafelbild, z. B. `tafelbilder/rom-zentrum-der-welt/lehrerhinweise/` (derzeit Platzhalter). Im freien Modus gibt es keine Lehrerhinweise.
 - Der Titel oben links führt zurück zur Startseite.
 - Die Knöpfe „→ Rom“, „→ China“, „Eurasien“ kommen aus den Fokuspunkten des Tafelbilds.
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.
+
   - Bei vielen eingeblendeten Reichen werden die Spuren der Zeitleiste enger. Im Spätmittelalter sind die antiken Nachbarspuren ausgeblendet.
 - Provinzen: Die römischen Flächen folgen den Provinzen um 117 n. Chr. Namen, Einrichtungsjahre und Hauptstädte stammen aus der Liste der Provinzen des Römischen Reichs (de.wikipedia).
+
   - Ab 395 ist das Reich in West- und Ostrom geteilt. Westrom verliert seine Gebiete an die Nachfolgestaaten: Britannien 410, Africa 429/439, Tripolitanien 455, Italien 476, Dalmatien 480/81.
   - Ostrom reicht als Byzantinisches Reich in den Abschnitt Spätmittelalter. Dieser endet jetzt 1453 (Fall Konstantinopels); dazu kommt das Osmanische Reich als Kontext.
 - Völkerwanderung (Menü → Globus): Die Züge von Hunnen, Goten, Vandalen, Sueben, Burgundern, Alamannen, Angeln und Sachsen wachsen mit der Zeitleiste (255–456, schematisch). Daten: `wanderungen` in `data/reiche.json` (build_reiche.py).
@@ -63,12 +71,14 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
   Die Spuren der Nachbarreiche lassen sich über „Nachbarreiche (n)“ einklappen.
   Der Pfeil rechts oben in der Zeitleiste verkleinert sie: Dann bleiben nur noch Jahr, Abspielen und Schieber. Der Globus nutzt den frei werdenden Platz und steht immer mittig im Bereich über der Zeitleiste.
 - **Schriftrolle:** Klick (oder Tipp) auf ein eingeblendetes Reich auf dem Globus, oder „Schriftrolle öffnen“ im Infoband, öffnet die Rolle dieses Reichs. Esc schließt sie.
+
   - Das geht bei Rom, Han und allen Nachbarreichen.
   - Reiter **Vignetten**: kindgerechte Inhaltspunkte. Beim Römischen Reich heißt der Reiter **Wiederholung** und enthält Aufgaben mit Rückmeldung.
   - Reiter **Karte**: die Reichskarte. Bei Nachbarreichen wird der Ausschnitt aus deren Gebieten berechnet.
   - Inhalte stehen in `data/vignetten.json` (Kern) bzw. `tafelbilder/<id>/vignetten.json` (Tafelbild). Bisher sind es nur leere Platzhalter. Format: `docs/VIGNETTEN.md`. Vorschau aller Bausteine: `app.html?modus=frei&vignetten=demo` (alte Adresse `index.html?vignetten=demo` leitet weiter).
 - Standardmäßig markiert ein Pin Jena. „Mein Standort“ (Menü → Globus) ersetzt ihn nach Freigabe im Browser durch den eigenen Standort (nur lokal, keine Übertragung; benötigt HTTPS oder localhost).
 - **Handel & Austausch** (Menü, Standard aus): Land- und Seewege, Waren, Gesandtschaften.
+
   - Gezeigt werden Verbindungen aller Reiche, die eingeblendet sind **und** im gewählten Jahr existieren.
     Ist nur Rom oder nur Han aktiv, erscheint nur dessen Seite bis zu den Vermittlern; sind beide aktiv, die durchgehende Verbindung.
   - Linien: durchgezogen = belegt, gestrichelt = vermittelt, gepunktet = umstritten. Landweg gelb/braun, Seeweg blau.
@@ -89,18 +99,20 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
     Teilflotten dünn, Unsicheres gepunktet („umstritten“).
   - Häfen mit Infokarte (wann angelaufen, Funktion, Quelle), Waren-Labels mit Richtungspfeil, Ereignisse auf der Zeitleiste,
     Hintergrundtext und Warenübersicht.
-
 - **Schülertexte:** Ein Klick auf eine Route (oder in der Routenliste) öffnet einen Text in den Niveaus A/B/C.
+
   - Mittelroute bis 220: „Die Seidenstraße als Landweg“, ab 220: „Nach der Han-Zeit“, Seeweg: „Der Seeweg nach Indien“,
     Fahrten: „Die Reisen des Zheng He“.
   - Jeder Text hat Glossar, Kartenskizze, Quellenauszug, „Woher wissen wir das?“, zwei Arbeitsaufträge und Anmerkungen.
   - „Daten zur Route“ führt zur bisherigen Infokarte. Alle Texte gesammelt: `lehrkraft.html` (Lehrkraft-Ansicht).
 - **Seidenstraße der Han (Stationen)** (Schalter im Handelsmenü, standardmäßig aus):
+
   - 14 rekonstruierte Hauptlinien und 269 Verkehrspunkte der Han-Zeit (Poststationen, Pässe, Kommandanturen, Kreissitze …).
   - Quelle: Forschungsdaten von Hu, Yan und Zhang (2018, Science Data Bank, CC BY 4.0).
   - Sichtbar mit dem Han-Reich, 202 v. bis 220 n. Chr.; Klick auf eine Station zeigt ihre Rolle für Handel und Verkehr.
   - Daten: `data/han_seidenstrasse.json` aus `build_han_seidenstrasse.py`. Siehe `docs/DATENQUELLEN.md`.
 - **Handels- und Verkehrsnetze** (Menü, aufklappbar; Gruppen Landwege, Wasserwege, Reiseberichte):
+
   - Fünf Netze aus offenen Forschungsdaten (CC BY 4.0):
     - Weihrauchstraße Petra – Gaza
     - Seidenstraße der Tang
@@ -112,6 +124,7 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
   - Im freien Erkunden hat die Zeitleiste dafür einen Teil **Mittelalter** (480–1400); Tafelbilder bleiben unverändert.
   - Daten: `data/netze/`, erzeugt mit `build_netze.py`. Siehe `docs/HANDELSNETZE.md`.
 - **Grenzanlagen (Limes)** (Menü → Globus, standardmäßig aus):
+
   - Hadrianswall, Antoninuswall, Obergermanisch-Raetischer Limes, Rhein- und Donaugrenze, Limes Arabicus, Fossatum Africae.
   - Je Bauart eine eigene Signatur über dunkler Kontur (Steinmauer, Rasenwall, Palisade, Flussgrenze, Grenzstraße, Graben), dazu Kastelle als Turm-Symbole mit Infokarte.
   - Sichtbar mit dem Römischen Reich, solange der Abschnitt in Gebrauch war.
@@ -119,12 +132,14 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
 - **Völkerwanderung** (Menü → Globus): Jeder Zug ist ein leuchtender Strom mit Pfeilspitze und Namensschild. Am Ziel pulsiert einige Jahre ein Ankunftsring; abgeschlossene Züge bleiben 40 Jahre als blasse Spur.
 - **Schiffsverkehr (ORBIS)** (Schalter im Handelsmenü, standardmäßig aus): 505 Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich bis Britannien nach dem Verkehrsmodell ORBIS (Stanford, um 200 n. Chr.; Daten `emeeks/orbis_v2`, MIT), auf dem Globus und auf der Rom-Karte. ORBIS hat keine Jahreszahlen: Eine Strecke erscheint, solange beide Endhäfen römisch sind (z. B. Britannien 43–410). Einfarbig hellblau, Flüsse blasser; Klick öffnet eine Infokarte. Daten: `data/orbis_schiff.json`, erzeugt mit `python build_orbis.py <ordner mit den ORBIS-Dateien>`. Siehe `docs/DATENQUELLEN.md`.
 - **Römerstraßen** (Schalter im Handelsmenü): 819 Hauptstraßen aus Itiner-e (CC BY 4.0) auf dem Globus und auf der Rom-Karte, sichtbar, wenn das Römische Reich eingeblendet ist. Das Netz verändert sich mit der Zeitleiste:
+
   - Straßen erscheinen in ihrer modellierten Ausbauphase (gezeichnet wie die Schiffsrouten; jede Straße setzt am schon gezeichneten Netz an und wächst von dort weiter, ausgehend von Rom; didaktische Animation) und sind in der römischen Nutzungsphase voll sichtbar.
   - Danach sind sie im Hauptmodus ausgeblendet. Ab 1400 ist keine Straße aktiv.
   - Optionen: „Ehemalige Trassen“ (blass gestrichelt, mittelalterliche Nutzung nicht allgemein belegt) und „Ausbau animieren“. Alle Straßen haben eine Farbe (kräftig = gesichert, blass = vermutet); die Datierungsqualität steht in der Infokarte jeder Straße.
   - Ein Klick auf eine Straße zeigt räumliche Sicherheit, Modellzeiten und Itiner-e-Belege.
 
 ## Daten ändern
+
 - `data/reiche.json` (Provinzen/Regionen, Ereignisse, Schlachten, Orte, Nachbarreiche): erzeugt mit `build_reiche.py` (Python, shapely).
   - Orte haben eine `stufe` (1 Weltstadt, 2 großes Provinzzentrum, 3 weitere Hauptstadt/Wirtschaftszentrum, 4 kleinerer Ort; Zuordnung in `STUFE_ROM_HAN`) und `zeiten`. Die Zeiten berechnet das Skript: In diesen Jahren gehört das Gebiet des Ortes zum Reich.
   - Europa (Kontext): Franken, Alamannen, West- und Ostgoten, Sueben, Vandalen, Burgunder, das Reich Odoakers und die Angelsachsen (`kontext: true`). Sie stehen in einer eigenen Menügruppe, sind ausgegraut und haben keine Schriftrolle.
@@ -160,6 +175,7 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
 - `build_data.py` nur noch für `land*.json` (der Teil für reiche.json ist veraltet).
 
 ## Wichtig
+
 Reichsgrenzen und Handelsrouten sind schematische Handzeichnungen. Zwischen Rom und Han gab es keinen belegten direkten Handel,
 sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien. Vor Einsatz im Unterricht mit Atlas und Fachliteratur
 abgleichen; die Seite weist selbst darauf hin.

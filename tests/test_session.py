@@ -37,8 +37,8 @@ def warte(pg, js, ms=6000):
 ST = 'ChronoGlobe.getState()'
 with sync_playwright() as p:
     try: b = p.chromium.launch(channel='msedge', headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
-    except Exception: b = p.chromium.launch(headless=True)
-    ctx = b.new_context(viewport={'width': 1400, 'height': 900}); ctx.route(URL + '**', serve)
+    except Exception: b = p.chromium.launch(headless=True, args=['--use-gl=swiftshader', '--enable-unsafe-swiftshader'])
+    ctx = b.new_context(viewport={'width': 1400, 'height': 900}, bypass_csp=True); ctx.route(URL + '**', serve)
     errs = []
     def neu():
         pg = ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('dialog', lambda d: d.accept()); return pg

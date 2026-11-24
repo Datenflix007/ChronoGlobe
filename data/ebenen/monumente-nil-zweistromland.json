@@ -1,0 +1,38 @@
+{
+  "format": "chronoglobe-ebene/1",
+  "id": "monumente-nil-zweistromland",
+  "name": "Monumente am Nil und im Zweistromland",
+  "farbe": "#f0c060",
+  "beschreibung": "Pyramiden, Tempel und Königsgräber Ägyptens sowie Zikkurate, Paläste und Tore Mesopotamiens – dazu der Handelsweg der Kaufleute von Assur nach Anatolien. Jedes Bauwerk erscheint ab seiner Bauzeit.",
+  "hinweis": "Baujahre gerundet nach der konventionellen Chronologie; die Forschung weicht oft um mehrere Jahrzehnte ab, bei frühen Bauten auch mehr (umstritten). Viele Bauten wurden über lange Zeit erweitert; angegeben ist der Baubeginn bzw. die bekannteste Bauphase. Lagen auf etwa 100 m gerundet.",
+  "quellen": [
+    { "zitat": "Shaw, Ian (Hg.): The Oxford History of Ancient Egypt. Oxford: Oxford University Press 2000." },
+    { "zitat": "Lehner, Mark: The Complete Pyramids. London: Thames & Hudson 1997." },
+    { "zitat": "Wilkinson, Richard H.: The Complete Temples of Ancient Egypt. London: Thames & Hudson 2000." },
+    { "zitat": "Van De Mieroop, Marc: A History of the Ancient Near East, ca. 3000–323 BC. 3. Aufl. Chichester: Wiley-Blackwell 2016." },
+    { "zitat": "Larsen, Mogens Trolle: Ancient Kanesh. A Merchant Colony in Bronze Age Anatolia. Cambridge: Cambridge University Press 2015." }
+  ],
+  "objekte": [
+    { "id": "weisser-tempel-uruk", "typ": "punkt", "name": "Anu-Zikkurat mit „Weißem Tempel“ (Uruk)", "von": -3400, "unsicher": true, "beschreibung": "Ein Tempel auf einer hohen Terrasse – Vorläufer der späteren Stufentürme.", "beleg": "Van De Mieroop 2016", "koordinaten": [45.636, 31.322] },
+    { "id": "djoser", "typ": "punkt", "name": "Stufenpyramide des Djoser (Sakkara)", "von": -2650, "unsicher": true, "beschreibung": "Erster großer Steinbau Ägyptens: sechs übereinandergesetzte Stufen.", "beleg": "Lehner 1997", "koordinaten": [31.216, 29.871] },
+    { "id": "meidum", "typ": "punkt", "name": "Pyramide von Meidum", "von": -2600, "unsicher": true, "beschreibung": "Als Stufenpyramide begonnen und zur glatten Pyramide umgebaut; der Mantel ist eingestürzt.", "beleg": "Lehner 1997", "koordinaten": [31.157, 29.388] },
+    { "id": "knickpyramide", "typ": "punkt", "name": "Knickpyramide (Dahschur)", "von": -2600, "unsicher": true, "beschreibung": "Der Neigungswinkel wurde während des Baus flacher – vermutlich, weil der Bau instabil wurde.", "beleg": "Lehner 1997", "koordinaten": [31.209, 29.790] },
+    { "id": "rote-pyramide", "typ": "punkt", "name": "Rote Pyramide (Dahschur)", "von": -2590, "unsicher": true, "beschreibung": "Gilt als erste vollendete Pyramide mit glatten Seiten.", "beleg": "Lehner 1997", "koordinaten": [31.206, 29.809] },
+    { "id": "cheops", "typ": "punkt", "name": "Cheops-Pyramide (Giza)", "von": -2560, "unsicher": true, "beschreibung": "Größte der Pyramiden, ursprünglich rund 146 m hoch.", "beleg": "Lehner 1997", "koordinaten": [31.134, 29.979] },
+    { "id": "chephren", "typ": "punkt", "name": "Chephren-Pyramide und Sphinx (Giza)", "von": -2530, "unsicher": true, "beschreibung": "Zur Anlage des Chephren gehört wohl auch der Große Sphinx (Zuordnung umstritten).", "beleg": "Lehner 1997", "koordinaten": [31.131, 29.976] },
+    { "id": "mykerinos", "typ": "punkt", "name": "Mykerinos-Pyramide (Giza)", "von": -2510, "unsicher": true, "beschreibung": "Die kleinste der drei großen Pyramiden von Giza.", "beleg": "Lehner 1997", "koordinaten": [31.128, 29.972] },
+    { "id": "zikkurat-ur", "typ": "punkt", "name": "Zikkurat von Ur", "von": -2100, "unsicher": true, "beschreibung": "Ur-Nammu ließ den Stufenturm für den Mondgott Nanna errichten; der Unterbau ist bis heute erhalten.", "beleg": "Van De Mieroop 2016", "koordinaten": [46.103, 30.962] },
+    { "id": "zikkurat-nippur", "typ": "punkt", "name": "Zikkurat des Enlil (Nippur)", "von": -2100, "unsicher": true, "beschreibung": "Nippur war die heilige Stadt des Gottes Enlil; Ur-Nammu baute hier ebenfalls einen Stufenturm.", "beleg": "Van De Mieroop 2016", "koordinaten": [45.232, 32.127] },
+    { "id": "karnak", "typ": "punkt", "name": "Tempel von Karnak (Theben)", "von": -1971, "unsicher": true, "beschreibung": "Größter Tempelbezirk Ägyptens für den Gott Amun, über fast 2000 Jahre immer weiter ausgebaut.", "beleg": "Wilkinson 2000", "koordinaten": [32.658, 25.719] },
+    { "id": "tal-der-koenige", "typ": "punkt", "name": "Tal der Könige (Theben-West)", "von": -1500, "unsicher": true, "beschreibung": "Felsgräber der Pharaonen des Neuen Reiches, darunter das Grab des Tutanchamun.", "beleg": "Shaw 2000", "koordinaten": [32.601, 25.740] },
+    { "id": "deir-el-bahari", "typ": "punkt", "name": "Tempel der Hatschepsut (Deir el-Bahari)", "von": -1470, "unsicher": true, "beschreibung": "Terrassentempel vor einer Felswand; Reliefs zeigen die Fahrt nach Punt.", "beleg": "Wilkinson 2000", "koordinaten": [32.607, 25.738] },
+    { "id": "luxor", "typ": "punkt", "name": "Tempel von Luxor", "von": -1390, "unsicher": true, "beschreibung": "Unter Amenophis III. begonnen, von Ramses II. erweitert.", "beleg": "Wilkinson 2000", "koordinaten": [32.639, 25.700] },
+    { "id": "abu-simbel", "typ": "punkt", "name": "Felstempel von Abu Simbel", "von": -1264, "unsicher": true, "beschreibung": "Ramses II. ließ ihn in Nubien aus dem Fels schlagen; 1964–1968 wurde er vor dem Stausee versetzt.", "beleg": "Wilkinson 2000", "koordinaten": [31.626, 22.337] },
+    { "id": "medinet-habu", "typ": "punkt", "name": "Totentempel Ramses’ III. (Medinet Habu)", "von": -1175, "unsicher": true, "beschreibung": "Seine Reliefs zeigen die Abwehr der „Seevölker“.", "beleg": "Wilkinson 2000", "koordinaten": [32.601, 25.720] },
+    { "id": "nordwestpalast-nimrud", "typ": "punkt", "name": "Nordwestpalast Assurnasirpals II. (Kalḫu/Nimrud)", "von": -879, "unsicher": true, "beschreibung": "Palast mit großen Steinreliefs und geflügelten Stierwesen (Lamassu) an den Toren.", "beleg": "Van De Mieroop 2016", "koordinaten": [43.328, 36.098] },
+    { "id": "bibliothek-ninive", "typ": "punkt", "name": "Bibliothek Assurbanipals (Ninive)", "von": -668, "unsicher": true, "beschreibung": "Tausende Keilschrifttafeln, darunter das Gilgamesch-Epos; heute vor allem im British Museum.", "beleg": "Van De Mieroop 2016", "koordinaten": [43.153, 36.360] },
+    { "id": "etemenanki", "typ": "punkt", "name": "Tempelturm Etemenanki (Babylon)", "von": -600, "unsicher": true, "beschreibung": "Unter Nebukadnezar II. vollendeter Stufenturm des Marduk – wohl das Vorbild für den „Turm zu Babel“ (Deutung umstritten). Ältere Bauphasen sind möglich.", "beleg": "Van De Mieroop 2016", "koordinaten": [44.421, 32.536] },
+    { "id": "ischtar-tor", "typ": "punkt", "name": "Ischtar-Tor (Babylon)", "von": -575, "unsicher": true, "beschreibung": "Prachttor mit blau glasierten Ziegeln, Löwen und Drachen; ein Nachbau steht im Pergamonmuseum in Berlin.", "beleg": "Van De Mieroop 2016", "koordinaten": [44.420, 32.545] },
+    { "id": "handelsweg-assur-kanesch", "typ": "linie", "name": "Handelsweg der Kaufleute von Assur nach Kaneš", "von": -1950, "bis": -1750, "unsicher": true, "beschreibung": "Eselskarawanen brachten Zinn und Stoffe nach Anatolien und kehrten mit Silber und Gold zurück. Der genaue Verlauf ist nicht bekannt; die Linie ist schematisch.", "beleg": "Larsen 2015", "koordinaten": [[43.26, 35.46], [41.9, 36.4], [40.2, 37.0], [38.6, 37.7], [37.2, 38.3], [35.63, 38.85]] }
+  ]
+}

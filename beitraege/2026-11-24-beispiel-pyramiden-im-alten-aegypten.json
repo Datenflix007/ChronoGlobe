@@ -1,0 +1,31 @@
+{
+  "format": "chronoglobe-beitrag/1",
+  "art": "neue-ebene",
+  "titel": "Beispiel: Pyramiden im Alten Ägypten",
+  "begruendung": "Beispielbeitrag für den Editor (docs/EDITOR.md), noch nicht fachlich geprüft. Die Königspyramiden zeigen, wie der Staat des Alten Reiches Arbeit, Vorräte und Wissen bündeln konnte. Vor einer Übernahme Lagen und Jahreszahlen an der Literatur prüfen.",
+  "belege": [
+    { "zitat": "Lehner, Mark: The Complete Pyramids. London: Thames & Hudson 1997." },
+    { "zitat": "Shaw, Ian (Hg.): The Oxford History of Ancient Egypt. Oxford: Oxford University Press 2000." }
+  ],
+  "ebene": {
+    "format": "chronoglobe-ebene/1",
+    "id": "pyramiden-im-alten-aegypten",
+    "name": "Pyramiden im Alten Ägypten",
+    "farbe": "#e0b040",
+    "beschreibung": "Große Königspyramiden des Alten Reiches zwischen Meidum und Gizeh, vom Stufenbau des Djoser bis zu den Pyramiden von Gizeh.",
+    "hinweis": "Baujahre gerundet nach der konventionellen Chronologie; die Forschung weicht um mehrere Jahrzehnte voneinander ab (umstritten). Lagen auf etwa 100 m gerundet.",
+    "quellen": [
+      { "zitat": "Lehner, Mark: The Complete Pyramids. London: Thames & Hudson 1997." },
+      { "zitat": "Shaw, Ian (Hg.): The Oxford History of Ancient Egypt. Oxford: Oxford University Press 2000." }
+    ],
+    "objekte": [
+      { "id": "djoser", "typ": "punkt", "name": "Stufenpyramide des Djoser (Sakkara)", "von": -2650, "unsicher": true, "beschreibung": "Erster großer Steinbau: sechs übereinandergesetzte Stufen, geplant vom Baumeister Imhotep.", "koordinaten": [31.216, 29.871] },
+      { "id": "meidum", "typ": "punkt", "name": "Pyramide von Meidum", "von": -2600, "unsicher": true, "beschreibung": "Begonnen als Stufenpyramide und später zu einer glatten Pyramide umgebaut; der Mantel ist heute eingestürzt.", "koordinaten": [31.157, 29.388] },
+      { "id": "knickpyramide", "typ": "punkt", "name": "Knickpyramide (Dahschur)", "von": -2600, "unsicher": true, "beschreibung": "Der Neigungswinkel wurde während des Baus flacher, vermutlich weil das Bauwerk instabil wurde.", "koordinaten": [31.209, 29.790] },
+      { "id": "rote-pyramide", "typ": "punkt", "name": "Rote Pyramide (Dahschur)", "von": -2590, "unsicher": true, "beschreibung": "Gilt als erste vollendete Pyramide mit glatten Seiten.", "koordinaten": [31.206, 29.809] },
+      { "id": "cheops", "typ": "punkt", "name": "Cheops-Pyramide (Gizeh)", "von": -2560, "unsicher": true, "beschreibung": "Größte der Pyramiden, ursprünglich rund 146 m hoch.", "koordinaten": [31.134, 29.979] },
+      { "id": "chephren", "typ": "punkt", "name": "Chephren-Pyramide (Gizeh)", "von": -2530, "unsicher": true, "koordinaten": [31.131, 29.976] },
+      { "id": "mykerinos", "typ": "punkt", "name": "Mykerinos-Pyramide (Gizeh)", "von": -2510, "unsicher": true, "koordinaten": [31.128, 29.972] }
+    ]
+  }
+}

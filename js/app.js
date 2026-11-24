@@ -31,6 +31,7 @@
   var SWORD_PATHS = ['M5 4l11 11M19 4L8 15', 'M13 17l5-5M6 12l5 5', 'M16.5 15.5L20 19M7.5 15.5L4 19'];
 
   function $(s) { return document.querySelector(s); }
+  var esc = Markdown.esc, markdown = Markdown.html;   // js/markdown.js
   function fmtYear(y) { return y < 0 ? (-y) + ' v. Chr.' : y + ' n. Chr.'; }
   function shortYear(y) { return y < 0 ? (-y) + ' v.' : y + ' n.'; }
   function toast(msg) {
@@ -66,19 +67,62 @@
     });
   }
 
+  /* ---------- Geräteprofil: wie viel Detail geladen und gezeichnet wird ----------
+     niedrig: Smartphones, Datensparmodus, langsame Verbindung, wenig Arbeitsspeicher
+              → 4k-Texturen, Kacheln nur bis Stufe 7, kein Sternenhimmel und kein Relief, Pixeldichte höchstens 1,5,
+                Ebenen erst beim Einschalten laden
+     mittel:  Tablets und schwächere Rechner → 8k-Texturen (falls die Grafik sie kann), Pixeldichte höchstens 2
+     hoch:    Laptop/PC → alles; ausgeschaltete Ebenen werden nach dem Start im Hintergrund vorgeladen
+     Erzwingen: app.html?detail=niedrig|mittel|hoch (merkt sich das Gerät in localStorage, ?detail=auto setzt zurück).
+     Das Profil gehört zum Gerät, nicht zum Unterrichtszustand: es steht bewusst nicht in getState. */
+  var GERAET = (function () {
+    var q = (location.search.match(/[?&]detail=(niedrig|mittel|hoch|auto)\b/) || [])[1], gemerkt = null;
+    try {
+      if (q === 'auto') localStorage.removeItem('cg.detail'); else if (q) localStorage.setItem('cg.detail', q);
+      gemerkt = localStorage.getItem('cg.detail');
+    } catch (e) {}
+    var stufe = q && q !== 'auto' ? q : gemerkt;
+    if (!stufe) {
+      var kurz = Math.min(screen.width || innerWidth, screen.height || innerHeight);
+      var grob = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+      var nc = navigator.connection || {}, mem = navigator.deviceMemory || 8;
+      var spar = !!nc.saveData || /^(slow-2g|2g|3g)$/.test(nc.effectiveType || '');
+      stufe = spar || mem <= 2 || (grob && kurz < 600) ? 'niedrig' : grob || mem <= 4 ? 'mittel' : 'hoch';
+    }
+    return {
+      stufe: stufe,
+      textur8k: stufe !== 'niedrig',
+      kachelMax: stufe === 'niedrig' ? 7 : 8,
+      himmel: stufe !== 'niedrig',
+      relief: stufe !== 'niedrig',
+      pixel: stufe === 'niedrig' ? 1.5 : stufe === 'mittel' ? 2 : 3,
+      vorladen: stufe === 'hoch'
+    };
+  })();
+  document.documentElement.setAttribute('data-detail', GERAET.stufe);
+  /* Systemeinstellung „Bewegung reduzieren“: keine automatische Drehung, Kamerasprünge statt Flügen.
+     Das ist eine Geräteeinstellung wie GERAET: state.rotate bleibt (für Sessions) unverändert, wird hier nur nicht gezeigt. */
+  var RUHIG = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var DREHEN_GEWOLLT = false;   // ausdrücklicher Klick auf „Drehen“ geht vor
+  function drehenAn() { return state.rotate && (!RUHIG.matches || DREHEN_GEWOLLT); }
+  function flugDauer(ms) { return RUHIG.matches ? 0 : ms; }
+
   /* ---------- Globus ---------- */
   /* Schematische Ansicht: fertige Textur (img/earth-schematic.png, erzeugt mit build_schema_textur.py aus Natural Earth).
      Früher wurde das ganze Festland als ein riesiges 3D-Polygon gezeichnet; das ergab Risse und Flackern. */
   var SCHEM_URL = 'img/earth-schematic.png', LANDF = null;
-  function schemTexture() {   // 8192er-Fassung aus Natural Earth 1:10 Mio. (build_schema_kacheln.py), sonst die alte 4096er
+  function kann8k() {
+    if (!GERAET.textur8k) return false;
     var max = 0; try { max = globe.renderer().capabilities.maxTextureSize; } catch (e) {}
-    return max >= 8192 ? 'img/earth-schematic-8k.png' : SCHEM_URL;
+    return max >= 8192;
+  }
+  function schemTexture() {   // 8192er-Fassung aus Natural Earth 1:10 Mio. (build_schema_kacheln.py), sonst die alte 4096er
+    return kann8k() ? 'img/earth-schematic-8k.png' : SCHEM_URL;
   }
   /* Satellitenbild: NASA Blue Marble Next Generation (Juli 2004) in 8192×4096. Geräte, deren Grafikkarte
-     so große Texturen nicht kann (manche ältere Tablets), bekommen die alte 4096er-Fassung. */
+     so große Texturen nicht kann (manche ältere Tablets), und Geräte im Profil „niedrig“ bekommen die 4096er-Fassung. */
   function satTexture() {
-    var max = 0; try { max = globe.renderer().capabilities.maxTextureSize; } catch (e) {}
-    return max >= 8192 ? 'img/earth-blue-marble-8k.jpg' : 'img/earth-blue-marble.jpg';
+    return kann8k() ? 'img/earth-blue-marble-8k.jpg' : 'img/earth-blue-marble.jpg';
   }
   /* Kacheln für die Nahansicht, Stufe 6 weltweit bis ±72°, Stufen 7–8 nur in der Region Europa–China:
      Satellit: img/tiles (build_kacheln.py, NASA Blue Marble Next Generation, bis 500 m/Pixel),
@@ -86,20 +130,31 @@
      Unter den Kacheln bleibt eine Kopie der Grundkugel mit dem 8k-Bild sichtbar: Fehlende Kacheln (außerhalb
      der Region), gröbere Stufen und die Polargebiete zeigen dann das 8k-Bild statt Schwarz.
      'data:,' als Adresse heißt „keine Kachel“: Es wird nichts geladen, die Grundkugel bleibt sichtbar. */
-  var KACHELN = { region: [-20, -15, 150, 62], stufenRegion: [7, 8], min: 6, max: 8, polar: 72, an: null, basis: null, te: null, bereich: {} };
+  var KACHELN = { region: [-20, -15, 150, 62], stufenRegion: [7, 8], min: 6, max: GERAET.kachelMax, polar: 72, an: null, basis: null, te: null, bereich: {} };
   function kachelBereich(z, box) {
     var n = Math.pow(2, z);
     function tx(lng) { return Math.min(n - 1, Math.max(0, Math.floor((lng + 180) / 360 * n))); }
     function ty(lat) { var r = lat * Math.PI / 180; return Math.min(n - 1, Math.max(0, Math.floor((1 - Math.asinh(Math.tan(r)) / Math.PI) / 2 * n))); }
     return [tx(box[0]), tx(box[2]), ty(box[3]), ty(box[1])];
   }
+  /* Satellitenkacheln liegen als WebP vor (fast alle Browser seit 2020). Ein 1×1-Testbild klärt, ob der Browser es
+     dekodieren kann; bis zur Antwort wird es angenommen. Kann er es nicht, bleibt nur die Grundtextur (keine Kacheln). */
+  var WEBP = true;
+  (function () {
+    var t = new Image();
+    t.onload = function () { if (!(t.width > 0)) webpFehlt(); };
+    t.onerror = webpFehlt;
+    t.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+    function webpFehlt() { WEBP = false; if (globe && KACHELN.te) { KACHELN.an = null; kachelnPruefen(); } }
+  })();
   function kachelUrl(x, y, z) {
     if (z < KACHELN.min) return 'data:,';
     var b = KACHELN.bereich[z] || (KACHELN.bereich[z] = KACHELN.stufenRegion.indexOf(z) >= 0
       ? kachelBereich(z, KACHELN.region)
       : kachelBereich(z, [-180, -KACHELN.polar, 180, KACHELN.polar]));   // Stufe 6: Polargebiete aus, dort wären die Kacheln winzig und zahlreich
     if (x < b[0] || x > b[1] || y < b[2] || y > b[3]) return 'data:,';
-    return state.mode === 'schem' ? 'img/tiles_schem/' + z + '/' + x + '/' + y + '.png' : 'img/tiles/' + z + '/' + x + '/' + y + '.jpg';
+    if (state.mode === 'schem') return 'img/tiles_schem/' + z + '/' + x + '/' + y + '.png';
+    return WEBP ? 'img/tiles/' + z + '/' + x + '/' + y + '.webp' : 'data:,';   // ohne WebP (Safari < 14): nur die Grundtextur
   }
   function kachelnVorbereiten() {
     if (KACHELN.te) return true;
@@ -208,6 +263,7 @@
     d.__el = bel; return bel;
   }
   function refreshGlobe() {
+    ebenenNachladen();
     if (state.epoche === 'ming') { refreshGlobeMing(); return; }
     var polys = visiblePolys(), now = Date.now();
     if (prevVis) polys.forEach(function (f) { if (f.properties.id !== undefined && !prevVis.has(f)) f.__flash = now; });
@@ -215,8 +271,8 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths(), netzePaths()));
-    globe.pointsData(hanStationen(state.year).concat(netzeOrte()));
+    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths()));
+    globe.pointsData(hanStationen(state.year).concat(netzeOrte(), themenOrte()));
     refreshHtml(); vwDrehenBald();
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -229,8 +285,8 @@
     globe.globeImageUrl(tex);
     scharfStellen(tex);
     KACHELN.an = null; kachelnPruefen();
-    globe.bumpImageUrl(sat ? 'img/earth-topology.png' : '');
-    globe.backgroundImageUrl(sat ? 'img/night-sky.png' : '');
+    globe.bumpImageUrl(sat && GERAET.relief ? 'img/earth-topology.jpg' : '');
+    globe.backgroundImageUrl(sat && GERAET.himmel ? 'img/night-sky.jpg' : '');
     globe.backgroundColor(sat ? '#000010' : '#14202e');
     globe.showAtmosphere(true);
     globe.atmosphereColor(sat ? '#6fb1ff' : '#9fd0ee');
@@ -291,23 +347,26 @@
         t.appendChild(document.createTextNode((d.kind === 'karawane' ? d.hinweis : d.vermittler) + ' · Klick für Infos')); return t.outerHTML;
       })
       .htmlLat('lat').htmlLng('lng').htmlAltitude(function (d) { return d.zeiten ? 0.0013 : d.kind === 'waren' ? 0.0015 : 0.0016; }).htmlElement(htmlEl).htmlTransitionDuration(0);
+    // Pixeldichte begrenzen: Smartphones mit 3-facher Dichte müssten sonst neunmal so viele Bildpunkte rechnen
+    try { globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, GERAET.pixel)); } catch (e) {}
     initTradeGlobe();
     globe.pointLat('lat').pointLng('lng').pointAltitude(0.0025).pointResolution(10).pointsTransitionDuration(0)
-      .pointRadius(function (s) { if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
-      .pointColor(function (s) { return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
+      .pointRadius(function (s) { if (s.themaort) return 0.13; if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
+      .pointColor(function (s) { if (s.themaort) return themaFarbe(s.themaM, 0.95); return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
       .pointLabel(function (s) { var t = el('div', 'gtip');
+        if (s.themaort) { t.appendChild(el('b', null, s.o.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.themaM.name + ' · ' + Themen.zeitText(s.o) + ' · Klick für Infos')); return t.outerHTML; }
         if (s.netzort) { t.appendChild(el('b', null, netzOrtTitel(s))); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.typ + ' · ' + s.netzM.name + ' · Klick für Infos')); return t.outerHTML; }
         t.appendChild(el('b', null, s.py + ' (' + s.zh + ')')); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(s.typ + ' · Seidenstraße der Han · Klick für Infos')); return t.outerHTML; })
-      .onPointClick(function (s) { if (s && s.hanstation) openHanStation(s); else if (s && s.netzort) openNetzOrt(s); });
+      .onPointClick(function (s) { if (s && s.themaort) openThemaObjekt(s.o, s.themaM); else if (s && s.hanstation) openHanStation(s); else if (s && s.netzort) openNetzOrt(s); });
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
     globe.controls().addEventListener('change', zoomPruefen);
     globe.controls().addEventListener('change', vwDrehenBald);
-    setInterval(zoomPruefen, 500);   // Kameraflüge (pointOfView) melden kein 'change'
+    setInterval(function () { if (!document.hidden) zoomPruefen(); }, 500);   // Kameraflüge (pointOfView) melden kein 'change'; im Hintergrund-Tab ruhen
     window.addEventListener('resize', scheduleTagSides);
     var c = globe.controls();
-    c.autoRotate = state.rotate; c.autoRotateSpeed = 0.35;
+    c.autoRotate = drehenAn(); c.autoRotateSpeed = 0.35;
     c.minDistance = 106; c.maxDistance = 520;   // nah heran: dort greifen die 500-m-Kacheln
     c.zoomSpeed = 0.9; c.enablePan = false;
     globe.pointOfView({ lat: 36, lng: 62, altitude: homeAlt() }, 0);
@@ -337,7 +396,7 @@
       }, 160);
     });
   }
-  function fly(lat, lng, alt) { globe.pointOfView({ lat: lat, lng: lng, altitude: alt }, 1400); }
+  function fly(lat, lng, alt) { globe.pointOfView({ lat: lat, lng: lng, altitude: alt }, flugDauer(1400)); }
 
   /* ---------- Infokarten ---------- */
   function renderCards() {
@@ -353,6 +412,17 @@
         d.innerHTML = '<div class="k"></div><p></p>';
         d.querySelector('.k').textContent = m.name + ' · ' + shortYear(m.von) + '–' + shortYear(m.bis);
         d.querySelector('p').textContent = m.kurz;
+        if (m.frueh) {   // frühe Hochkulturen (build_fruehe_kulturen.py): Epoche und letztes Ereignis statt nur Kurztext
+          var ep = regionsAt(r, state.year).map(function (f) { return f.properties.name; }).join(' · ');
+          var fe = activeEvent(r, state.year), q = d.querySelector('p');
+          q.textContent = '';
+          var et = document.createElement('div'); et.className = 'epoche'; et.textContent = ep; d.insertBefore(et, q);
+          if (fe) {
+            var ft = document.createElement('div'); ft.className = 't'; ft.textContent = fe.titel; d.insertBefore(ft, q);
+            var fy = document.createElement('div'); fy.className = 'y'; fy.textContent = fe.label; d.insertBefore(fy, q);
+            q.textContent = fe.note;
+          } else q.textContent = m.kurz;
+        }
         if (m.kontext) d.classList.add('kx');
         if (hatRolle(r)) {
           var mb = document.createElement('button'); mb.type = 'button'; mb.textContent = 'Schriftrolle öffnen';
@@ -554,7 +624,7 @@
       var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
       var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
       stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
-      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + netzeSchluessel(y);
+      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y);
     }
     stateKey.zv = null;
     var ids = [];
@@ -563,7 +633,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y);
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -584,7 +654,7 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths()));
+      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths(), themenPaths()));
       if (state.vw) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
@@ -655,7 +725,7 @@
     clearTimeout(closeTimer); closeTimer = null;
     $('#mapOverlay').classList.remove('show'); $('#mapOverlay').setAttribute('aria-hidden', 'true');
     mapOpen = false; mapReich = null; mapPrev = null; FENSTER.rolle = null;
-    globe.controls().autoRotate = state.rotate;
+    globe.controls().autoRotate = drehenAn();
     var pov = globe.pointOfView(); globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: 0.9 }, 600);
   }
   /* Schriftrolle eines Reichs: Reiter „Vignetten“ (Rom: „Wiederholung“) und „Karte“ */
@@ -1162,6 +1232,38 @@
     return a;
   }
 
+  /* ---------- Große Ebenen erst bei Bedarf laden ----------
+     Römerstraßen (1,2 MB), ORBIS, Han-Seidenstraße und Limes sind beim Start meist aus. Sie werden geladen, sobald
+     sie eingeschaltet oder ihre Infofenster geöffnet werden; im Profil „hoch“ zusätzlich kurz nach dem Start im
+     Hintergrund. Bis dahin sind STRASSEN/ORBIS/HANSEIDE/LIMES null (alle Zeichenfunktionen kommen damit zurecht). */
+  var NACHLADEN = {
+    strassen: { schl: 'roemerstrassen', url: 'data/roemerstrassen.json', noetig: function () { return TRADE.strassen; },
+      fertig: function (d) {
+        STRASSEN = StrassenZeit.vorbereiten(d || { linien: [] }); STR_OBJ = null;
+        if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
+      } },
+    schiff: { schl: 'orbis_schiff', url: 'data/orbis_schiff.json', noetig: function () { return TRADE.schiff; }, fertig: function (d) { initOrbis(d); } },
+    hanseide: { schl: 'han_seidenstrasse', url: 'data/han_seidenstrasse.json', noetig: function () { return TRADE.hanseide; }, fertig: function (d) { initHanSeide(d); } },
+    limes: { schl: 'limes', url: 'data/limes.json', noetig: function () { return state.limes; }, fertig: function (d) { initLimes(d); } }
+  };
+  function ebeneLaden(k) {
+    var e = NACHLADEN[k];
+    if (!e.p) e.p = daten(e.schl, e.url).catch(function (err) { console.warn(err); return null; }).then(function (d) {
+      e.fertig(d); e.geladen = true;
+      if (DATA && globe) { lastKey = ''; lastStrKey = ''; setYear(state.year); }   // Schlüssel leeren: alles neu berechnen
+      return d;
+    });
+    return e.p;
+  }
+  function ebeneGeladen(k) { return !!NACHLADEN[k].geladen; }
+  function ebenenNachladen() {
+    Object.keys(NACHLADEN).forEach(function (k) { if (!NACHLADEN[k].p && NACHLADEN[k].noetig()) ebeneLaden(k); });
+  }
+  function ebenenVorladen() {   // Profil „hoch“: ausgeschaltete Ebenen in Leerlaufzeit nachladen, damit das Einschalten sofort wirkt
+    var los = function () { Object.keys(NACHLADEN).forEach(ebeneLaden); };
+    if (window.requestIdleCallback) requestIdleCallback(los, { timeout: 2500 }); else setTimeout(los, 1500);
+  }
+
   /* ---------- Layer „Schiffsverkehr (ORBIS)“: Küste, Hochsee, Fähren, Flüsse (data/orbis_schiff.json, build_orbis.py) ----------
      ORBIS hat keine Jahreszahlen. Eine Strecke erscheint in den Jahren, in denen beide Endhäfen römisch sind (Darstellungsregel). */
   var ORBIS = null, ORBIS_OBJ = [];
@@ -1179,7 +1281,9 @@
     return state.mode === 'schem' ? 'rgba(10,63,102,' + a + ')' : 'rgba(150,215,255,' + a + ')';
   }
   function openOrbisInfo(d) {
-    if (!darfLokal('routen')) return; INFO_NEU = { art: 'orbis', id: d ? d.id : null };
+    if (!darfLokal('routen')) return;
+    if (!ebeneGeladen('schiff')) { ebeneLaden('schiff').then(function () { openOrbisInfo(d); }); return; }
+    INFO_NEU = { art: 'orbis', id: d ? d.id : null };
     showInfo(function (b) {
       b.appendChild(el('div', 'tk see', 'Schiffsverkehr (ORBIS)'));
       var h = el('h3', null, d ? d.orbis.von_ort + ' – ' + d.orbis.nach_ort : 'Schiffsverkehr im Römischen Reich'); h.id = 'tinfoTitle'; b.appendChild(h);
@@ -1424,6 +1528,114 @@
       netzZeile(b, m, d);
     });
   }
+  /* ---------- Themenebenen (data/ebenen/, js/themen.js; Format und Editor: docs/EDITOR.md) ----------
+     Register data/ebenen/index.json: { ebenen: [{ id, name, farbe, datei, von, bis, kurz }] }. Eine Ebenendatei wird erst
+     geladen, wenn die Ebene eingeschaltet wird. ?vorschau=editor zeigt zusätzlich die Ebene, die gerade im Editor
+     (editor.html) entsteht. Sie kommt aus dem localStorage dieses Browsers, nicht aus dem Netz, und ist nur lokal sichtbar. */
+  var THEMEN = { index: null, an: {}, daten: {}, laden: {}, obj: {} };
+  function themaVorbereiten(d, m) {
+    var obj = { orte: {}, linien: {} };
+    d.objekte.forEach(function (o) {
+      if (o.typ === 'punkt') obj.orte[o.id] = { themaort: true, o: o, themaM: m, id: 't-' + m.id + '-' + o.id, lng: o.koordinaten[0], lat: o.koordinaten[1] };
+      else obj.linien[o.id] = { themalinie: o, themaM: m, id: 't-' + m.id + '-' + o.id, pts: o.typ === 'flaeche' ? Themen.umriss(o) : o.koordinaten };
+    });
+    THEMEN.daten[m.id] = d; THEMEN.obj[m.id] = obj;
+  }
+  function initThemen(ix) {
+    THEMEN.index = ix && Array.isArray(ix.ebenen) ? ix.ebenen.slice() : [];
+    if (/[?&]vorschau=editor\b/.test(location.search)) {
+      var v = null; try { v = JSON.parse(localStorage.getItem('cg.editor.vorschau') || 'null'); } catch (e) {}
+      if (v && Array.isArray(v.objekte)) {
+        v.objekte = v.objekte.filter(function (o) {   // unfertige Objekte (ohne Geometrie oder Jahr) auslassen
+          return o && Themen.TYPEN[o.typ] && typeof o.von === 'number' && (o.typ === 'punkt' ? Array.isArray(o.koordinaten) && o.koordinaten.length === 2 :
+            Array.isArray(o.koordinaten) && o.koordinaten.length >= (o.typ === 'flaeche' ? 3 : 2));
+        });
+      }
+      if (v && v.objekte && v.objekte.length) {
+        var fehler = Themen.ebenePruefen(v), sp = Themen.spanne(v);
+        if (fehler.length) console.warn('Vorschau aus dem Editor: ' + fehler.length + ' Hinweise', fehler);
+        var m = { id: 'vorschau', name: (v.name || 'Entwurf') + ' (Vorschau)', farbe: /^#[0-9a-f]{6}$/i.test(v.farbe || '') ? v.farbe : '#e0b040',
+          von: sp.von, bis: sp.bis, kurz: 'Entwurf aus dem Editor – nur in diesem Browser sichtbar', vorschau: true };
+        THEMEN.index.unshift(m); themaVorbereiten(v, m);
+      }
+    }
+    themenMenuBauen();
+    if (THEMEN.daten.vorschau) setTimeout(function () { setState({ themen: { vorschau: true } }); themaZeitSprung(themaMeta('vorschau')); }, 0);
+  }
+  function themaMeta(id) { return THEMEN.index ? THEMEN.index.filter(function (n) { return n.id === id; })[0] : null; }
+  function themaLaden(id) {
+    var m = themaMeta(id); if (!m) return Promise.resolve(null);
+    if (THEMEN.daten[id]) return Promise.resolve(THEMEN.daten[id]);
+    if (!m.datei) return Promise.resolve(null);
+    if (!THEMEN.laden[id]) THEMEN.laden[id] = daten('ebene_' + id, m.datei).then(function (d) {
+      var fehler = Themen.ebenePruefen(d); if (fehler.length) console.warn('Themenebene ' + id + ': ' + fehler.length + ' Hinweise', fehler.slice(0, 10));
+      themaVorbereiten(d, m); lastKey = ''; setYear(state.year);
+      return d;
+    }).catch(function (e) { console.warn(e); toast('Ebene „' + m.name + '“ konnte nicht geladen werden.'); delete THEMEN.laden[id]; return null; });
+    return THEMEN.laden[id];
+  }
+  function themaSetzen(id, v) { THEMEN.an[id] = v; chipSetzen('.chip.thema[data-thema="' + id + '"]', v); if (v) themaLaden(id); }
+  function themenAn() { return Object.keys(THEMEN.an).filter(function (id) { return THEMEN.an[id] && THEMEN.daten[id]; }).sort(); }
+  function themenSchluessel(y) { return themenAn().map(function (id) { return id + ':' + Themen.schluessel(THEMEN.daten[id], y); }).join(','); }
+  function themenPaths() {
+    var y = state.year, out = [];
+    themenAn().forEach(function (id) { Themen.imJahr(THEMEN.daten[id], y).forEach(function (o) { var x = THEMEN.obj[id].linien[o.id]; if (x) out.push(x); }); });
+    return out;
+  }
+  function themenOrte() {
+    var y = state.year, out = [];
+    themenAn().forEach(function (id) { Themen.imJahr(THEMEN.daten[id], y).forEach(function (o) { var x = THEMEN.obj[id].orte[o.id]; if (x) out.push(x); }); });
+    return out;
+  }
+  function themenZustand() { var o = {}; (THEMEN.index || []).forEach(function (n) { if (!n.vorschau) o[n.id] = !!THEMEN.an[n.id]; }); return o; }
+  function themaFarbe(m, a) { return netzRgba(m.farbe, a); }
+  function themaZeitSprung(m) {
+    if (!m || m.von == null || (state.year >= m.von && (m.bis == null || state.year <= m.bis))) return;
+    var ziel = Math.max(YMIN, Math.min(YMAX, m.von));
+    if (m.von >= YMIN && m.von <= YMAX && darfLokal('zeit')) { setYear(ziel); toast(m.name + ': ab ' + fmtYear(m.von) + ' – Zeitleiste auf ' + fmtYear(state.year) + ' gestellt.'); }
+    else toast(m.name + ': ab ' + fmtYear(m.von) + '. Dieser Zeitraum liegt außerhalb der Zeitleiste.');
+  }
+  function themenErlaubt() {   // Tafelbilder mit eigener Ebenenliste zeigen Themenebenen nur, wenn „themen“ darin steht
+    var tb = window.CG && CG.tafelbild, ev = tb && tb.ebenen && tb.ebenen.verfuegbar;
+    return !Array.isArray(ev) || ev.indexOf('themen') >= 0;
+  }
+  function themenMenuBauen() {
+    var box = $('#themenChips'); if (!box) return;
+    box.innerHTML = '';
+    if (!themenErlaubt()) { $('#themenSec').hidden = true; return; }
+    $('#themenSec').hidden = false;
+    if (!THEMEN.index.length) { box.appendChild(el('p', 'hint', 'Noch keine Themenebenen übernommen.')); return; }
+    THEMEN.index.forEach(function (n) {
+      var b = el('button', 'chip plain thema'); b.type = 'button'; b.dataset.thema = n.id; b.setAttribute('aria-pressed', 'false');
+      b.style.setProperty('--c', n.farbe); b.title = n.kurz || n.name;
+      b.appendChild(el('i')); b.appendChild(el('span', null, n.name));
+      if (n.von != null) b.appendChild(el('small', null, n.bis == null ? 'ab ' + fmtYear(n.von) : Netze.spanne(n.von, n.bis)));
+      b.addEventListener('click', function () {
+        var v = !THEMEN.an[n.id], o = {}; o[n.id] = v; setState({ themen: o });
+        if (v) themaZeitSprung(n);
+      });
+      box.appendChild(b);
+    });
+  }
+  function openThemaObjekt(o, m) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'thema', ebene: m.id, id: o.id };
+    var d = THEMEN.daten[m.id];
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk land', m.name + ' · ' + (Themen.TYPEN[o.typ] || o.typ)));
+      var h = el('h3', null, o.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Zeit', Themen.zeitText(o));
+      if (o.beschreibung) row(b, 'Beschreibung', o.beschreibung);
+      if (o.beleg) row(b, 'Beleg', o.beleg);
+      if (o.unsicher) row(b, 'Hinweis', 'Lage oder Datierung unsicher.').classList.add('twarn');
+      if (d.hinweis) row(b, 'Zur Ebene', d.hinweis).classList.add('twarn');
+      row(b, 'Quellen der Ebene', (d.quellen || []).map(function (q) { return q.zitat + (q.lizenz ? ' (' + q.lizenz + ')' : ''); }).join(' · ') || '–');
+      if (m.vorschau) row(b, 'Entwurf', 'Diese Ebene stammt aus dem Editor und ist noch nicht geprüft.').classList.add('twarn');
+      else {
+        var a = el('a', 'small tmore', 'Korrektur vorschlagen'); a.href = 'editor.html?ziel=' + encodeURIComponent('ebene:' + m.id + ':' + o.id);
+        a.target = '_blank'; a.rel = 'noopener'; b.appendChild(a);
+      }
+    });
+  }
   var NETZ_STATUS = { verfuegbar: 'eingebunden (dieses Menü)', bestehend: 'eingebunden (andere Stelle im Menü)', nicht_verfuegbar: 'geprüft – nicht verfügbar', nicht_lizenziert: 'geprüft – keine passende Lizenz', zurueckgestellt: 'geprüft – zurückgestellt (Zeitraum)' };
   function openNetzQuellen() {
     if (!NETZE.index) return; INFO_NEU = { art: 'netzquellen' };
@@ -1620,7 +1832,9 @@
     });
   }
   function openStrassenInfo() {
-    if (!darfLokal('routen')) return; INFO_NEU = { art: 'strassen' };
+    if (!darfLokal('routen')) return;
+    if (!STRASSEN) { ebeneLaden('strassen').then(function () { if (STRASSEN) openStrassenInfo(); }); return; }
+    INFO_NEU = { art: 'strassen' };
     var L = LIT.itinere2025;
     showInfo(function (b) {
       b.appendChild(el('div', 'tk str', 'Kartenlayer'));
@@ -1679,6 +1893,7 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.themalinie) return themaFarbe(d.themaM, d.themalinie.typ === 'flaeche' ? 0.85 : 0.95);
     if (d.netzlinie) return netzLinienFarbe(d);
     if (d.strasse) return strassenFarbe(d);
     if (d.orbis) return orbisFarbe(d);
@@ -1701,6 +1916,7 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.themalinie) return d.themalinie.unsicher ? [0.07, 0.06][i] : [1, 0][i];
     if (d.netzlinie) return netzUnsicher(d.netzlinie) ? [0.07, 0.06][i] : [1, 0][i];
     if (d.vw) return d.vwArt === 'fluss' ? [0.02, 0.045][i] : [1, 0][i];   // fließende Partikel auf dem Strom
     if (d.eu) return [1, 0][i];
@@ -1718,6 +1934,7 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.themalinie) return d.themalinie.typ === 'flaeche' ? 1.4 : 2;
     if (d.netzlinie) return netzStrich(d);
     if (d.vw) return d.vwArt === 'band' ? (d.vw.__laeuft ? 22 : 9) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 9 : 4) : d.vwArt === 'fluss' ? 2.6 : (d.vw.__laeuft ? 5.5 : 2.2);
     if (d.eu) return 2;
@@ -1743,6 +1960,11 @@
       .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.themalinie) {
+          t.appendChild(el('b', null, d.themalinie.name)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode(d.themaM.name + ' · ' + Themen.zeitText(d.themalinie) + (d.themalinie.unsicher ? ' · unsicher' : '') + ' · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.netzlinie) {
           var nl = d.netzlinie, rz = nl.__reise;
           t.appendChild(el('b', null, (rz ? rz.reisender + ': ' : '') + (nl.name || d.netzM.name))); t.appendChild(el('br'));
@@ -1784,7 +2006,8 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
-        if (d.netzlinie) openNetzLinie(d.netzlinie, d.netzM);
+        if (d.themalinie) openThemaObjekt(d.themalinie, d.themaM);
+        else if (d.netzlinie) openNetzLinie(d.netzlinie, d.netzM);
         else if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
         else if (d.hanlinie) openHanLinie(d.hanlinie);
@@ -2321,7 +2544,7 @@
     return res;
   }
   function refreshGlobeMing() {
-    globe.pointsData(netzeOrte());
+    globe.pointsData(netzeOrte().concat(themenOrte()));
     var zv = CUR_ZV || zhVisible(state.year);
     CUR_TV = { routes: [], parts: zv.aktiv.map(function (v) { return v.__p; }), places: [], kontakte: [], kar: { list: [] }, key: '' };
     globe.polygonsData(visiblePolys().concat(mingAn() ? ZHD.ming.regionen.filter(function (f) { return f.properties.von <= state.year && state.year < f.properties.bis; }) : []));
@@ -2329,7 +2552,7 @@
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
     globe.pathColor(pathColor).pathStroke(pathStroke);
-    pfadeSetzen(zhPaths(zv).concat(netzePaths()));
+    pfadeSetzen(zhPaths(zv).concat(netzePaths(), themenPaths()));
     zv.aktiv.forEach(function (v, i) { if (v.__flag.__el) v.__flag.__el.style.setProperty('--dy', (-14 - i * 28) + 'px'); });
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -2780,7 +3003,7 @@
     $('#tinfo').addEventListener('click', function (e) { if (e.target === this) closeInfo(); });
     $('#wmodalClose').addEventListener('click', warenSchliessen);
     $('#wmodal').addEventListener('click', function (e) { if (e.target === this) warenSchliessen(); });
-    $('#tglRot').addEventListener('click', function () { setState({ drehen: !state.rotate }); });
+    $('#tglRot').addEventListener('click', function () { DREHEN_GEWOLLT = true; setState({ drehen: !state.rotate }); });
     $('#tglStandort').addEventListener('click', toggleStandort);
     $('#year').addEventListener('input', function (e) { setState({ jahr: yearAt(+e.target.value / 1000) }, { schieber: true }); });
     $('#play').addEventListener('click', togglePlay);
@@ -2863,6 +3086,7 @@
       if (!v) closeInfo();
     }
     if (k === 'strassen') $('#strOpt').classList.toggle('off', !v);
+    if (v && NACHLADEN[k]) ebeneLaden(k);
   }
   function chipSetzen(sel, v) { var b = $(sel); if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); } }
   function kopie(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
@@ -2883,6 +3107,7 @@
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
       netze: netzeZustand(),
+      themen: themenZustand(),
       niveau: TX_NIV,
       fenster: kopie(FENSTER)
     };
@@ -2909,7 +3134,7 @@
           state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
         }
       }
-      if ('drehen' in t && !!t.drehen !== state.rotate) { state.rotate = !!t.drehen; chipSetzen('#tglRot', state.rotate); globe.controls().autoRotate = state.rotate && !mapOpen; }
+      if ('drehen' in t && !!t.drehen !== state.rotate) { state.rotate = !!t.drehen; chipSetzen('#tglRot', state.rotate); globe.controls().autoRotate = drehenAn() && !mapOpen; }
       if (t.handel) ['on', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (k) {
         if (k in t.handel && !!t.handel[k] !== !!TRADE[k]) { handelSetzen(k, !!t.handel[k]); neu = true; }
       });
@@ -2927,6 +3152,10 @@
         });
         if ('bilder' in t.zh && !!t.zh.bilder !== BILDER.an) { BILDER.an = !!t.zh.bilder; chipSetzen('#tglBilder', BILDER.an); PENS.forEach(function (q) { zhSchiffStil(q.schiff); }); }
       }
+      if (t.themen) Object.keys(t.themen).forEach(function (id) {
+        if (!themaMeta(id) || !!t.themen[id] === !!THEMEN.an[id]) return;
+        themaSetzen(id, !!t.themen[id]); neu = true;
+      });
       if (t.netze) Object.keys(t.netze).forEach(function (id) {
         var m = netzMeta(id); if (!m || m.status !== 'verfuegbar' || !!t.netze[id] === !!NETZE.an[id]) return;
         netzSetzen(id, !!t.netze[id]); neu = true;
@@ -2941,7 +3170,7 @@
       else if (neu) { lastKey = ''; setYear(state.year); }
       if (t.kamera && isFinite(t.kamera.lat) && isFinite(t.kamera.lng)) {
         KAMERA_GESETZT = Date.now();
-        globe.pointOfView({ lat: t.kamera.lat, lng: t.kamera.lng, altitude: t.kamera.alt || homeAlt() }, opt.dauer != null ? opt.dauer : 0);
+        globe.pointOfView({ lat: t.kamera.lat, lng: t.kamera.lng, altitude: t.kamera.alt || homeAlt() }, flugDauer(opt.dauer != null ? opt.dauer : 0));
       }
       if ('fenster' in t) fensterAnwenden(t.fenster || {});
     } finally {
@@ -2961,6 +3190,8 @@
   /* Fenster aus einer Beschreibung öffnen bzw. schließen */
   function infoOeffnen(d) {
     if (!d) return;
+    var braucht = { orbis: 'schiff', strasse: 'strassen', strassen: 'strassen', hanstation: 'hanseide', hanlinie: 'hanseide', limes: 'limes' }[d.art];
+    if (braucht && !ebeneGeladen(braucht)) { ebeneLaden(braucht).then(function () { infoOeffnen(d); }); return; }
     var finde = function (L, id) { return (L || []).filter(function (x) { return x.id === id; })[0]; };
     if (d.art === 'route') { var v = routeById(d.id); if (v) openTradeInfo(v); }
     else if (d.art === 'ort') { var o = finde(HANDEL.orte, d.id); if (o) openPlaceInfo(o); }
@@ -2975,6 +3206,10 @@
     else if (d.art === 'limes') { var la = LIMES && finde(LIMES.abschnitte, d.id); if (la) openLimes(la, d.kastell ? LIMES.kastelle.filter(function (k) { return k.name === d.kastell; })[0] : null); }
     else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
     else if (d.art === 'netzquellen') openNetzQuellen();
+    else if (d.art === 'thema') themaLaden(d.ebene).then(function (td) {
+      var tm = themaMeta(d.ebene), to = td && (td.objekte || []).filter(function (x) { return x.id === d.id; })[0];
+      if (tm && to) openThemaObjekt(to, tm);
+    });
     else if (d.art === 'netzlinie' || d.art === 'netzort') netzLaden(d.netz).then(function (nd) {
       if (!nd) return;
       if (d.art === 'netzort') { var no = finde(nd.orte, d.id); if (no) openNetzOrt(no); }
@@ -3076,7 +3311,7 @@
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
-    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec' };
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
   function fokusZustand(f) {
@@ -3136,67 +3371,29 @@
     if (LEHRER_GELADEN) return;
     LEHRER_GELADEN = true;
     document.querySelectorAll('.lpanel[data-md]').forEach(function (sec) {
-      fetch(sec.getAttribute('data-md'), { cache: 'no-cache' })
+      fetch((function (u) { return window.cgUrl ? cgUrl(u) : u; })(sec.getAttribute('data-md')), { cache: 'no-cache' })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
         .then(function (t) { sec.innerHTML = markdown(t); })
         .catch(function () { sec.innerHTML = '<p class="hint">Datei <code>' + esc(sec.getAttribute('data-md')) + '</code> konnte nicht geladen werden (Seite über einen Webserver öffnen).</p>'; LEHRER_GELADEN = false; });
     });
   }
-  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-  /* kleiner Markdown-Leser: Überschriften, Absätze, Listen, Zitate, Tabellen, fett/kursiv/Code/Links; HTML wird maskiert */
-  function markdown(src) {
-    var zeilen = src.replace(/\r/g, '').replace(/<!--[\s\S]*?-->/g, '').split('\n'), out = [], i = 0, ersteH1 = true;
-    function inl(t) {
-      return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
-        .replace(/\[([^\]]+)\]\(((?:https?:\/\/|\.{0,2}\/|[\w-]+\.html)[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    }
-    function zellen(z) { return z.trim().replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); }); }
-    while (i < zeilen.length) {
-      var z = zeilen[i], m;
-      if (!z.trim()) { i++; continue; }
-      if ((m = /^(#{1,4})\s+(.*)$/.exec(z))) {
-        if (m[1].length === 1 && ersteH1) { ersteH1 = false; i++; continue; }   // Titel trägt der Reiter
-        var h = Math.min(4, m[1].length + 1); out.push('<h' + h + '>' + inl(m[2]) + '</h' + h + '>'); i++; continue;
-      }
-      if (/^\s*\|/.test(z) && i + 1 < zeilen.length && /^\s*\|?\s*:?-{2,}/.test(zeilen[i + 1])) {
-        var kopf = zellen(z), t = '<table class="ltab"><thead><tr>' + kopf.map(function (c) { return '<th>' + inl(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
-        i += 2;
-        while (i < zeilen.length && /^\s*\|/.test(zeilen[i])) { t += '<tr>' + zellen(zeilen[i]).map(function (c) { return '<td>' + inl(c) + '</td>'; }).join('') + '</tr>'; i++; }
-        out.push(t + '</tbody></table>'); continue;
-      }
-      if (/^\s*([-*]|\d+\.)\s+/.test(z)) {
-        var ol = /^\s*\d+\./.test(z), li = [];
-        while (i < zeilen.length && /^\s*([-*]|\d+\.)\s+/.test(zeilen[i])) { li.push('<li>' + inl(zeilen[i].replace(/^\s*([-*]|\d+\.)\s+/, '')) + '</li>'); i++; }
-        out.push((ol ? '<ol>' : '<ul>') + li.join('') + (ol ? '</ol>' : '</ul>')); continue;
-      }
-      if (/^>\s?/.test(z)) {
-        var q = [];
-        while (i < zeilen.length && /^>\s?/.test(zeilen[i])) { q.push(zeilen[i].replace(/^>\s?/, '')); i++; }
-        out.push('<blockquote>' + inl(q.join(' ')) + '</blockquote>'); continue;
-      }
-      var abs = [];
-      while (i < zeilen.length && zeilen[i].trim() && !/^(#{1,4}\s|>|\s*\||\s*([-*]|\d+\.)\s)/.test(zeilen[i])) { abs.push(zeilen[i]); i++; }
-      out.push('<p>' + inl(abs.join(' ')) + '</p>');
-    }
-    return out.join('\n');
-  }
-  function load(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
+  function load(url) { return fetch(window.cgUrl ? cgUrl(url) : url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
   function daten(k, url) { return window.CG && CG.daten ? CG.daten(k, url) : load(url); }
   (window.CG && CG.bereit ? CG.bereit : Promise.resolve(null)).then(function () { return Promise.all([daten('reiche', 'data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), daten('handel', 'data/handel.json'), daten('zhenghe', 'data/zhenghe.json'),
-    daten('texte', 'data/texte.json'), daten('literatur', 'data/literatur.json'), daten('roemerstrassen', 'data/roemerstrassen.json'),
-    daten('orbis_schiff', 'data/orbis_schiff.json').catch(function (e) { console.warn(e); return null; }),
+    daten('texte', 'data/texte.json'), daten('literatur', 'data/literatur.json'),
+    null,   // Römerstraßen, ORBIS, Han-Seidenstraße, Limes: bei Bedarf (siehe NACHLADEN)
+    null,
     daten('fruehe_reiche', 'data/fruehe_reiche.json').catch(function (e) { console.warn(e); return null; }),
-    daten('han_seidenstrasse', 'data/han_seidenstrasse.json').catch(function (e) { console.warn(e); return null; }),
-    daten('limes', 'data/limes.json').catch(function (e) { console.warn(e); return null; }),
+    null,
+    null,
     daten('netze', 'data/netze/index.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
-    daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; })]); }).then(function (res) {
+    daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; }),
+    daten('themen', 'data/ebenen/index.json').catch(function (e) { console.warn(e); return null; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
-    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); STRASSEN = StrassenZeit.vorbereiten(res[8]); initOrbis(res[9]); initHanSeide(res[11]); initLimes(res[12]); VIG = res[14];
+    TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); VIG = res[14];
     reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); mittelalterEinrichten(); abschnitteZuschneiden();
-    if (STRASSEN.fehler.length) console.warn('Römerstraßen: ' + STRASSEN.fehler.length + ' Hinweise beim Einlesen', STRASSEN.fehler.slice(0, 20));
-    initTrade(); initZh(); buildZhChips(); initNetze(res[13]);
+    initTrade(); initZh(); buildZhChips(); initNetze(res[13]); initThemen(res[15]);
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
@@ -3210,11 +3407,13 @@
     tafelbildAnwenden(window.CG ? CG.tafelbild : null);
     if (location.hash === '#hilfe') modalOeffnen('hilfe');
     setTimeout(startIntro, 600);
-    window.__tafelbild = { strOpt: STR_OPT, strassen: function () { return { geladen: STRASSEN.linien.length, fehler: STRASSEN.fehler.length,
+    if (GERAET.vorladen) ebenenVorladen();
+    window.__tafelbild = { strOpt: STR_OPT, strassen: function () { if (!STRASSEN) return { geladen: 0, fehler: 0, sichtbar: 0, aufGlobus: 0, stile: {} };
+      return { geladen: STRASSEN.linien.length, fehler: STRASSEN.fehler.length,
         sichtbar: strassenPaths(state.year).length, aufGlobus: globe.pathsData().filter(function (d) { return d.strasse; }).length,
         stile: globe.pathsData().filter(function (d) { return d.strasse; }).reduce(function (a, d) { a[d.stil] = (a[d.stil] || 0) + 1; return a; }, {}) }; },
       state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible,
-      getState: getState, applyState: applyState, setState: setState, netze: NETZE, netzePaths: netzePaths, netzeOrte: netzeOrte, segs: SEGS };
+      getState: getState, applyState: applyState, setState: setState, geraet: GERAET, ebeneLaden: ebeneLaden, netze: NETZE, themen: THEMEN, netzePaths: netzePaths, netzeOrte: netzeOrte, segs: SEGS };
     window.ChronoGlobe = { getState: getState, applyState: applyState, setState: setState, abonnieren: abonnieren,
       setzeRechte: function (fn) { DARF = typeof fn === 'function' ? fn : function () { return true; }; }, globe: globe, homeAlt: homeAlt };
     document.dispatchEvent(new CustomEvent('chronoglobe:bereit'));

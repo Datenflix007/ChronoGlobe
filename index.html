@@ -2,21 +2,14 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<script src="js/csp.js?v=192c99afda"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101a27">
 <title>ChronoGlobe</title>
 <meta name="description" content="ChronoGlobe: interaktiver Globus mit Zeitleiste für den Geschichtsunterricht – frei nutzen, Tafelbilder ansehen oder als Live-Session mit der Klasse.">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/landing.css">
-<script>
-  // Altlasten und QR-Links: index.html?vignetten=demo → Globus; index.html?code=XXXXXX → direkt beitreten
-  (function () {
-    var q = new URLSearchParams(location.search), lokal = q.get('sync') === 'lokal' ? '&sync=lokal' : '';
-    if (q.get('vignetten')) location.replace('app.html?modus=frei&vignetten=' + encodeURIComponent(q.get('vignetten')));
-    var c = (q.get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (c.length >= 4) location.replace('app.html?session=' + c + '&rolle=schueler' + lokal);
-  })();
-</script>
+<link rel="stylesheet" href="css/landing.css?v=34f17dc06c">
+<script src="js/weiterleitung.js?v=d2b65b67b3"></script>
 </head>
 <body>
 <div id="sterne" class="sterne" aria-hidden="true"></div>
@@ -99,12 +92,16 @@
   <span>ChronoGlobe · ein Projekt von Felix Staacke</span>
   <a href="lehrkraft.html">Lehrkraft-Ansicht der Schülertexte</a>
   <a href="quellen.html">Datensätze, Literatur &amp; Quellen</a>
+  <a href="editor.html">Änderung oder Ebene vorschlagen</a>
   <a href="app.html?modus=frei#hilfe">Hinweise &amp; Lizenzen</a>
+  <button id="offlineKnopf" class="knopf glas klein-knopf" type="button" hidden title="Lädt alle Daten in den Browser, damit der Globus auch bei schwachem WLAN läuft">Für den Unterricht offline speichern</button>
 </footer>
 
-<script src="js/session.js"></script>
-<script src="js/landing.js"></script>
-<script src="vendor/globe.gl.min.js" defer></script>
-<script src="js/landing-globus.js" defer></script>
+<script src="js/version.js?v=fe7239e757"></script>
+<script src="js/offline.js?v=dcd0fc8076"></script>
+<script src="js/session.js?v=afecd86100"></script>
+<script src="js/landing.js?v=6d38b35d60"></script>
+<script src="vendor/globe.gl.min.js?v=c245d2f7cd" defer></script>
+<script src="js/landing-globus.js?v=a9bc857217" defer></script>
 </body>
 </html>

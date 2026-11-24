@@ -6,13 +6,13 @@
   var box = document.getElementById('heldGlobus');
   if (!box || !window.Globe) return;
   var ruhig = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function json(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
+  function json(u) { return fetch(window.cgUrl ? cgUrl(u) : u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); }
   function groesse() { var w = box.clientWidth || 600; g.width(w).height(w); }
 
   var g = Globe({ animateIn: true })(box)
     .backgroundColor('rgba(0,0,0,0)')
     .globeImageUrl('img/earth-blue-marble.jpg')
-    .bumpImageUrl('img/earth-topology.png')
+    .bumpImageUrl('img/earth-topology.jpg')
     .showAtmosphere(true).atmosphereColor('#6fb1ff').atmosphereAltitude(0.2);
   groesse();
   window.addEventListener('resize', groesse);

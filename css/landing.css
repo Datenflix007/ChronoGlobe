@@ -13,7 +13,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 [hidden]{display:none!important}
 
 /* ---------- Kopfbereich mit lebendem Globus ---------- */
-.sterne{position:fixed;inset:0;z-index:-2;background:#04070d url(../img/night-sky.png) center/cover;opacity:.75}
+.sterne{position:fixed;inset:0;z-index:-2;background:#04070d url(../img/night-sky-2k.jpg) center/cover;opacity:.75}
 .sterne::after{content:"";position:absolute;inset:0;background:radial-gradient(1100px 700px at 75% 20%,rgba(92,194,255,.16),transparent 60%),
   radial-gradient(900px 600px at 10% 90%,rgba(196,52,44,.16),transparent 60%),linear-gradient(180deg,rgba(4,7,13,0) 40%,#0b121c 100%)}
 .held{position:relative;min-height:min(86vh,820px);display:flex;align-items:center;max-width:1240px;width:100%;margin:0 auto;padding:28px 16px 40px}

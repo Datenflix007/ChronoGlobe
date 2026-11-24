@@ -23,7 +23,7 @@
   function skript(src) {
     if (skripte[src]) return skripte[src];
     return (skripte[src] = new Promise(function (ok, fehler) {
-      var s = document.createElement('script'); s.src = src; s.onload = ok;
+      var s = document.createElement('script'); s.src = window.cgUrl ? cgUrl(src) : src; s.onload = ok;
       s.onerror = function () { fehler(new Error(src + ' konnte nicht geladen werden')); };
       document.head.appendChild(s);
     }));

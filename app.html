@@ -2,12 +2,13 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<script src="js/csp.js?v=192c99afda"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101a27">
 <title>ChronoGlobe</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=c47adad467">
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
@@ -44,29 +45,49 @@
       <button id="modeSat" class="on" aria-pressed="true">Satellit</button>
       <button id="modeSchem" aria-pressed="false">Schematisch</button>
     </div>
-  </section>
-  <section>
-    <h2>Reiche einblenden</h2>
-    <button id="tglRom" class="chip rom on" aria-pressed="true"><i></i>Römisches Reich</button>
-    <button id="tglHan" class="chip han on" aria-pressed="true"><i></i>Han-Reich</button>
-  </section>
-  <section>
-    <h2>Nachbarreiche</h2>
-    <div class="nb-grid" id="nbChips"></div>
-    <div class="row allrow">
-      <button id="allOn" class="small" title="Alle Reiche einblenden">Alle einblenden</button>
-      <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
+    <div class="row fokus-row">
+      <span id="fokusBtns" class="fokus-btns"></span>
     </div>
   </section>
-  <section id="fruehSec" hidden>
-    <h2>Frühe Hochkulturen</h2>
-    <p class="hint kx-hint">Nur angedeutet: grobe Umrisse und gerundete Jahreszahlen (Zeitleiste ganz links).</p>
-    <div class="nb-grid" id="fruehChips"></div>
+  <section>
+    <h2>Reiche</h2>
+    <div class="reich-paar">
+      <button id="tglRom" class="chip rom on" aria-pressed="true"><i></i>Römisches Reich</button>
+      <button id="tglHan" class="chip han on" aria-pressed="true"><i></i>Han-Reich</button>
+    </div>
+    <details class="aufklapp" open>
+      <summary><h3>Nachbarreiche</h3></summary>
+      <div class="nb-grid" id="nbChips"></div>
+      <div class="row allrow">
+        <button id="allOn" class="small" title="Alle Reiche einblenden">Alle einblenden</button>
+        <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
+      </div>
+    </details>
+    <details class="aufklapp" id="fruehSec" hidden open>
+      <summary><h3>Frühe Hochkulturen</h3><small>3500–300 v. Chr.</small></summary>
+      <p class="hint kx-hint">Nur angedeutet: grobe Umrisse und gerundete Jahreszahlen (Zeitleiste ganz links).</p>
+      <div class="nb-grid" id="fruehChips"></div>
+    </details>
+    <details class="aufklapp">
+      <summary><h3>Europa (Kontext)</h3><small>ohne Schriftrolle</small></summary>
+      <p class="hint kx-hint">Nachfolgestaaten Westroms zur Orientierung. Sie lassen sich einblenden, haben aber <b>keine Schriftrolle</b>.</p>
+      <div class="nb-grid" id="kxChips"></div>
+    </details>
   </section>
   <section>
-    <h2>Europa (Kontext)</h2>
-    <p class="hint kx-hint">Nachfolgestaaten Westroms zur Orientierung. Sie lassen sich einblenden, haben aber <b>keine Schriftrolle</b>.</p>
-    <div class="nb-grid" id="kxChips"></div>
+    <h2>Globus</h2>
+    <div class="ebenen-grid">
+      <button id="tglOrte" class="chip plain hs" aria-pressed="false"><span>Orte</span></button>
+      <button id="tglSchl" class="chip plain hs on" aria-pressed="true"><span>Schlachten</span></button>
+      <button id="tglVw" class="chip plain hs" aria-pressed="false" title="Züge von Hunnen, West- und Ostgoten, Vandalen, Sueben, Burgundern, Alamannen, Angeln und Sachsen (255–456 n. Chr., schematisch)"><span>Völker&shy;wanderung</span></button>
+      <button id="tglLimes" class="chip plain hs limes" aria-pressed="false" title="Römische Grenzanlagen: Hadrianswall, Antoninuswall, Obergermanisch-Raetischer Limes, Rhein- und Donaugrenze, Limes Arabicus, Fossatum Africae (Verläufe schematisch)"><span>Grenzanlagen (Limes)</span></button>
+      <div class="limes-leg" id="limesLeg" aria-label="Legende Grenzanlagen">
+        <span><i style="--c:#f4e3b5"></i>Steinmauer</span><span><i style="--c:#a8e07a"></i>Rasenwall</span><span><i style="--c:#ffb35c"></i>Palisade</span>
+        <span><i style="--c:#7fd8ff" class="punkt"></i>Flussgrenze</span><span><i style="--c:#ffd27a"></i>Grenzstraße</span><span><i style="--c:#ff8f6b"></i>Graben</span>
+      </div>
+      <button id="tglRot" class="chip plain hs on" aria-pressed="true"><span>Automatisch drehen</span></button>
+      <button id="tglStandort" class="chip plain hs" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen"><span>Mein Standort</span></button>
+    </div>
   </section>
   <section id="handelSec">
     <h2>Handel &amp; Austausch</h2>
@@ -75,83 +96,87 @@
       <div class="hsub-grid">
         <button id="tglLand" class="chip plain hs on" aria-pressed="true" disabled><span>Landwege</span></button>
         <button id="tglSee" class="chip plain hs on" aria-pressed="true" disabled><span>Seewege</span></button>
-        <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren anzeigen</span></button>
+        <button id="tglWaren" class="chip plain hs on" aria-pressed="true" disabled><span>Waren</span></button>
         <button id="tglGes" class="chip plain hs on" aria-pressed="true" disabled><span>Gesandt&shy;schaften</span></button>
         <button id="tglKar" class="chip plain hs kar" aria-pressed="false" disabled><span>Karawanen&shy;handel</span></button>
-        <button id="tglHanSeide" class="chip plain hs" aria-pressed="false" disabled title="Rekonstruierte Hauptlinien und Stationen der Seidenstraße zur Han-Zeit (202 v. – 220 n. Chr.): Poststationen, Pässe, Kommandanturen … Forschungsdaten Hu/Yan/Zhang 2018, CC BY 4.0. Sichtbar mit dem Han-Reich."><span>Seidenstraße der Han (Stationen)</span></button>
+        <button id="tglHanSeide" class="chip plain hs" aria-pressed="false" disabled title="Rekonstruierte Hauptlinien und Stationen der Seidenstraße zur Han-Zeit (202 v. – 220 n. Chr.): Poststationen, Pässe, Kommandanturen … Forschungsdaten Hu/Yan/Zhang 2018, CC BY 4.0. Sichtbar mit dem Han-Reich."><span>Seidenstraße der Han</span></button>
         <button id="tglSchiff" class="chip plain hs" aria-pressed="false" disabled title="Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich nach dem ORBIS-Modell (Stanford, um 200 n. Chr.)"><span>Schiffs&shy;verkehr (ORBIS)</span></button>
-        <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0), zeitlich modelliert"><span>Römerstraßen anzeigen</span></button>
+        <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0), zeitlich modelliert"><span>Römerstraßen</span></button>
       </div>
       <div class="str-opt off" id="strOpt" aria-label="Optionen Römerstraßen">
-        <button id="tglStrEhem" class="chip plain hs" aria-pressed="false" disabled title="Nach dem Ende der modellierten römischen Nutzung blass und gestrichelt: ehemalige römische Trassen, mittelalterliche Nutzung nicht allgemein belegt"><span>Ehemalige Trassen</span></button>
-        <button id="tglStrAnim" class="chip plain hs on" aria-pressed="true" disabled title="Straßen in der modellierten Ausbauphase schrittweise zeichnen (didaktische Animation, kein belegter Baufortschritt)"><span>Ausbau animieren</span></button>
+        <div class="hsub-grid">
+          <button id="tglStrEhem" class="chip plain hs" aria-pressed="false" disabled title="Nach dem Ende der modellierten römischen Nutzung blass und gestrichelt: ehemalige römische Trassen, mittelalterliche Nutzung nicht allgemein belegt"><span>Ehemalige Trassen</span></button>
+          <button id="tglStrAnim" class="chip plain hs on" aria-pressed="true" disabled title="Straßen in der modellierten Ausbauphase schrittweise zeichnen (didaktische Animation, kein belegter Baufortschritt)"><span>Ausbau animieren</span></button>
+        </div>
         <p class="hint str-hint">Ausbau und Ende sind <b>regional modelliert</b>; belegt sind Verlauf und, für einen Teil der Linien, Itiner-e-Daten. Klick auf eine Straße zeigt die Quellenlage.</p>
       </div>
-      <div class="tlegend" aria-label="Legende Handelswege">
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="8 5"/></svg>vermittelt</div>
-        <div><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
-        <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
-        <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
-        <div><svg viewBox="0 0 40 8"><line class="str" x1="2" y1="4" x2="38" y2="4"/></svg>Römerstraße</div>
-        <div><svg viewBox="0 0 40 8"><line class="orbis" x1="2" y1="4" x2="38" y2="4"/></svg>Schiffsverkehr (ORBIS)</div>
-        <div><svg viewBox="0 0 40 8"><line class="hanseide" x1="2" y1="4" x2="38" y2="4"/><circle cx="20" cy="4" r="3" fill="#5fd8ff"/></svg>Seidenstraße der Han</div>
-        <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
-      </div>
+      <p class="hint">Routen sind <b>schematisch</b>. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien.</p>
+      <details class="aufklapp legende-box">
+        <summary><h3>Legende</h3></summary>
+        <div class="tlegend" aria-label="Legende Handelswege">
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4"/></svg>belegt</div>
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="8 5"/></svg>vermittelt</div>
+          <div><svg viewBox="0 0 40 8"><line x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
+          <div><svg viewBox="0 0 40 8"><line class="land" x1="2" y1="4" x2="38" y2="4"/></svg>Landweg</div>
+          <div><svg viewBox="0 0 40 8"><line class="see" x1="2" y1="4" x2="38" y2="4"/></svg>Seeweg</div>
+          <div><svg viewBox="0 0 40 8"><line class="str" x1="2" y1="4" x2="38" y2="4"/></svg>Römerstraße</div>
+          <div><svg viewBox="0 0 40 8"><line class="orbis" x1="2" y1="4" x2="38" y2="4"/></svg>Schiffsverkehr (ORBIS)</div>
+          <div><svg viewBox="0 0 40 8"><line class="hanseide" x1="2" y1="4" x2="38" y2="4"/><circle cx="20" cy="4" r="3" fill="#5fd8ff"/></svg>Seidenstraße der Han</div>
+          <div class="kleg" id="karLegend"><span class="camel-ico" aria-hidden="true"></span><span>Kamel-Karawanen = regionaler Zwischenhandel (Etappenhandel)</span></div>
+        </div>
+      </details>
       <div id="routeList" class="route-list" aria-live="polite"></div>
       <button id="btnWaren" class="small wbtn" disabled>Warenübersicht</button>
-      <p class="hint">Routen sind <b>schematisch</b>. Zwischen Rom und Han gab es <b>keinen belegten direkten Handel</b>, sondern Zwischenhandel über Parther, Kuschana, Nabatäer, Palmyra und Indien.</p>
       <div class="zh-block" aria-label="Entdeckungsfahrten des Zheng He">
         <h3 class="hsub-h">Entdeckungsfahrten des Zheng He <small>1405–1433</small></h3>
-        <button id="tglZh" class="chip plain hs on" aria-pressed="true" disabled><span>Alle Fahrten anzeigen</span></button>
-        <button id="tglBilder" class="chip plain hs" aria-pressed="false" disabled title="Wo eine Abbildung vorliegt (z. B. Zheng Hes Schatzschiff), wird sie statt des Symbols gezeigt"><span>Abbildungen statt Symbole</span></button>
-        <div class="zh-grid" id="zhChips"></div>
-        <div class="tlegend" aria-label="Legende Fahrten des Zheng He">
-          <div><svg viewBox="0 0 40 8"><line class="zh" x1="2" y1="4" x2="38" y2="4"/></svg>laufende Fahrt</div>
-          <div><svg viewBox="0 0 40 8"><line class="zh old" x1="2" y1="4" x2="38" y2="4"/></svg>frühere Fahrt</div>
-          <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="2" y1="4" x2="38" y2="4"/></svg>Teilflotte</div>
-          <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
+        <div class="hsub-grid">
+          <button id="tglZh" class="chip plain hs on" aria-pressed="true" disabled><span>Alle Fahrten</span></button>
+          <button id="tglBilder" class="chip plain hs" aria-pressed="false" disabled title="Wo eine Abbildung vorliegt (z. B. Zheng Hes Schatzschiff), wird sie statt des Symbols gezeigt"><span>Abbildungen statt Symbole</span></button>
         </div>
+        <div class="zh-grid" id="zhChips"></div>
         <div class="row zh-row">
           <button id="btnZhGo" class="small" disabled title="Zur Ming-Zeit springen (1405) bzw. zum Indischen Ozean drehen">→ 1405</button>
           <button id="btnZhInfo" class="small" disabled>Schülertext</button>
           <button id="btnZhWaren" class="small" disabled>Waren</button>
         </div>
         <p class="hint">Zu sehen im Abschnitt <b>Spätmittelalter</b> der Zeitleiste (rechts). Gezeigt ist der Hinweg; zurück fuhr die Flotte meist auf demselben Weg.</p>
+        <details class="aufklapp legende-box">
+          <summary><h3>Legende</h3></summary>
+          <div class="tlegend" aria-label="Legende Fahrten des Zheng He">
+            <div><svg viewBox="0 0 40 8"><line class="zh" x1="2" y1="4" x2="38" y2="4"/></svg>laufende Fahrt</div>
+            <div><svg viewBox="0 0 40 8"><line class="zh old" x1="2" y1="4" x2="38" y2="4"/></svg>frühere Fahrt</div>
+            <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="2" y1="4" x2="38" y2="4"/></svg>Teilflotte</div>
+            <div><svg viewBox="0 0 40 8"><line class="zh thin" x1="3" y1="4" x2="38" y2="4" stroke-dasharray="0.1 6" stroke-linecap="round" stroke-width="3.4"/></svg>umstritten</div>
+          </div>
+        </details>
       </div>
     </div>
   </section>
   <section id="netzSec">
-    <details class="netz-box" id="netzBox">
-      <summary><h2>Handels- und Verkehrsnetze</h2><small>Forschungsdaten</small></summary>
+    <details class="netz-box aufklapp" id="netzBox">
+      <summary><h2>Handels- und Verkehrs&shy;netze</h2><small>Forschungsdaten</small></summary>
       <div id="netzGruppen"></div>
-      <div class="tlegend netz-leg" aria-label="Legende Netze">
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#8fc7ff"/></svg>staatliche Post (Levante)</div>
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#9be89b"/></svg>Pilgerweg (Hadsch)</div>
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="5 4"/></svg>Lage oder Existenz unsicher</div>
-        <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#ff8fb1;opacity:.35"/></svg>abgeschlossene Reise</div>
-      </div>
+      <details class="aufklapp legende-box">
+        <summary><h3>Legende</h3></summary>
+        <div class="tlegend netz-leg" aria-label="Legende Netze">
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#8fc7ff"/></svg>staatliche Post (Levante)</div>
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#9be89b"/></svg>Pilgerweg (Hadsch)</div>
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" stroke-dasharray="5 4"/></svg>Lage oder Existenz unsicher</div>
+          <div><svg viewBox="0 0 40 8"><line x1="2" y1="4" x2="38" y2="4" style="stroke:#ff8fb1;opacity:.35"/></svg>abgeschlossene Reise</div>
+        </div>
+      </details>
       <div class="row"><button id="btnNetzQuellen" class="small" type="button">Quellenübersicht</button></div>
       <p class="hint">Linien zeigen <b>belegte Wege</b>, nicht die Menge des Handels darauf. Das Mittelalter (480–1400) hat im freien Erkunden einen eigenen Teil der Zeitleiste.</p>
     </details>
   </section>
-  <section>
-    <h2>Globus</h2>
-    <button id="tglOrte" class="chip plain" aria-pressed="false">Orte anzeigen</button>
-    <button id="tglSchl" class="chip plain on" aria-pressed="true">Schlachten anzeigen</button>
-    <button id="tglLimes" class="chip plain limes" aria-pressed="false" title="Römische Grenzanlagen: Hadrianswall, Antoninuswall, Obergermanisch-Raetischer Limes, Rhein- und Donaugrenze, Limes Arabicus, Fossatum Africae (Verläufe schematisch)">Grenzanlagen (Limes)</button>
-    <div class="limes-leg" id="limesLeg" aria-label="Legende Grenzanlagen">
-      <span><i style="--c:#f4e3b5"></i>Steinmauer</span><span><i style="--c:#a8e07a"></i>Rasenwall</span><span><i style="--c:#ffb35c"></i>Palisade</span>
-      <span><i style="--c:#7fd8ff" class="punkt"></i>Flussgrenze</span><span><i style="--c:#ffd27a"></i>Grenzstraße</span><span><i style="--c:#ff8f6b"></i>Graben</span>
-    </div>
-    <button id="tglVw" class="chip plain" aria-pressed="false" title="Züge von Hunnen, West- und Ostgoten, Vandalen, Sueben, Burgundern, Alamannen, Angeln und Sachsen (255–456 n. Chr., schematisch)">Völkerwanderung</button>
-    <button id="tglRot" class="chip plain on" aria-pressed="true">Automatisch drehen</button>
-    <button id="tglStandort" class="chip plain" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen">Mein Standort</button>
-    <div class="row">
-      <span id="fokusBtns" class="fokus-btns"></span>
-    </div>
+  <section id="themenSec" hidden>
+    <details class="netz-box aufklapp" id="themenBox">
+      <summary><h2>Themen&shy;ebenen</h2><small>aus Beiträgen</small></summary>
+      <div id="themenChips"></div>
+      <p class="hint">Fehler gefunden oder eine eigene Ebene (z.&nbsp;B. Pyramiden, Klöster, Fundorte)? <a href="editor.html" target="_blank" rel="noopener">Im Editor vorschlagen</a>. Beiträge werden geprüft, bevor sie erscheinen.</p>
+    </details>
   </section>
-  <p class="hint">Tipp: Ein Reich auf dem Globus <b>anklicken</b>, dann <b>rollt sich eine Schriftrolle</b> mit Vignetten und Karte aus.</p>
+  <p class="hint tipp">Tipp: Ein Reich auf dem Globus <b>anklicken</b>, dann <b>rollt sich eine Schriftrolle</b> mit Vignetten und Karte aus.</p>
   <a class="credit-m" href="https://datenflix007.github.io" target="_blank" rel="noopener">Ein Projekt von <b>Felix Staacke</b> · datenflix007.github.io ↗</a>
   </div>
 </aside>
@@ -284,14 +309,18 @@
   </div>
 </div>
 
-<script src="vendor/globe.gl.min.js"></script>
-<script src="vendor/d3.min.js"></script>
-<script src="js/texte.js"></script>
-<script src="js/vignetten.js"></script>
-<script src="js/strassenzeit.js"></script>
-<script src="js/netze.js"></script>
-<script src="js/session.js"></script>
-<script src="js/tafelbild.js"></script>
-<script src="js/app.js"></script>
+<script src="js/version.js?v=fe7239e757"></script>
+<script src="js/offline.js?v=dcd0fc8076"></script>
+<script src="vendor/globe.gl.min.js?v=c245d2f7cd"></script>
+<script src="vendor/d3.min.js?v=7d28c4f53c"></script>
+<script src="js/texte.js?v=7915028169"></script>
+<script src="js/vignetten.js?v=b94f94e910"></script>
+<script src="js/strassenzeit.js?v=0284d1c2cb"></script>
+<script src="js/netze.js?v=c805dd8a04"></script>
+<script src="js/session.js?v=afecd86100"></script>
+<script src="js/tafelbild.js?v=b9b560451d"></script>
+<script src="js/themen.js?v=2b9969dcc6"></script>
+<script src="js/markdown.js?v=83d7c9416c"></script>
+<script src="js/app.js?v=f79409eec4"></script>
 </body>
 </html>

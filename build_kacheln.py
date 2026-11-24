@@ -1,4 +1,5 @@
-"""Satelliten-Kacheln für den Globus (Web-Mercator, 256 px, Schema img/tiles/{z}/{x}/{y}.jpg).
+"""Satelliten-Kacheln für den Globus (Web-Mercator, 256 px, Schema img/tiles/{z}/{x}/{y}.webp).
+WebP statt JPEG: bei gleicher Qualität rund 40 % kleiner (alle Browser seit 2020; ältere Geräte zeigen ohne Kacheln die Grundtextur).
 
 Quelle: NASA Earth Observatory, Blue Marble Next Generation w/ Topography and Bathymetry, Juli 2004 (gemeinfrei).
   - Stufe 6 (weltweit) aus world.topo.bathy.200407.3x21600x10800.jpg (ca. 2 km/Pixel)
@@ -103,7 +104,7 @@ def baue(src, z, box, ss):
     for x in range(x0, x1 + 1):
         os.makedirs(os.path.join(ZIEL, str(z), str(x)), exist_ok=True)
         for y in range(y0, y1 + 1):
-            kachel(src, z, x, y, ss).save(os.path.join(ZIEL, str(z), str(x), '%d.jpg' % y), 'JPEG', quality=QUALI, optimize=True)
+            kachel(src, z, x, y, ss).convert('RGB').save(os.path.join(ZIEL, str(z), str(x), '%d.webp' % y), 'WEBP', quality=QUALI, method=6)
             i += 1
         if x % 8 == 0:
             print('  %d/%d' % (i, gesamt), flush=True)
