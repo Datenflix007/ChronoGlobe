@@ -1,0 +1,28 @@
+{
+  "format": "chronoglobe-ebene/1",
+  "id": "heiligtuemer-griechenlands",
+  "name": "Heiligtümer Griechenlands und Kretas",
+  "farbe": "#9fd8ff",
+  "beschreibung": "Gipfelheiligtümer der Minoer, Orakel, Festspielorte und Tempel der Griechen – Orte, an denen Götter verehrt wurden und an denen sich die Poleis begegneten.",
+  "hinweis": "Darstellungsregel: Das Jahr gibt ungefähr an, ab wann das Heiligtum überregional bedeutend war. Viele Kulte sind älter. Das Jahr der ersten Olympischen Spiele (776 v. Chr.) ist eine antike Überlieferung und umstritten.",
+  "quellen": [
+    { "zitat": "Bronzezeitliches Kreta: Forschungsüberblick. In: Journal of Archaeological Research (2023), Open Access über UCLouvain." },
+    { "zitat": "Kagan, Donald: Handouts „The Persian Wars“ und „The Athenian Empire“. Yale University, CLCV 205 (Open Yale Courses).", "url": "https://oyc.yale.edu" },
+    { "zitat": "Herodot, Historien, Bücher V–IX." }
+  ],
+  "objekte": [
+    { "id": "juktas", "typ": "punkt", "name": "Gipfelheiligtum auf dem Juktas (bei Knossos)", "von": -2500, "unsicher": true, "beschreibung": "Schon in der Vorpalastzeit versammelten sich Menschen auf Berggipfeln zu Kultfesten; später zeigten die Paläste Interesse an diesen Orten.", "beleg": "JAR 2023, S. 15", "koordinaten": [25.14, 35.24] },
+    { "id": "petsofas", "typ": "punkt", "name": "Gipfelheiligtum Petsofas (bei Palaikastro)", "von": -2500, "unsicher": true, "beschreibung": "Gipfelheiligtum im Osten Kretas mit vielen Votivfiguren aus Ton.", "beleg": "JAR 2023, S. 15", "koordinaten": [26.27, 35.20] },
+    { "id": "dodona", "typ": "punkt", "name": "Orakel des Zeus (Dodona)", "von": -800, "unsicher": true, "beschreibung": "Ältestes Orakel Griechenlands: Priester deuteten das Rauschen einer heiligen Eiche.", "koordinaten": [20.787, 39.546] },
+    { "id": "delphi", "typ": "punkt", "name": "Orakel des Apollon (Delphi)", "von": -800, "unsicher": true, "beschreibung": "Das wichtigste Orakel der Griechen. Städte fragten hier vor Kriegen und Koloniegründungen um Rat; Kroisos erhielt die berühmte doppeldeutige Antwort.", "beleg": "Kagan, Handout „The Persian Wars“, S. 3", "koordinaten": [22.501, 38.482] },
+    { "id": "olympia", "typ": "punkt", "name": "Heiligtum des Zeus (Olympia)", "von": -776, "unsicher": true, "beschreibung": "Ort der Olympischen Spiele, zu denen alle Griechen kamen; während der Spiele galt ein Festfrieden.", "koordinaten": [21.630, 37.638] },
+    { "id": "delos", "typ": "punkt", "name": "Heiligtum des Apollon (Delos)", "von": -700, "unsicher": true, "beschreibung": "Geburtsort von Apollon und Artemis nach dem Mythos; Fest der ionischen Griechen.", "koordinaten": [25.268, 37.400] },
+    { "id": "delos-bundeskasse", "typ": "punkt", "name": "Kasse des Delisch-Attischen Seebunds (Delos)", "von": -478, "bis": -454, "beschreibung": "Bis 454/3 v. Chr. lag die Bundeskasse im Apollon-Tempel von Delos; dort tagten auch die Gesandten der Mitglieder.", "beleg": "Kagan, Handout „The Athenian Empire“, S. 3", "koordinaten": [25.266, 37.398] },
+    { "id": "eleusis", "typ": "punkt", "name": "Mysterien von Eleusis (Demeter und Persephone)", "von": -600, "unsicher": true, "beschreibung": "Geheimkult, in den man sich einweihen lassen konnte; er versprach ein besseres Leben nach dem Tod.", "koordinaten": [23.543, 38.041] },
+    { "id": "isthmia", "typ": "punkt", "name": "Heiligtum des Poseidon (Isthmia)", "von": -580, "unsicher": true, "beschreibung": "Ort der Isthmischen Spiele am Isthmus von Korinth; hier berieten 481/0 v. Chr. die Griechen über die Abwehr der Perser.", "koordinaten": [22.993, 37.916] },
+    { "id": "didyma", "typ": "punkt", "name": "Orakel des Apollon (Didyma bei Milet)", "von": -600, "bis": -494, "unsicher": true, "beschreibung": "Nach dem Ionischen Aufstand plünderten und verbrannten die Perser 494/3 v. Chr. das Heiligtum.", "beleg": "Kagan, Handout „The Persian Wars“, S. 5", "koordinaten": [27.256, 37.385] },
+    { "id": "schlangensaeule", "typ": "punkt", "name": "Schlangensäule (Delphi)", "von": -479, "beschreibung": "Weihgeschenk für den Sieg über Persien; auf ihr stehen die 31 griechischen Städte, die gegen Persien kämpften.", "beleg": "Kagan, Handout „The Athenian Empire“, S. 3", "koordinaten": [22.502, 38.481] },
+    { "id": "akropolis", "typ": "punkt", "name": "Akropolis mit Parthenon (Athen)", "von": -447, "beschreibung": "Mit Geldern aus der Kasse des Seebunds ließ Perikles die Tempel auf der Akropolis neu bauen; der Parthenon ist der Göttin Athena geweiht.", "beleg": "Kagan, Handout „The Athenian Empire“ (Papyrus-Dekret 449 v. Chr.)", "koordinaten": [23.726, 37.971] },
+    { "id": "epidauros", "typ": "punkt", "name": "Heiligtum des Asklepios (Epidauros)", "von": -400, "unsicher": true, "beschreibung": "Kranke kamen zum Heilgott Asklepios und hofften auf Heilung im Tempelschlaf.", "koordinaten": [23.075, 37.596] }
+  ]
+}

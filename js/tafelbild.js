@@ -25,7 +25,7 @@
     id: null, titel: 'Menschheitsgeschichte', kopf: 'ChronoGlobe', untertitel: 'Menschheitsgeschichte',
     beschreibung: 'Der ganze Globus mit allen Daten, frei durchklickbar.', ordner: '',
     start: { jahr: 117, ansicht: 'sat', kamera: 'eurasien', drehen: true },
-    reiche: { verfuegbar: 'alle', aktiv: ['rom', 'han', 'mesopotamien', 'aegypten', 'indus', 'hethiter', 'shang', 'perser'] },
+    reiche: { verfuegbar: 'alle', aktiv: ['rom', 'han', 'mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'shang', 'perser'] },
     ebenen: { verfuegbar: 'alle' },
     fokuspunkte: [
       { id: 'rom', name: 'Rom', knopf: '→ Rom', lat: 41.5, lng: 14, alt: 1.0 },

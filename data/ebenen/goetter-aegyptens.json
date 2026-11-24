@@ -1,0 +1,30 @@
+{
+  "format": "chronoglobe-ebene/1",
+  "id": "goetter-aegyptens",
+  "name": "Götter und Kultorte Ägyptens",
+  "farbe": "#e8b4ff",
+  "beschreibung": "Wichtige Gottheiten Ägyptens an ihren Hauptkultorten. Viele Städte verehrten eine Göttertriade aus Vater, Mutter und Kind; Götter konnten auch miteinander verschmelzen, etwa Amun-Re.",
+  "hinweis": "Darstellungsregel: Das Jahr gibt ungefähr an, ab wann der Kult am Ort bedeutend war. Viele Kulte sind älter, viele der heute sichtbaren Tempel deutlich jünger (oft aus griechisch-römischer Zeit). Deutungen älterer Werke wie Budge (1904) gelten heute als überholt.",
+  "quellen": [
+    { "zitat": "Wilkinson, Richard H.: Anthropomorphic Deities. In: UCLA Encyclopedia of Egyptology, 2008.", "url": "https://escholarship.org/uc/item/5s54w4tc" },
+    { "zitat": "Smith, Mark: Osiris and the Deceased. In: UCLA Encyclopedia of Egyptology, 2008.", "url": "https://escholarship.org/uc/item/29r70244" },
+    { "zitat": "Williamson, Jacquelyn: Amarna Period. In: UCLA Encyclopedia of Egyptology, 2015." },
+    { "zitat": "Wilkinson, Richard H.: The Complete Temples of Ancient Egypt. London: Thames & Hudson 2000." }
+  ],
+  "objekte": [
+    { "id": "ptah-memphis", "typ": "punkt", "name": "Ptah, Sachmet und Nefertem (Memphis)", "von": -3000, "unsicher": true, "beschreibung": "Ptah, Gott der Handwerker und Schöpfer, bildete mit der löwenköpfigen Sachmet und Nefertem die Göttertriade von Memphis.", "beleg": "Wilkinson, UEE 2008, S. 7", "koordinaten": [31.255, 29.845] },
+    { "id": "re-heliopolis", "typ": "punkt", "name": "Re und Atum (Heliopolis)", "von": -2500, "unsicher": true, "beschreibung": "Hauptort des Sonnengottes. Im Alten Reich bauten die Könige der 5. Dynastie eigene Sonnenheiligtümer.", "koordinaten": [31.307, 30.129] },
+    { "id": "osiris-abydos", "typ": "punkt", "name": "Osiris (Abydos)", "von": -2400, "unsicher": true, "beschreibung": "Osiris, Herrscher der Toten, wurde ermordet und wiederbelebt. Nach Abydos pilgerten Menschen, um ihm nahe zu sein.", "beleg": "Smith, UEE 2008", "koordinaten": [31.919, 26.185] },
+    { "id": "amun-theben", "typ": "punkt", "name": "Amun, Mut und Chons (Theben/Karnak)", "von": -2055, "unsicher": true, "beschreibung": "Seit dem Mittleren Reich stieg Amun zum Reichsgott auf; als Amun-Re verschmolz er mit dem Sonnengott. Mit Mut und Chons bildete er die Triade von Theben.", "beleg": "Wilkinson, UEE 2008, S. 5 und 7", "koordinaten": [32.658, 25.719] },
+    { "id": "thot-hermopolis", "typ": "punkt", "name": "Thot (Hermopolis)", "von": -3000, "unsicher": true, "beschreibung": "Gott der Schrift, des Wissens und des Mondes, dargestellt als Ibis oder Pavian.", "koordinaten": [30.803, 27.781] },
+    { "id": "hathor-dendera", "typ": "punkt", "name": "Hathor (Dendera)", "von": -3000, "unsicher": true, "beschreibung": "Göttin der Liebe, Musik und Freude, oft mit Kuhhörnern und Sonnenscheibe. Der heutige Tempel stammt aus griechisch-römischer Zeit.", "koordinaten": [32.670, 26.142] },
+    { "id": "horus-edfu", "typ": "punkt", "name": "Horus (Edfu)", "von": -3000, "unsicher": true, "beschreibung": "Der falkengestaltige Horus galt als Schutzgott des Königtums; jeder Pharao war ein „lebender Horus“. Der erhaltene Tempel ist ptolemäisch.", "koordinaten": [32.873, 24.978] },
+    { "id": "bastet-bubastis", "typ": "punkt", "name": "Bastet (Bubastis)", "von": -3000, "unsicher": true, "beschreibung": "Katzengöttin und Beschützerin des Hauses; ihr Fest zog nach Herodot Hunderttausende an.", "koordinaten": [31.510, 30.572] },
+    { "id": "neith-sais", "typ": "punkt", "name": "Neith (Saïs)", "von": -3000, "unsicher": true, "beschreibung": "Göttin des Krieges und der Weberei; in der Spätzeit war Saïs Hauptstadt.", "koordinaten": [30.769, 30.965] },
+    { "id": "chnum-elephantine", "typ": "punkt", "name": "Chnum (Elephantine)", "von": -3000, "unsicher": true, "beschreibung": "Widdergestaltiger Gott, der die Menschen auf der Töpferscheibe formt und die Nilflut aus ihren Höhlen schickt.", "koordinaten": [32.887, 24.084] },
+    { "id": "sobek-kom-ombo", "typ": "punkt", "name": "Sobek (Kom Ombo)", "von": -2000, "unsicher": true, "beschreibung": "Krokodilgott des Wassers und der Fruchtbarkeit; in Kom Ombo teilte er sich später einen Doppeltempel mit Haroeris.", "koordinaten": [32.928, 24.452] },
+    { "id": "aton-amarna", "typ": "punkt", "name": "Aton (Achet-Aton/Amarna)", "von": -1346, "bis": -1332, "beschreibung": "Unter Echnaton wurde fast nur noch die Sonnenscheibe Aton verehrt. Nach seinem Tod kehrte Ägypten zu den alten Göttern zurück.", "beleg": "Williamson, UEE 2015", "koordinaten": [30.902, 27.645] },
+    { "id": "isis-philae", "typ": "punkt", "name": "Isis (Philae)", "von": -380, "unsicher": true, "beschreibung": "Isis, Gattin des Osiris und Mutter des Horus, wurde zur beliebtesten Göttin weit über Ägypten hinaus. Ihr Tempel auf Philae war einer der letzten heidnischen Kulte.", "koordinaten": [32.884, 24.025] },
+    { "id": "amun-siwa", "typ": "punkt", "name": "Orakel des Amun (Oase Siwa)", "von": -600, "unsicher": true, "beschreibung": "Berühmtes Orakel in der Wüste; 331 v. Chr. besuchte es Alexander der Große.", "koordinaten": [25.54, 29.20] }
+  ]
+}

@@ -9,6 +9,24 @@
       "von": -3400,
       "bis": null,
       "kurz": "Pyramiden, Tempel, Zikkurate und Paläste Ägyptens und Mesopotamiens, dazu der Handelsweg Assur–Kaneš"
+    },
+    {
+      "id": "goetter-aegyptens",
+      "name": "Götter und Kultorte Ägyptens",
+      "farbe": "#e8b4ff",
+      "datei": "data/ebenen/goetter-aegyptens.json",
+      "von": -3000,
+      "bis": null,
+      "kurz": "Ptah, Re, Osiris, Amun, Thot, Hathor, Horus, Isis und andere an ihren Hauptkultorten"
+    },
+    {
+      "id": "heiligtuemer-griechenlands",
+      "name": "Heiligtümer Griechenlands und Kretas",
+      "farbe": "#9fd8ff",
+      "datei": "data/ebenen/heiligtuemer-griechenlands.json",
+      "von": -2500,
+      "bis": null,
+      "kurz": "Gipfelheiligtümer, Orakel, Festspielorte und Tempel von Kreta bis Athen"
     }
   ]
 }

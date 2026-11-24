@@ -2,15 +2,17 @@
    Inhalts-Hashes der per fetch geladenen Dateien: cgUrl(u) hängt ?v=<hash> an, damit nach einem Deploy
    keine veralteten Dateien aus dem Browser-Cache kommen. sw.js nutzt dieselbe Liste. */
 self.CG_VERSION = {
-  stand: "52f797481c",
+  stand: "3a6544d61e",
   dateien: {
     "css/editor.css": "8c5f4caa33",
     "css/landing.css": "34f17dc06c",
     "css/quellen.css": "c09d90a377",
     "css/style.css": "c47adad467",
-    "data/ebenen/index.json": "1760ed3899",
+    "data/ebenen/goetter-aegyptens.json": "72c807ef54",
+    "data/ebenen/heiligtuemer-griechenlands.json": "8fe52ed5d6",
+    "data/ebenen/index.json": "cf8e61b253",
     "data/ebenen/monumente-nil-zweistromland.json": "dc3c91c541",
-    "data/fruehe_reiche.json": "e6947e67ea",
+    "data/fruehe_reiche.json": "79c97a3842",
     "data/han_seidenstrasse.json": "30cc6072a1",
     "data/handel.json": "4bbe4ce738",
     "data/land.json": "8af6f461cc",
@@ -33,7 +35,7 @@ self.CG_VERSION = {
     "data/vignetten_demo.json": "3916aff83b",
     "data/zhenghe.json": "a9eea009ab",
     "docs/ARCHITEKTUR.md": "4bb274f8e7",
-    "docs/DATENQUELLEN.md": "7981bf7603",
+    "docs/DATENQUELLEN.md": "84d724d8b7",
     "docs/EDITOR.md": "788ecdc442",
     "docs/GRUNDREGELN.md": "e05fde474d",
     "docs/HANDELSNETZE.md": "0f22632f84",
@@ -68,7 +70,7 @@ self.CG_VERSION = {
     "js/session.js": "afecd86100",
     "js/strassenzeit.js": "0284d1c2cb",
     "js/supabase-client.js": "fc0a1705ab",
-    "js/tafelbild.js": "b9b560451d",
+    "js/tafelbild.js": "c99264fc2c",
     "js/texte.js": "7915028169",
     "js/themen.js": "2b9969dcc6",
     "js/vignetten.js": "b94f94e910",

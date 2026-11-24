@@ -117,3 +117,25 @@ Nicht übernommen:
    - neuer Schalter, z. B. „Reisezeit ab Rom“, mit Einfärbung der Orte nach Tagen
    - einfaches Wegenetzmodell aus `base_routes.geojson`, nicht das vollständige ORBIS-Modell mit Jahreszeiten und Verkehrsmitteln
 4. **Straßen bleiben Itiner-e.** ORBIS und AWMC/DARMC wären ungenauer und haben keine Zeitangaben (siehe `docs/STRASSEN_ZEITMODELL.md`).
+
+## Frühe Hochkulturen: Ägypten, Nubien, Ägäis, Athen und Sparta (geprüft 25.11.2026)
+
+Erzeugt mit `build_fruehe_kulturen.py` → `data/fruehe_reiche.json`. Gebiete sind nur angedeutet; Jahreszahlen sind gerundet und folgen der konventionellen Chronologie. Ereignisse mit geprüfter Belegstelle tragen das Feld `quelle` (im Editor unter „Bisher“ sichtbar). „PDF-S.“ meint die Seite im heruntergeladenen PDF, nicht die gedruckte Seitenzahl.
+
+| Thema | Quelle | Was daraus übernommen bzw. geprüft wurde |
+|---|---|---|
+| Nubien, Kerma, Grenze des Neuen Reiches | Kuckertz, „Meroe and Egypt“, UCLA Encyclopedia of Egyptology 2021 | Kerma ca. 2400–1450 v. Chr.; Eroberung bis Kurgus (zwischen 4. und 5. Katarakt) zu Beginn der 18. Dynastie → Gebiet „Nubien bis Kurgus“ |
+| Megiddo | Nelson, The Battle of Megiddo (1913), S. 5 | „Jahr 23“ Thutmosis’ III. (Annalen von Karnak); absolutes Jahr 1457 v. Chr., nach anderer Chronologie 1482 |
+| Hyksos, Auaris | Breasted, A History of Egypt (1905), Buch IV | Einnahme von Auaris nach der Biografie des Ahmose, Sohn der Ebana. Kamose steht dort nicht (Inschriften später gefunden) → ohne Beleg |
+| Sethos I., Merenptah, Seevölker | Breasted, Ancient Records of Egypt III (1906), § 574; History of Egypt, S. 464–480 | Feldzüge Sethos’ I. (Reihenfolge unsicher); Merenptahs Gegner Ekwesch, Teresch, Lukka, Scherden, Schekelesch; Peleset unter Ramses III. |
+| Götter Ägyptens | Wilkinson, „Anthropomorphic Deities“, UEE 2008, S. 5 und 7 | Triaden Amun–Mut–Chons (Theben) und Ptah–Sachmet–Nefertem (Memphis); Synkretismus Amun-Re |
+| Kreta | Journal of Archaeological Research (2023), Bronzezeitliches Kreta, S. 13 und 15 | Zerstörungen 1500–1450 v. Chr., danach Knossos unter Griechisch sprechender Elite (Linear B), Ende im späten 14. Jh.; Thera: hohe gegen niedrige Datierung, Forschung neigt zur Mitte des 16. Jh.; Gipfelheiligtümer Juktas und Petsofas |
+| Thera, Kollaps um 1200 | Knapp/Manning, „Crisis in Context“, AJA 120 (2016) | Ursachen des Zusammenbruchs als Bündel und umstritten; Manning vertritt die hohe Thera-Datierung |
+| Mykenische Paläste | Bennet, „Palaces and their Regions“, PDF-S. 9; Middleton, Durham-Diss. 2008, Bd. I | Pylos mit zwei Provinzen; Zusammenbruch der Paläste um 1200 v. Chr. |
+| „Dunkle Jahrhunderte“ | Kotsonas, „Politics of Periodization“, AJA 120 (2016) | Begriff als umstritten gekennzeichnet |
+| Perserkriege, Ionischer Aufstand | Kagan, Yale CLCV 205, Handout „The Persian Wars“; Joyner, ECU 2010 | 499 Aufstand (Athen 20, Eretria 5 Schiffe), 494 Lade und Sepeia, 501 erste Erwähnung des Peloponnesischen Bundes, Didyma 494/3 zerstört |
+| Delisch-Attischer Seebund | Kagan, Yale CLCV 205, Handout „The Athenian Empire“ | 478/7 Gründung, 460 Talente, Kasse auf Delos, Naxos um 470, Kasse 454/3 nach Athen, Kalliasfrieden 449 (umstritten), Dreißigjähriger Frieden 445, Schlangensäule mit 31 Städten |
+| Peloponnesischer Krieg | Thukydides (Übers. Crawley); Xenophon, Hellenika (Loeb 1918) | Sphakteria (Thuk. IV), Sizilien (VI–VII), Aigospotamoi (Hell. II 1), Königsfrieden, Leuktra |
+| Zweiter Attischer Seebund | Marshall, The Second Athenian Confederacy (1905) | 378/7 Gründung (Aristoteles-Dekret, Synhedrion), Bundesgenossenkrieg 357–355 |
+
+Nicht abrufbar waren am 25.11.2026 (Server lieferte HTML statt PDF): ISAC OIP 8 und SAOC 12, Murnane (Medinet Habu), Brown-Reader, UMass- und Utah-Vorlesungen, OAPEN (Knodell). Sie sind nicht eingeflossen.
