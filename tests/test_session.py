@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """Live-Session mit zwei (bzw. drei) Browserfenstern über den lokalen Übertragungsweg (?sync=lokal, ohne Supabase).
 Prüft: Landingpage, Session starten, Beitritt per QR-Link, alle vier Schülerrechte in beiden Stellungen, Fokus,
-Filter, „Fenster mitsenden“, „Alle zurück“, Nachzügler, Reload beider Seiten, Sperren, Beenden.
+Filter, „Fenster mitsenden“, „Alle zurück“, Nachzügler, Reload beider Seiten, Leuchtstift der Lehrkraft, Sperren, Beenden.
 
     python tests/test_session.py
 
 Benötigt: playwright und Microsoft Edge oder Chromium. Die Supabase-Anbindung selbst (RPCs, private Kanäle) kann
 dieser Test NICHT prüfen; dafür docs/SETUP.md, Abschnitt „Prüfen“.
 """
-import mimetypes, os, sys, urllib.parse
+import mimetypes, os, sys, tempfile, urllib.parse
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -137,6 +137,35 @@ with sync_playwright() as p:
     T.reload(); warte(T, 'window.ChronoGlobe', 15000); T.wait_for_timeout(1200)
     check('Reload Lehrkraft: Lehrermenü und Zustand bleiben', T.is_visible('.cg-lehrer') and T.evaluate(ST + '.jahr') == 250 and T.evaluate(ST + '.reiche.parth') is True)
     check('Reload Lehrkraft: Rechte bleiben', T.get_attribute('.cg-seg button[data-recht="zeit"][data-wert="selbst"]', 'aria-pressed') == 'true')
+
+    # --- Leuchtstift der Lehrkraft ---
+    Z = ST + '.zeichnung'
+    check('Stift: Leiste nur bei der Lehrkraft', T.is_visible('.stift-leiste .stift-an') and not S.is_visible('.stift-leiste'))
+    T.evaluate("ChronoGlobe.setState({ kamera: { lat: 45, lng: 10, alt: 1.6 }, drehen: false })"); T.wait_for_timeout(1200)
+    mitte = T.evaluate("(() => { const r = document.querySelector('#globe').getBoundingClientRect(), q = ChronoGlobe.globe.getScreenCoords(45, 10, 0); return [r.left + q.x, r.top + q.y]; })()")
+
+    def strich(dx0, dy0, dx1, dy1):
+        T.mouse.move(mitte[0] + dx0, mitte[1] + dy0); T.mouse.down()
+        T.mouse.move(mitte[0] + dx1, mitte[1] + dy1, steps=14); T.mouse.up(); T.wait_for_timeout(200)
+    T.click('.stift-an')
+    check('Stift an: Werkzeuge sichtbar, Globus nicht mehr drehbar per Ziehen', T.is_visible('.stift-w[data-w="marker"]') and T.evaluate("document.documentElement.classList.contains('stift-an')"))
+    strich(-90, 0, 90, 30)
+    check('Stift: Strich bei der Lehrkraft (vorläufig)', T.evaluate(Z + '.length === 1 && !' + Z + '[0].fest && ' + Z + '[0].p.length >= 8'), T.evaluate(Z + '.map(s => s.p.length)'))
+    check('Stift: Strich erscheint bei Schüler:innen', warte(S, Z + '.length === 1', 5000))
+    T.click('.stift-fest')
+    check('„Stehen lassen“ kommt an', warte(S, Z + '.length === 1 && ' + Z + '[0].fest', 5000))
+    T.click('.stift-w[data-w="marker"]'); strich(-60, -70, 60, -70)
+    check('Marker: zweiter Strich bei allen', warte(S, Z + ".length === 2 && " + Z + "[1].art === 'marker'", 5000))
+    T.keyboard.press('Escape')
+    check('Stift schließen (Esc): Vorläufiges weg, Stehengelassenes bleibt', warte(S, Z + '.length === 1 && ' + Z + '[0].fest', 5000) and not T.evaluate("document.documentElement.classList.contains('stift-an')"))
+    S.wait_for_timeout(300); S.screenshot(path=os.path.join(tempfile.gettempdir(), 'chronoglobe_stift_schueler.png'))   # zum Ansehen
+    T.click('.stift-an'); T.click('.stift-w[data-w="radierer"]'); strich(0, -40, 0, 50)
+    check('Radierer entfernt den Strich bei allen', warte(S, Z + '.length === 0', 5000), S.evaluate(Z + '.length'))
+    T.click('.stift-w[data-w="stift"]'); strich(-40, 20, 40, 20); T.click('.stift-fest'); T.keyboard.press('Escape')
+    warte(S, Z + '.length === 1 && ' + Z + '[0].fest', 5000)
+    T.reload(); warte(T, 'window.ChronoGlobe', 15000); T.wait_for_timeout(1200)
+    check('Reload Lehrkraft: stehen gelassene Beschriftung bleibt', T.evaluate(Z + '.length === 1 && ' + Z + '[0].fest'))
+    T.click('.stift-alle'); check('„Alles löschen“ bei allen', warte(S, Z + '.length === 0', 5000))
 
     # --- Sperren, Beenden ---
     T.click('.cg-lehrer >> text=Session sperren'); T.wait_for_timeout(400)

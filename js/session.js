@@ -291,6 +291,7 @@
     // Fortsetzen nach Reload: gespeicherten Lehrerzustand übernehmen
     if (o.state && o.state.v) CGL.applyState(o.state, { quelle: 'tafelbild' });
     lehrerMenu(L);
+    if (CGL.stift) CGL.stift();   // Leuchtstift: nur in der Lehreransicht
     var letzt = 0, timer = null, gesendet = '', laufend = Promise.resolve();
     function zustand() {
       var st = CGL.getState();
@@ -419,7 +420,7 @@
     function anwenden(st, alt, alles) {
       if (!st || !st.v) return;
       var t = {};
-      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau'].forEach(function (k) { if (k in st) t[k] = st[k]; });
+      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau', 'zeichnung'].forEach(function (k) { if (k in st) t[k] = st[k]; });
       if (alles || R.zeit !== 'selbst' || !abw.zeit) t.jahr = st.jahr;
       if (alles || R.globus !== 'selbst' || !abw.globus) {
         // gleicher Bildausschnitt auf anderem Format: Abstand im Verhältnis der Standardabstände umrechnen

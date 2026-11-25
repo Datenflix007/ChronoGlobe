@@ -12,7 +12,7 @@
     { ep: 'ming', von: 1400, bis: 1453, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, alexander: false, kolonisation: false, limes: false, year: 117, epoche: 'antike' };
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, alexander: false, kolonisation: false, limes: false, geo: false, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false, hanseide: false };
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau; unsicherheit bleibt aus (einfarbige Darstellung)
   var ZH = { on: true, fahrt: {} }, ZHD = null;
@@ -249,9 +249,9 @@
   }
   /* HTML-Ebene: Ortsnamen (mit dunklem Rand, gut lesbar über Straßen), Schlachten, Gesandtschaften, Waren, Standort */
   function refreshHtml() {
-    if (state.epoche === 'ming') { globe.htmlElementsData(zhHtml(CUR_ZV || zhVisible(state.year))); return; }
+    if (state.epoche === 'ming') { globe.htmlElementsData(zhHtml(CUR_ZV || zhVisible(state.year)).concat(geoSchilder())); return; }
     var tv = CUR_TV || tradeVisible(state.year);
-    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), limesKastelle(), kolSchiffe(), [STANDORT || JENA]));
+    globe.htmlElementsData(geoSchilder().concat(visibleCities(), visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), vwStationen(), alexStationen(), limesKastelle(), kolSchiffe(), [STANDORT || JENA]));
   }
   function battleEl(d) {
     if (d.__el) return d.__el;
@@ -414,17 +414,22 @@
         d.innerHTML = '<div class="k"></div><p></p>';
         d.querySelector('.k').textContent = m.name + ' · ' + shortYear(m.von) + '–' + shortYear(m.bis);
         d.querySelector('p').textContent = m.kurz;
-        if (m.frueh) {   // frühe Hochkulturen (build_fruehe_kulturen.py): Epoche und letztes Ereignis statt nur Kurztext
-          var ep = regionsAt(r, state.year).map(function (f) { return f.properties.name; }).join(' · ');
+        // frühe Hochkulturen (build_fruehe_kulturen.py) und Nachbarreiche mit Ereignissen: letztes Ereignis statt nur Kurztext
+        if (m.frueh || (EVENTS[r] || []).length) {
           var fe = activeEvent(r, state.year), q = d.querySelector('p');
           q.textContent = '';
-          var et = document.createElement('div'); et.className = 'epoche'; et.textContent = ep; d.insertBefore(et, q);
+          if (m.frueh) {
+            var ep = regionsAt(r, state.year).map(function (f) { return f.properties.name; }).join(' · ');
+            var et = document.createElement('div'); et.className = 'epoche'; et.textContent = ep; d.insertBefore(et, q);
+          }
           if (fe) {
             var ft = document.createElement('div'); ft.className = 't'; ft.textContent = fe.titel; d.insertBefore(ft, q);
             var fy = document.createElement('div'); fy.className = 'y'; fy.textContent = fe.label; d.insertBefore(fy, q);
+            if (fe.quelle) fy.title = 'Quelle: ' + fe.quelle;
             q.textContent = fe.note;
           } else q.textContent = m.kurz;
         }
+        epocheAnzeigen(d, r);
         if (m.kontext) d.classList.add('kx');
         if (hatRolle(r)) {
           var mb = document.createElement('button'); mb.type = 'button'; mb.textContent = 'Schriftrolle öffnen';
@@ -444,10 +449,47 @@
         d.querySelector('.k').textContent = (r === 'rom' && state.year > ANTIKE_ENDE) ? 'Byzantinisches Reich (Ostrom)' : (r === 'rom' && state.year >= TEILUNG) ? 'Weströmisches und Oströmisches Reich' : m.name;
         d.querySelector('.t').textContent = e.titel;
         d.querySelector('.y').textContent = 'Stand: ' + e.label;
+        if (e.quelle) d.querySelector('.y').title = 'Quelle: ' + e.quelle;
         d.querySelector('p').textContent = e.note;
+        epocheAnzeigen(d, r);
         d.querySelector('button').addEventListener('click', function () { openMap(r); });
       }
       box.appendChild(d);
+    });
+  }
+
+  /* Epochen der Alten Geschichte (data/fruehe_reiche.json → epochen; Grundkurs-Skript FSU Jena): in der Infokarte
+     griechischer Staaten und Roms die Epoche nennen. Nur im freien Modus (Tafelbilder behalten ihre Karten). */
+  var EPOCHE_REIHE = { rom: 'Rom', athen: 'Griechenland', sparta: 'Griechenland', theben: 'Griechenland', makedonien: 'Griechenland',
+    minoer: 'Griechenland', mykener: 'Griechenland', ptol: 'Griechenland', seleu: 'Griechenland' };
+  function epocheBei(reihe, y) {
+    return (DATA.epochen || []).filter(function (e) { return e.reihe === reihe && y >= e.von && y < e.bis; })[0] || null;
+  }
+  function epocheAnzeigen(d, r) {
+    if (!MA_DURCHGEHEND || !EPOCHE_REIHE[r]) return;
+    var e = epocheBei(EPOCHE_REIHE[r], state.year); if (!e) return;
+    var b = el('div', 'epochen-tag', (EPOCHE_REIHE[r] === 'Rom' ? 'Römische Geschichte: ' : 'Griechische Geschichte: ') + e.name + ' (' + shortYear(e.von) + '–' + shortYear(e.bis) + ')');
+    b.title = (e.hinweis ? e.hinweis + '. ' : '') + (DATA.epochen_quelle || '');
+    var k = d.querySelector('.k'); d.insertBefore(b, k ? k.nextSibling : d.firstChild);
+  }
+  /* Eigene Leisten „Griechenland“ und „Rom“ mit den Epochen über den Reichsspuren (nur freier Modus) */
+  function epochenLeisten(lanes) {
+    if (!MA_DURCHGEHEND || !(DATA.epochen || []).length) return;
+    [['Griechenland', '#3d8fd1'], ['Rom', '#c4342c']].forEach(function (z) {
+      var lane = el('div', 'lane eplane'); lane.dataset.ep = z[0];
+      lane.style.setProperty('--c', z[1]);
+      DATA.epochen.filter(function (e) { return e.reihe === z[0]; }).forEach(function (e, i) {
+        var a = Math.max(YMIN, e.von), b = Math.min(YMAX, e.bis); if (b <= a) return;
+        var era = el('button', 'era ep-era'); era.type = 'button';
+        era.style.left = pct(a) + '%'; era.style.width = (pct(b) - pct(a)) + '%';
+        era.style.setProperty('--cs', rgba(z[1], i % 2 ? 0.16 : 0.3)); era.style.setProperty('--cb', rgba(z[1], 0.55));
+        era.style.setProperty('--ct', mix(z[1], '#ffffff', 0.6));
+        era.appendChild(el('span', 'nm', e.name));
+        era.title = z[0] + ': ' + e.name + ' (' + fmtYear(e.von) + ' bis ' + fmtYear(e.bis) + ')' + (e.hinweis ? ' · ' + e.hinweis : '') + '\n' + (DATA.epochen_quelle || '');
+        era.addEventListener('click', function () { if (darfLokal('zeit')) setYear(Math.max(YMIN, e.von)); });
+        lane.appendChild(era);
+      });
+      lanes.appendChild(lane);
     });
   }
 
@@ -522,12 +564,13 @@
   }
   function buildTicks() {
     var ticks = $('#ticks'); ticks.innerHTML = '';
+    var letzte = -99;   // Position (%) der letzten Beschriftung: an Übergängen zwischen Teilen nicht überlappen
     SEGS.forEach(function (S0, si) { if (S0.aus) return; (S0.teile || [S0]).forEach(function (S, ti, alle) {
       for (var y = Math.ceil(S.von / S.tick) * S.tick; ti < alle.length - 1 || S.mittel ? y < S.bis : y <= S.bis; y += S.tick) {
-        var t = document.createElement('div'); t.style.left = pct(y) + '%';
-        if (y % S.major) { t.className = 'tick minor'; }
+        var t = document.createElement('div'), p = pct(y); t.style.left = p + '%';
+        if (y % S.major || p - letzte < 3.6) { t.className = 'tick minor'; }
         else {
-          t.className = 'tick' + (y % S.alt ? ' odd' : '');
+          t.className = 'tick' + (y % S.alt ? ' odd' : ''); letzte = p;
           var l = el('span', 'tk-l', si ? String(y) : y === 0 ? 'Chr. Geb.' : S.kurz ? shortYear(y) : fmtYear(y)), sh = el('span', 'tk-s', si ? String(y) : y === 0 ? '0' : shortYear(y));
           t.appendChild(l); t.appendChild(sh);
         }
@@ -557,6 +600,7 @@
     var zero = document.createElement('div'); zero.className = 'zero'; zero.style.left = pct(0) + '%'; lanes.appendChild(zero);
     if (!SEGS[0].aus && !SEGS[1].aus && SEGS[1].a > SEGS[0].b) { var gap = el('div', 'lgap'); gap.style.left = SEGS[0].b * 100 + '%'; gap.style.width = (SEGS[1].a - SEGS[0].b) * 100 + '%'; lanes.appendChild(gap); }
     var cur = document.createElement('div'); cur.className = 'cursor'; lanes.appendChild(cur);
+    epochenLeisten(lanes);
     var shown = DATA.reihen.filter(function (r) { return M(r).haupt || state.on[r]; });
     shown.forEach(function (r) {
       var m = M(r), lane = document.createElement('div');
@@ -629,7 +673,7 @@
       var akt = ZHD.verbindungen.filter(function (v) { return zhAktiv(v, y); }).map(function (v) { return v.nr; }).join(',');
       var zev = ZHD.ereignisse.filter(function (e) { return e.jahr <= y; }).length;
       stateKey.tv = EMPTY_TV; stateKey.zv = zhVisible(y);
-      return 'ming|' + TRADE.on + ZH.on + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y);
+      return 'ming|' + TRADE.on + ZH.on + (state.geo && GEO ? 'g' : '') + '|' + akt + '|' + zev + '|' + stateKey.zv.key + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y);
     }
     stateKey.zv = null;
     var ids = [];
@@ -638,7 +682,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + state.alexander + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y) + '|' + ehemaligeSchluessel(y, tv) + '|' + kolSchluessel(y);
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + state.alexander + (state.geo && GEO ? 'g' : '') + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y) + '|' + ehemaligeSchluessel(y, tv) + '|' + kolSchluessel(y);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -659,7 +703,7 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)).concat(netzePaths(), themenPaths()) : antikePfade(CUR_TV));
+      pfadeSetzen(state.epoche === 'ming' ? geoPaths().concat(zhPaths(CUR_ZV || zhVisible(y)), netzePaths(), themenPaths()) : antikePfade(CUR_TV));
       if (zuegeAn()) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
@@ -688,7 +732,7 @@
       var t = state.year === ANTIKE_ENDE ? 1500 : teilVon(state.year).takt || segOf(state.year).takt;
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
-        if (PENS.length || KOL.pens.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
+        if (PENS.length || KOL.pens.length || ZUGFEDER.laufend.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten und Züge fertig gezeichnet sind
         setYear(plusJahre(state.year, 1)); step();
       }, t);
     })();
@@ -1138,39 +1182,219 @@
     w.__fluss = { id: 'vwf' + i, vw: w, vwArt: 'fluss', pts: w.pfad };
     w.__schatten = { id: 'vws' + i, vw: w, vwArt: 'schatten', pts: w.pfad };   // dunkle Kontur: hebt den Strom von den Reichsflächen ab
     w.__tag = { kind: 'vw', w: w };
+    // Stationen unterwegs: ab ihrem Jahr; nahe am Weg zusätzlich erst, wenn die Feder sie passiert hat (__f)
+    (w.stationen || []).forEach(function (s) {
+      var n = naechster(w.__lauf, [s.lng, s.lat]);
+      s.kind = 'vwstation'; s.w = w; s.__f = n.d < 1.5 * Math.PI / 180 ? n.f : null;
+    });
   }
   function vwPaths() {
     if (!zuegeAn() || state.epoche !== 'antike') return [];
-    var y = state.year, out = [];
+    var y = state.year, out = [], sprung = ZUGFEDER.prevY == null || Math.abs(y - ZUGFEDER.prevY) > 2;
+    ZUGFEDER.prevY = y;
+    alexPfade(y, sprung, out);
     (DATA.wanderungen || []).forEach(function (w) {
-      if (!vwSichtbar(w, y)) return;
-      var pts = schnitt(w.__lauf, vwAnteil(w, y)), laeuft = y <= w.bis;
-      w.__band.pts = w.__schatten.pts = w.__p.pts = w.__fluss.pts = pts;
-      w.__laeuft = laeuft;
+      if (w.gruppe === 'alexander') return;   // eigener, durchgehender Weg (alexPfade)
+      if (!vwSichtbar(w, y)) { if (w.__feder) zugFederAus(w); return; }
+      var laeuft = y <= w.bis; w.__laeuft = laeuft;
+      // Federzeichnung: ganzer Weg als Pfad, sichtbar nur bis zur Federspitze; jedes Volk mit eigener Feder
+      w.__band.pts = w.__schatten.pts = w.__p.pts = w.__lauf.pts;
+      zugFederZiel(w, vwAnteil(w, y), sprung);
       out.push(w.__band, w.__schatten, w.__p);
-      if (laeuft) out.push(w.__fluss);
+      if (laeuft && !w.__feder) { w.__fluss.pts = schnitt(w.__lauf, w.__fz); out.push(w.__fluss); }
     });
     return out;
+  }
+  /* Alexanderzug (data/fruehe_reiche.json, acht Etappen nach Arrian): EIN durchgehender Weg. Eine Feder zeichnet die
+     Etappen nacheinander; der Anteil am Gesamtweg folgt den Etappenenden (Jahr → Anteil, dazwischen linear).
+     Der ganze Feldzug ist schwach gestrichelt zu sehen; gezogene Etappen bleiben bis 300 v. Chr. stehen und werden
+     mit jedem Jahr grauer. Stationen und das Zitat am Hyphasis: alexStationen(). */
+  var ALEXZUG = null, ALEX_ENDE = -300, ALEX_GRAU = '#8a8f96';
+  function alexVorbereiten() {
+    var et = (DATA.wanderungen || []).filter(function (w) { return w.gruppe === 'alexander'; });
+    if (!et.length) { ALEXZUG = null; return; }
+    et.sort(function (a, b) { return a.von - b.von || a.bis - b.bis; });
+    var gesamt = et.reduce(function (s, w) { return s + w.__lauf.len; }, 0), cum = 0, anker = [[et[0].von - 1, 0]], pts = [];
+    et.forEach(function (w, i) {
+      w.__a = cum / gesamt; cum += w.__lauf.len; w.__b = cum / gesamt;
+      anker.push([w.bis, w.__b]);
+      pts = pts.concat(i ? w.pfad.slice(1) : w.pfad);
+    });
+    ALEXZUG = { gruppe: 'alexander', volk: et[0].volk, farbe: et[0].farbe, von: et[0].von, bis: et[et.length - 1].bis, etappen: et, anker: anker,
+      text: 'Feldzug ' + fmtYear(et[0].von) + ' bis ' + fmtYear(et[et.length - 1].bis) + ' in ' + et.length + ' Etappen (nach Arrian)', __fz: null, __feder: null };
+    ALEXZUG.__tag = { kind: 'vw', w: ALEXZUG };
+    ALEXZUG.__gesamt = { id: 'alex-gesamt', alexGesamt: true, pts: pts };
+  }
+  function alexAnteil(y) {
+    var A = ALEXZUG.anker;
+    if (y <= A[0][0]) return 0;
+    for (var i = 1; i < A.length; i++) if (y <= A[i][0]) return A[i - 1][1] + (y - A[i - 1][0]) / (A[i][0] - A[i - 1][0]) * (A[i][1] - A[i - 1][1]);
+    return 1;
+  }
+  function alexAn(y) { return !!ALEXZUG && state.alexander && state.epoche === 'antike' && y >= ALEXZUG.von && y <= ALEX_ENDE; }
+  function alexPfade(y, sprung, out) {
+    var A = ALEXZUG; if (!A) return;
+    if (!alexAn(y)) { if (A.__feder || A.__fz != null) zugFederAus(A); return; }
+    out.push(A.__gesamt);
+    var ziel = alexAnteil(y);
+    zugFederZiel(A, ziel, sprung);
+    // gold, solange die Etappe läuft oder gerade gezeichnet wird; danach (beim Neuzeichnen am Ende der Feder) grau
+    A.etappen.forEach(function (w) { w.__laeuft = w.__b > ziel + 1e-9 || (!!A.__feder && w.__b > A.__feder.von + 1e-9); });
+    A.etappen.forEach(function (w) {
+      if (w.__a >= ziel - 1e-9) return;   // noch nicht erreicht
+      w.__band.pts = w.__schatten.pts = w.__p.pts = w.__lauf.pts;
+      out.push(w.__band, w.__schatten, w.__p);
+      if (w.__laeuft && !A.__feder && w.__fz > 0) { w.__fluss.pts = schnitt(w.__lauf, w.__fz); out.push(w.__fluss); }
+    });
+  }
+  function alexKopf(y) {
+    var A = ALEXZUG;
+    if (!A || !alexAn(y) || y > A.bis + VW_ANKUNFT || A.__fz == null) return null;
+    var cur = A.etappen[0];
+    A.etappen.forEach(function (w) { if (w.__a < A.__fz - 1e-9) cur = w; });
+    var f = Math.max(0, Math.min(1, cur.__fz || 0)), t = punktBei(cur.__lauf, f);
+    A.__lauf = cur.__lauf;   // für vwDrehen
+    A.__tag.lng = t[0]; A.__tag.lat = t[1]; A.__tag.f = f; A.__tag.angekommen = y > A.bis;
+    if (A.__tag.__el) A.__tag.__el.classList.toggle('da', y > A.bis);
+    return A.__tag;
+  }
+  /* Stationen (data/fruehe_reiche.json → alexander_stationen): Punkt mit Namen ab dem Jahr der Ankunft;
+     am Hyphasis 326–324 v. Chr. eine Sprechblase mit Zitat und Beleg */
+  function alexStationen() {
+    var y = state.year;
+    if (!alexAn(y)) return [];
+    return (DATA.alexander_stationen || []).filter(function (s) { return y >= s.jahr; }).map(function (s) {
+      s.kind = 'alexstation';
+      if (s.__el) s.__el.classList.toggle('zitat-an', !!s.zitat && y >= s.zitat.von && y <= s.zitat.bis);
+      return s;
+    });
+  }
+  function alexStationEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('div', 'alexst');
+    e.appendChild(el('span', 'alexst-punkt'));
+    var b = el('button', 'alexst-name', d.name); b.type = 'button';
+    b.title = d.text + (d.quelle ? ' (' + d.quelle + ')' : '');
+    b.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      toast(d.name + ': ' + d.text + (d.zitat ? ' – „' + d.zitat.text + '“ (' + d.zitat.beleg + ')' : ''));
+    });
+    e.appendChild(b);
+    if (d.zitat) {
+      var z = el('div', 'alexst-zitat');
+      z.appendChild(el('div', 'alexst-zt', '„' + d.zitat.text + '“'));
+      z.appendChild(el('div', 'alexst-zq', d.zitat.sprecher + ' · ' + d.zitat.beleg));
+      z.appendChild(el('div', 'alexst-zh', d.zitat.hinweis));
+      e.appendChild(z);
+    }
+    d.__el = e;
+    e.classList.toggle('zitat-an', !!d.zitat && state.year >= d.zitat.von && state.year <= d.zitat.bis);
+    return e;
+  }
+  /* Farbe zwischen zwei Hex-Werten als Hex (rgba() erwartet Hex) */
+  function mischHex(a, b, t) {
+    var x = rgb(a), z = rgb(b);
+    return '#' + x.map(function (v, i) { return ('0' + Math.round(v + (z[i] - v) * t).toString(16)).slice(-2); }).join('');
+  }
+  /* Federzeichnung für Züge mit eigenem Schalter (Alexanderzug): Rückt die Zeitleiste um ein Jahr vor, zeichnet eine
+     Feder den Weg vom bisherigen bis zum neuen Stand nach (wie bei der Kolonisation); die Pfeilspitze fährt mit.
+     Dauer nach Weglänge: eine ganze Etappe ZUGFEDER.ETAPPE ms. Beim Abspielen wartet die Zeitleiste auf die Feder.
+     Große Sprünge am Regler und „Bewegung reduzieren“ zeichnen sofort. */
+  // Takt: Alexanderzug ganzer Weg ETAPPE × Zahl der Etappen; Völkerwanderung schneller (viele Völker gleichzeitig)
+  var ZUGFEDER = { laufend: [], raf: 0, last: 0, prevY: null, ETAPPE: 9000, MIN: 2500, VW_ETAPPE: 6000, VW_MIN: 700 };
+  function zugFederSetzen(w, f) {
+    w.__fz = f;
+    if (w.etappen) {   // Alexanderzug: Gesamtanteil auf die Etappen verteilen
+      w.etappen.forEach(function (e) {
+        var g = Math.max(0, Math.min(1, (f - e.__a) / ((e.__b - e.__a) || 1)));
+        e.__fz = g;
+        [e.__band, e.__schatten, e.__p].forEach(function (d) { if (g >= 1) d.__pen = null; else setPen(d, g); });
+      });
+      return;
+    }
+    [w.__band, w.__schatten, w.__p].forEach(function (d) { if (f >= 1) d.__pen = null; else setPen(d, f); });
+  }
+  function zugFederAus(w) {
+    w.__feder = null; w.__fz = null; ZUGFEDER.laufend = ZUGFEDER.laufend.filter(function (x) { return x !== w; });
+    (w.etappen || [w]).forEach(function (e) { e.__fz = null; [e.__band, e.__schatten, e.__p].forEach(function (d) { d.__pen = null; }); });
+  }
+  function zugFederZiel(w, ziel, sprung) {
+    ziel = Math.max(0, Math.min(1, ziel));
+    var ruhig = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var von = w.__feder ? w.__fz : (w.__fz == null ? 0 : w.__fz);
+    if (sprung || ruhig || ziel <= von) { if (w.__feder) zugFederAus(w); zugFederSetzen(w, ziel); return; }
+    if (w.__feder && w.__feder.ziel === ziel) { zugFederSetzen(w, w.__fz); return; }
+    var dauer = w.etappen ? Math.max(ZUGFEDER.MIN, (ziel - von) * ZUGFEDER.ETAPPE * w.etappen.length) : Math.max(ZUGFEDER.VW_MIN, (ziel - von) * ZUGFEDER.VW_ETAPPE);
+    w.__feder = { von: von, ziel: ziel, t0: performance.now(), dur: dauer };
+    zugFederSetzen(w, Math.max(0.00001, von));
+    if (ZUGFEDER.laufend.indexOf(w) < 0) ZUGFEDER.laufend.push(w);
+    if (!ZUGFEDER.raf) ZUGFEDER.raf = requestAnimationFrame(zugFederFrame);
+  }
+  function zugFederFrame(now) {
+    if (!ZUGFEDER.laufend.length) { ZUGFEDER.raf = 0; return; }
+    ZUGFEDER.raf = requestAnimationFrame(zugFederFrame);
+    if (now - ZUGFEDER.last < 40) return;
+    ZUGFEDER.last = now;
+    var fertig = [];
+    ZUGFEDER.laufend.forEach(function (w) {
+      var q = w.__feder, t = Math.min(1, (now - q.t0) / q.dur), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      zugFederSetzen(w, q.von + (q.ziel - q.von) * e);
+      if (t >= 1) fertig.push(w);
+    });
+    refreshHtml(); vwDrehenBald();
+    if (fertig.length) {
+      fertig.forEach(function (w) { var z = w.__feder.ziel; w.__feder = null; zugFederSetzen(w, z); });
+      ZUGFEDER.laufend = ZUGFEDER.laufend.filter(function (w) { return fertig.indexOf(w) < 0; });
+      pfadeSetzen(antikePfade(CUR_TV || tradeVisible(state.year)));   // Partikelstrom und Strichmuster neu setzen
+    }
   }
   /* Schlüssel des sichtbaren Zustands: ändert sich, wenn ein Zug wächst, ankommt oder verblasst */
   function vwSchluessel(y) {
     if (!zuegeAn() || state.epoche !== 'antike') return 'aus';
     return (DATA.wanderungen || []).map(function (w) {
       return vwSichtbar(w, y) ? Math.round(vwAnteil(w, y) * 100) + (y <= w.bis ? 'l' : y <= w.bis + VW_ANKUNFT ? 'a' : 's') : '-';
-    }).join(',');
+    }).join(',') + (alexAn(y) ? '|A' + y : '');
   }
   function vwTags() {
     if (!zuegeAn() || state.epoche !== 'antike') return [];
     var y = state.year;
     var je = {};   // je Volk ein Kopf: am jüngsten Zug, solange er läuft und bis zum Ende des Ankunfts-Rings
-    (DATA.wanderungen || []).forEach(function (w) { if (zugAn(w) && y >= w.von && y <= w.bis + VW_ANKUNFT && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
+    (DATA.wanderungen || []).forEach(function (w) { if (w.gruppe !== 'alexander' && zugAn(w) && y >= w.von && y <= w.bis + VW_ANKUNFT && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
+    var ak = alexKopf(y);
     return Object.keys(je).map(function (k) {
-      var w = je[k], f = vwAnteil(w, y), t = punktBei(w.__lauf, f);
+      var w = je[k], f = w.__fz != null ? w.__fz : vwAnteil(w, y), t = punktBei(w.__lauf, Math.max(0, f));
       w.__tag.lng = t[0]; w.__tag.lat = t[1]; w.__tag.f = f; w.__tag.angekommen = y > w.bis;
-      if (w.__tag.__el) w.__tag.__el.classList.toggle('da', y > w.bis);
+      w.__tag.los = vwLos(w, y);
+      if (w.__tag.__el) { w.__tag.__el.classList.toggle('da', y > w.bis); w.__tag.__el.classList.toggle('los', w.__tag.los); }
       return w.__tag;
-    });
+    }).concat(ak ? [ak] : []);
   }
+  /* Stationen der laufenden Züge (Überfälle, Plünderungen, Belagerungen): sichtbar, solange der Zug läuft,
+     und bis zum Ende des Ankunfts-Rings */
+  function vwStationen() {
+    if (!state.vw || state.epoche !== 'antike') return [];
+    var y = state.year, out = [];
+    (DATA.wanderungen || []).forEach(function (w) {
+      if (w.gruppe || !w.stationen || y < w.von || y > w.bis + 2) return;   // nach der Ankunft noch 2 Jahre
+      var f = w.__fz != null ? w.__fz : vwAnteil(w, y);
+      w.stationen.forEach(function (s) {
+        if (y >= s.jahr && (y > w.bis || s.__f == null || f >= s.__f - 0.005)) out.push(s);   // Jahr erreicht und Feder vorbei
+      });
+    });
+    return out;
+  }
+  function vwStationEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('div', 'vwst'); e.style.setProperty('--c', vwFarbe(d.w));
+    e.appendChild(el('span', 'vwst-punkt'));
+    var b = el('button', 'vwst-text', d.text); b.type = 'button';
+    b.title = d.w.volk + ': ' + d.text + ' (' + d.quelle + ')';
+    b.addEventListener('click', function (ev) { ev.stopPropagation(); toast(d.w.volk + ': ' + d.text + ' · Beleg: ' + d.quelle); });
+    e.appendChild(b);
+    d.__el = e; return e;
+  }
+  /* „Losziehen“: der Auslöser steht in den ersten 40 % der Zugdauer am Kopf (mindestens zwei Jahre) */
+  function vwLos(w, y) { return !!w.ausloeser && y <= w.bis && y < w.von + Math.max(2, Math.round((w.bis - w.von + 1) * 0.4)); }
   function vwEl(d) {
     if (d.__el) return d.__el;
     var w = d.w, c = vwFarbe(w), e = el('div', 'vwkopf'); e.style.setProperty('--c', c);
@@ -1179,10 +1403,11 @@
     e.appendChild(pf);
     var b = el('button', 'vw-schild'); b.type = 'button';
     b.appendChild(el('b', null, w.volk)); b.appendChild(el('span', null, shortYear(w.von) + '–' + shortYear(w.bis)));
-    b.title = w.text + ' (Weg schematisch)';
-    b.addEventListener('click', function (ev) { ev.stopPropagation(); toast(w.volk + ' (' + fmtYear(w.von) + ' bis ' + fmtYear(w.bis) + '): ' + w.text + ' · Weg schematisch'); });
+    b.title = w.text + (w.ausloeser ? ' · Auslöser: ' + w.ausloeser : '') + ' (Weg schematisch)';
+    b.addEventListener('click', function (ev) { ev.stopPropagation(); toast(w.volk + ' (' + fmtYear(w.von) + ' bis ' + fmtYear(w.bis) + '): ' + w.text + (w.ausloeser ? ' · Auslöser: ' + w.ausloeser : '') + ' · Weg schematisch'); });
     e.appendChild(b);
-    d.__el = e; e.classList.toggle('da', !!d.angekommen); return e;
+    if (w.ausloeser) { var an = el('div', 'vw-anlass'); an.appendChild(el('b', null, 'Auslöser: ')); an.appendChild(document.createTextNode(w.ausloeser)); e.appendChild(an); }
+    d.__el = e; e.classList.toggle('da', !!d.angekommen); e.classList.toggle('los', !!d.los); return e;
   }
   /* Pfeilspitzen in Zugrichtung drehen (Bildschirmrichtung hängt von der Kamera ab) */
   var VW_DREH = 0;
@@ -1198,7 +1423,161 @@
     });
   }
   function vwDrehenBald() { if (!VW_DREH) VW_DREH = requestAnimationFrame(vwDrehen); }
-  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'kolschiff' ? kolSchiffEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'geo' ? geoEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'vwstation' ? vwStationEl(d) : d.kind === 'alexstation' ? alexStationEl(d) : d.kind === 'kolschiff' ? kolSchiffEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+
+  /* ---------- Leuchtstift der Lehrkraft (Live-Session) ----------
+     Die Lehrkraft markiert oder schreibt mit rotem Stift bzw. Marker direkt auf den Globus. Die Striche liegen in
+     geographischen Koordinaten und drehen mit; sie gehören zum Zustand (getState/applyState → „zeichnung“) und
+     erreichen so alle Geräte. Gezeichnetes ist zunächst vorläufig: „Stehen lassen“ macht es zur festen Beschriftung,
+     „Wegwischen“ oder das Schließen des Stifts entfernt das Vorläufige. Der Radierer entfernt einzelne Striche.
+     Die Leiste richtet nur die Lehreransicht ein (session.js → ChronoGlobe.stift()); alle anderen sehen nur die Striche.
+     Strich: { id, art: 'stift'|'marker', fest, a: Kameraabstand beim Zeichnen, p: [lng, lat, lng, lat, …] } */
+  var STIFT = { striche: [], modus: null, werkzeug: 'stift', cv: null, ctx: null, raf: 0, aktiv: null, leiste: null, gemeldet: 0, MAX: 3000 };
+  var STIFT_ART = { stift: { breite: 4, farbe: '#ff2b2b', glanz: 'rgba(255,40,40,.85)' }, marker: { breite: 20, farbe: 'rgba(255,36,36,.36)', glanz: null } };
+  function stiftPunkte() { return STIFT.striche.reduce(function (s, x) { return s + x.p.length / 2; }, 0); }
+  function stiftCanvas() {
+    if (STIFT.cv) return STIFT.cv;
+    var cv = document.createElement('canvas'); cv.className = 'stift-flaeche'; cv.setAttribute('aria-hidden', 'true');
+    $('#globe').appendChild(cv); STIFT.cv = cv; STIFT.ctx = cv.getContext('2d');
+    cv.addEventListener('pointerdown', stiftRunter);
+    cv.addEventListener('pointermove', stiftZiehen);
+    cv.addEventListener('pointerup', stiftHoch); cv.addEventListener('pointercancel', stiftHoch);
+    // Mausrad zoomt den Globus weiter, auch wenn der Stift die Fläche abdeckt
+    cv.addEventListener('wheel', function (e) { e.preventDefault(); globe.renderer().domElement.dispatchEvent(new WheelEvent('wheel', e)); }, { passive: false });
+    return cv;
+  }
+  function stiftLaufen() { if (!STIFT.raf && (STIFT.striche.length || STIFT.modus)) STIFT.raf = requestAnimationFrame(stiftMalen); }
+  /* Bildschirmpunkt eines Strichpunkts; null, wenn er auf der Rückseite des Globus liegt */
+  function stiftProj(lng, lat, cam, r2) {
+    var w = globe.getCoords(lat, lng, 0);
+    if (w.x * cam.x + w.y * cam.y + w.z * cam.z < r2 * 1.002) return null;
+    return globe.getScreenCoords(lat, lng, 0.004);
+  }
+  function stiftMalen() {
+    STIFT.raf = 0;
+    if (!STIFT.striche.length && !STIFT.modus) { if (STIFT.cv) STIFT.ctx.clearRect(0, 0, STIFT.cv.width, STIFT.cv.height); return; }
+    var cv = stiftCanvas(), g = $('#globe'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = g.clientWidth, H = g.clientHeight;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    var c = STIFT.ctx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+    var cam = globe.camera().position, R = globe.getGlobeRadius(), r2 = R * R, alt = globe.pointOfView().altitude || 1;
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    STIFT.striche.forEach(function (s) {
+      var A = STIFT_ART[s.art] || STIFT_ART.stift, w = A.breite * Math.max(0.35, Math.min(4, (s.a || alt) / alt));
+      var teile = [], cur = null;
+      for (var i = 0; i < s.p.length; i += 2) {
+        var q = stiftProj(s.p[i], s.p[i + 1], cam, r2);
+        if (!q) { cur = null; continue; }
+        if (!cur) { cur = []; teile.push(cur); }
+        cur.push(q);
+      }
+      var spur = function () { teile.forEach(function (t) { c.beginPath(); c.moveTo(t[0].x, t[0].y); if (t.length === 1) c.lineTo(t[0].x + 0.1, t[0].y); for (var j = 1; j < t.length; j++) c.lineTo(t[j].x, t[j].y); c.stroke(); }); };
+      if (s.art === 'stift') {   // dunkle Kontur für die Lesbarkeit auf hellem Grund
+        c.shadowBlur = 0; c.strokeStyle = 'rgba(40,0,0,.55)'; c.lineWidth = w + 2.5; spur();
+        c.shadowColor = A.glanz; c.shadowBlur = 8;
+      } else c.shadowBlur = 0;
+      c.strokeStyle = A.farbe; c.lineWidth = w; spur();
+      c.shadowBlur = 0;
+    });
+    if (STIFT.striche.length || STIFT.modus) STIFT.raf = requestAnimationFrame(stiftMalen);
+  }
+  function stiftGeo(e) {
+    var r = STIFT.cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, g = globe.toGlobeCoords(x, y);
+    return g ? { x: x, y: y, lng: Math.round(g.lng * 100) / 100, lat: Math.round(g.lat * 100) / 100 } : { x: x, y: y };
+  }
+  function stiftMelden(sofort) {   // gedrosselt; das eigentliche Senden drosselt session.js zusätzlich
+    var j = Date.now(); if (!sofort && j - STIFT.gemeldet < 120) return;
+    STIFT.gemeldet = j; zustandGemeldet('lokal');
+  }
+  function stiftRadieren(pt) {
+    var cam = globe.camera().position, R = globe.getGlobeRadius(), r2 = R * R, vorher = STIFT.striche.length;
+    STIFT.striche = STIFT.striche.filter(function (s) {
+      for (var i = 0; i < s.p.length; i += 2) { var q = stiftProj(s.p[i], s.p[i + 1], cam, r2); if (q && Math.abs(q.x - pt.x) < 14 && Math.abs(q.y - pt.y) < 14) return false; }
+      return true;
+    });
+    if (STIFT.striche.length !== vorher) { stiftLeisteAktualisieren(); stiftMelden(true); }
+  }
+  function stiftRunter(e) {
+    if (!STIFT.modus || e.button !== 0) return;
+    e.preventDefault(); try { STIFT.cv.setPointerCapture(e.pointerId); } catch (x) {}
+    var pt = stiftGeo(e);
+    if (STIFT.werkzeug === 'radierer') { STIFT.aktiv = { radieren: true }; stiftRadieren(pt); return; }
+    if (pt.lng == null) return;   // neben dem Globus: nichts
+    if (stiftPunkte() >= STIFT.MAX) { toast('Der Stift ist voll. Bitte „Wegwischen“ oder einzelne Striche radieren.'); return; }
+    var s = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), art: STIFT.werkzeug, fest: false, a: Math.round((globe.pointOfView().altitude || 1) * 100) / 100, p: [pt.lng, pt.lat] };
+    STIFT.striche.push(s); STIFT.aktiv = { s: s, x: pt.x, y: pt.y };
+    stiftLaufen(); stiftLeisteAktualisieren();
+  }
+  function stiftZiehen(e) {
+    var a = STIFT.aktiv; if (!a) return;
+    var pt = stiftGeo(e);
+    if (a.radieren) { stiftRadieren(pt); return; }
+    if (pt.lng == null || Math.abs(pt.x - a.x) + Math.abs(pt.y - a.y) < 4 || stiftPunkte() >= STIFT.MAX) return;
+    a.s.p.push(pt.lng, pt.lat); a.x = pt.x; a.y = pt.y;
+    stiftMelden(false);
+  }
+  function stiftHoch() { if (!STIFT.aktiv) return; STIFT.aktiv = null; stiftLeisteAktualisieren(); stiftMelden(true); }
+  /* Stift an/aus. Aus: Vorläufiges verschwindet, Feststehendes bleibt. */
+  function stiftModus(an) {
+    an = !!an; if (!!STIFT.modus === an) return;
+    STIFT.modus = an ? true : null;
+    var cv = stiftCanvas(); cv.classList.toggle('an', an);
+    document.documentElement.classList.toggle('stift-an', an);
+    if (an) globe.controls().autoRotate = false;
+    else {
+      STIFT.aktiv = null; STIFT.striche = STIFT.striche.filter(function (s) { return s.fest; });
+      globe.controls().autoRotate = drehenAn() && !mapOpen;
+      stiftMelden(true);
+    }
+    stiftLaufen(); stiftLeisteAktualisieren();
+  }
+  function stiftWerkzeug(w) { STIFT.werkzeug = w; stiftLeisteAktualisieren(); }
+  function stiftFestmachen() {
+    var n = 0; STIFT.striche.forEach(function (s) { if (!s.fest) { s.fest = true; n++; } });
+    if (n) { toast('Als Beschriftung stehen gelassen. Sie bleibt, bis sie radiert oder gelöscht wird.'); stiftMelden(true); }
+    stiftLeisteAktualisieren();
+  }
+  function stiftWegwischen() { STIFT.striche = STIFT.striche.filter(function (s) { return s.fest; }); stiftLeisteAktualisieren(); stiftMelden(true); }
+  function stiftAllesLoeschen() {
+    if (STIFT.striche.some(function (s) { return s.fest; }) && !window.confirm('Alle Markierungen löschen, auch die stehen gelassenen?')) return;
+    STIFT.striche = []; stiftLeisteAktualisieren(); stiftMelden(true);
+  }
+  /* Leiste der Lehrkraft (nur Lehreransicht einer Session) */
+  function stiftLeiste() {
+    if (STIFT.leiste) return STIFT.leiste;
+    var L = el('div', 'stift-leiste'); L.setAttribute('role', 'toolbar'); L.setAttribute('aria-label', 'Leuchtstift');
+    function knopf(cls, text, titel, fn) { var b = el('button', cls, text); b.type = 'button'; b.title = titel; b.addEventListener('click', fn); L.appendChild(b); return b; }
+    STIFT.kAn = knopf('stift-an', '🖍 Leuchtstift', 'Auf dem Globus markieren oder schreiben – alle Geräte sehen es (Esc beendet)', function () { stiftModus(!STIFT.modus); });
+    var w = el('span', 'stift-werkzeuge'); L.appendChild(w);
+    STIFT.kW = {};
+    [['stift', '✎ Stift', 'Dünner roter Stift zum Schreiben'], ['marker', '▬ Marker', 'Breiter, durchscheinender Leuchtmarker zum Hervorheben'], ['radierer', '⌫ Radierer', 'Über einen Strich ziehen, um ihn zu entfernen']].forEach(function (x) {
+      var b = el('button', 'stift-w', x[1]); b.type = 'button'; b.title = x[2]; b.dataset.w = x[0];
+      b.addEventListener('click', function () { stiftWerkzeug(x[0]); }); w.appendChild(b); STIFT.kW[x[0]] = b;
+    });
+    STIFT.kFest = knopf('stift-fest', '📌 Stehen lassen', 'Das Vorläufige als Beschriftung stehen lassen (bleibt auch nach dem Schließen des Stifts)', stiftFestmachen);
+    STIFT.kWeg = knopf('stift-weg', 'Wegwischen', 'Alles Vorläufige entfernen; stehen Gelassenes bleibt', stiftWegwischen);
+    STIFT.kAlle = knopf('stift-alle', 'Alles löschen', 'Alle Markierungen entfernen, auch die stehen gelassenen', stiftAllesLoeschen);
+    document.body.appendChild(L); STIFT.leiste = L;
+    stiftLeisteAktualisieren();
+    return L;
+  }
+  function stiftLeisteAktualisieren() {
+    if (STIFT.cv) STIFT.cv.dataset.w = STIFT.werkzeug;
+    if (!STIFT.leiste) return;
+    var an = !!STIFT.modus, vorl = STIFT.striche.some(function (s) { return !s.fest; });
+    STIFT.leiste.classList.toggle('offen', an);
+    STIFT.kAn.classList.toggle('on', an); STIFT.kAn.setAttribute('aria-pressed', an);
+    Object.keys(STIFT.kW).forEach(function (k) { var b = STIFT.kW[k]; b.classList.toggle('on', STIFT.werkzeug === k); b.setAttribute('aria-pressed', STIFT.werkzeug === k); });
+    STIFT.kFest.disabled = !vorl; STIFT.kWeg.disabled = !vorl; STIFT.kAlle.disabled = !STIFT.striche.length;
+  }
+  function stiftZustand() { return STIFT.striche.map(function (s) { return { id: s.id, art: s.art, fest: !!s.fest, a: s.a, p: s.p.slice() }; }); }
+  function stiftAnwenden(z) {
+    if (!Array.isArray(z) || gleich(z, stiftZustand())) return;
+    STIFT.aktiv = null;
+    STIFT.striche = z.filter(function (s) { return s && Array.isArray(s.p) && s.p.length >= 2; }).map(function (s) {
+      return { id: String(s.id), art: s.art === 'marker' ? 'marker' : 'stift', fest: !!s.fest, a: +s.a || 1, p: s.p.map(Number).filter(function (v) { return isFinite(v); }) };
+    });
+    stiftLeisteAktualisieren(); stiftLaufen();
+  }
 
   /* ---------- Eigener Standort (Pin) ---------- */
   // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
@@ -1255,6 +1634,7 @@
     schiff: { schl: 'orbis_schiff', url: 'data/orbis_schiff.json', noetig: function () { return TRADE.schiff; }, fertig: function (d) { initOrbis(d); } },
     hanseide: { schl: 'han_seidenstrasse', url: 'data/han_seidenstrasse.json', noetig: function () { return TRADE.hanseide; }, fertig: function (d) { initHanSeide(d); } },
     limes: { schl: 'limes', url: 'data/limes.json', noetig: function () { return state.limes; }, fertig: function (d) { initLimes(d); } },
+    geo: { schl: 'geographie', url: 'data/geographie.json', noetig: function () { return state.geo; }, fertig: function (d) { initGeo(d); } },
     kolonisation: { schl: 'kolonisation', url: 'data/kolonisation.json', noetig: function () { return state.kolonisation; }, fertig: function (d) { kolInit(d); } }
   };
   function ebeneLaden(k) {
@@ -1357,6 +1737,58 @@
       row(b, 'Hinweis', 'Verlauf schematisch über bekannte Kastellorte gelegt; Jahreszahlen gerundet. Eine Grenze war keine dichte Abschottung, sondern kontrollierte Übergänge für Händler, Reisende und Herden.').classList.add('twarn');
       if (k) { var x = el('button', 'small tmore', 'Ganzer Abschnitt: ' + a.name); x.type = 'button'; x.addEventListener('click', function () { openLimes(a); }); b.appendChild(x); }
     });
+  }
+
+  /* ---------- Historische Geographie (data/geographie.json, build_geographie.py) ----------
+     Flüsse, Gebirgskämme, Gipfel, Meere und Landschaften mit antiken Namen nach dem Grundkurs-Skript (Kap. 8, S. 41–45;
+     Karten S. 43–45). Verläufe: Natural Earth (heutige Flussläufe; Kämme = Mittelachse der Gebirgsumrisse, schematisch).
+     Zeitlos: in allen Epochen sichtbar, solange die Ebene an ist. Beschriftungen nach Zoom (LBL.stufe): weit weg nur große
+     Meere, Gebirge und Ströme, näher Landschaften, ganz nah griechische und kleinasiatische Landschaften und Gipfel. */
+  var GEO = null, GEO_OBJ = [], GEO_SCHILDER = [];
+  var GEO_HAUPTFLUSS = { rhenus: 1, danuvius: 1, nilus: 1, euphrates: 1, tigris: 1, indus: 1, oxos: 1, iaxartes: 1, huanghe: 1, jangtse: 1 };
+  var GEO_HAUPTGEBIRGE = { alpes: 1, imaos: 1, paropamisos: 1, zagros: 1, atlas: 1 };
+  function initGeo(d) {
+    GEO = d && Array.isArray(d.fluesse) ? d : null; GEO_OBJ = []; GEO_SCHILDER = [];
+    if (!GEO) return;
+    GEO.fluesse.forEach(function (f) {
+      var lang = null;
+      f.pfade.forEach(function (p, i) {
+        GEO_OBJ.push({ id: 'geo-f-' + f.id + '-' + i, geo: f, geoArt: 'fluss', pts: p });
+        if (!lang || p.length > lang.length) lang = p;
+      });
+      var m = lang[Math.floor(lang.length / 2)];
+      GEO_SCHILDER.push({ kind: 'geo', geoArt: 'fluss', g: f, lng: m[0], lat: m[1], stufe: GEO_HAUPTFLUSS[f.id] ? 1 : 2 });
+    });
+    GEO.gebirge.forEach(function (g) {
+      g.kaemme.forEach(function (k, i) {
+        var km = Math.max(1, lauf(k).len * 6371);
+        // Kamm: breites, helles Band (Gebirgszug) und darüber eine gezackt wirkende Strichlinie (Muster in km)
+        GEO_OBJ.push({ id: 'geo-g-' + g.id + '-' + i + '-b', geo: g, geoArt: 'gebirge', geoTeil: 'band', pts: k },
+          { id: 'geo-g-' + g.id + '-' + i + '-k', geo: g, geoArt: 'gebirge', geoTeil: 'kamm', pts: k.map(function (q) { return [q[0], q[1], 0.0016]; }),
+            __dash: [Math.min(1, 22 / km), 12 / km] });
+      });
+      if (g.id !== 'carpates_s') GEO_SCHILDER.push({ kind: 'geo', geoArt: 'gebirge', g: g, lng: g.lng, lat: g.lat, stufe: GEO_HAUPTGEBIRGE[g.id] ? 1 : 2 });
+    });
+    (GEO.gipfel || []).forEach(function (g) { GEO_SCHILDER.push({ kind: 'geo', geoArt: 'gipfel', g: g, lng: g.lng, lat: g.lat, stufe: 4 }); });
+    (GEO.meere || []).forEach(function (m) { GEO_SCHILDER.push({ kind: 'geo', geoArt: 'meer', g: m, lng: m.lng, lat: m.lat, stufe: m.stufe }); });
+    (GEO.landschaften || []).forEach(function (l) { GEO_SCHILDER.push({ kind: 'geo', geoArt: 'land', g: l, lng: l.lng, lat: l.lat, stufe: l.stufe }); });
+  }
+  function geoAn() { return !!state.geo && !!GEO; }
+  function geoPaths() { return geoAn() ? GEO_OBJ : []; }
+  function geoSchilder() { if (!geoAn()) return []; var s = Math.max(1, LBL.stufe); return GEO_SCHILDER.filter(function (o) { return o.stufe <= s; }); }
+  function geoText(d) {
+    var g = d.g || d.geo, art = { fluss: 'Fluss', gebirge: 'Gebirge', gipfel: 'Berg', meer: 'Meer', land: 'Landschaft' }[d.geoArt];
+    if (d.geoArt === 'land') return g.name + ' (antike Landschaft) · ' + (GEO.landschaften_quelle || '');
+    return g.name + (g.heute && g.heute !== g.name ? ' – heute ' + g.heute : '') + ' (' + art + ')' + (g.hinweis ? '. ' + g.hinweis : '') +
+      (g.gk ? ' · Name nach ' + g.gk : ' · ergänzt (nicht im Grundkurs-Skript)') + (d.geoArt === 'fluss' || d.geoArt === 'gebirge' ? ' · Verlauf: Natural Earth, heutiger Lauf bzw. schematischer Kamm' : '');
+  }
+  function geoEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('button', 'geo-schild ' + d.geoArt); e.type = 'button';
+    e.textContent = (d.geoArt === 'gipfel' ? '▲ ' : '') + (d.geoArt === 'meer' || d.geoArt === 'land' ? d.g.name.replace(/ \(.*\)$/, '').replace(/ „.*“/, '') : d.g.name);
+    e.title = geoText(d);
+    e.addEventListener('click', function (ev) { ev.stopPropagation(); toast(geoText(d)); });
+    d.__el = e; return e;
   }
 
   /* ---------- Layer „Seidenstraße der Han (Forschungsdaten)“ (data/han_seidenstrasse.json, build_han_seidenstrasse.py) ----------
@@ -1698,7 +2130,7 @@
     });
   }
   /* alle Pfade bzw. Punkte des antiken Abschnitts (eine Stelle für refreshGlobe, Straßen-Feder und Kolonisation) */
-  function antikePfade(tv) { return ehemaligePaths(tv).concat(limesPaths(), tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths(), kolPaths()); }
+  function antikePfade(tv) { return geoPaths().concat(ehemaligePaths(tv), limesPaths(), tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths(), kolPaths()); }
   function antikePunkte() { return hanStationen(state.year).concat(netzeOrte(), themenOrte(), kolOrte()); }
 
   /* ---------- Themenebenen (data/ebenen/, js/themen.js; Format und Editor: docs/EDITOR.md) ----------
@@ -2066,6 +2498,8 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.geo) return d.geoArt === 'fluss' ? (state.mode === 'schem' ? 'rgba(46,110,170,0.85)' : 'rgba(150,210,255,0.85)')
+      : d.geoTeil === 'band' ? (state.mode === 'schem' ? 'rgba(150,110,70,0.16)' : 'rgba(240,220,190,0.16)') : (state.mode === 'schem' ? 'rgba(110,72,36,0.7)' : 'rgba(250,232,205,0.75)');
     if (d.kol) return kolFarbe(d.kol, kolFrisch(d.kol) ? 0.95 : 0.5);
     if (d.ehemals) return state.mode === 'schem' ? 'rgba(80,55,30,0.42)' : 'rgba(240,228,205,0.42)';
     if (d.themalinie) return themaFarbe(d.themaM, d.themalinie.typ === 'flaeche' ? 0.85 : 0.95);
@@ -2074,9 +2508,16 @@
     if (d.orbis) return orbisFarbe(d);
     if (d.limes) return d.limTeil === 'rand' ? (state.mode === 'schem' ? '#fffaf0' : '#1a0c04') : (state.mode === 'schem' ? mix(LIMES_ART[d.limes.art].farbe, '#000000', 0.45) : LIMES_ART[d.limes.art].farbe);
     if (d.hanlinie) return state.mode === 'schem' ? 'rgba(122,74,10,0.9)' : 'rgba(255,224,138,0.92)';
+    if (d.alexGesamt) return state.mode === 'schem' ? 'rgba(40,30,0,0.6)' : 'rgba(255,250,230,0.6)';   // hell: hebt sich vom goldenen Reich ab
     if (d.vw) {
       var vc = state.mode === 'schem' ? mix(vwFarbe(d.vw), '#000000', 0.25) : vwFarbe(d.vw), l = d.vw.__laeuft;
       var hx = vwFarbe(d.vw);
+      if (d.vw.gruppe === 'alexander' && !l) {   // gezogene Etappen: mit jedem Jahr grauer
+        hx = mischHex(hx, ALEX_GRAU, Math.min(0.85, 0.3 + 0.09 * Math.max(0, state.year - d.vw.bis)));
+        if (d.vwArt === 'band') return rgba(hx, 0.22);
+        if (d.vwArt === 'schatten') return 'rgba(8,4,16,0.45)';
+        return rgba(hx, 0.85);
+      }
       if (d.vwArt === 'band') return rgba(hx, l ? 0.4 : 0.14);
       if (d.vwArt === 'schatten') return l ? 'rgba(8,4,16,0.6)' : 'rgba(8,4,16,0.25)';
       if (d.vwArt === 'fluss') return state.mode === 'schem' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.9)';
@@ -2091,10 +2532,12 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.geo) return d.geoTeil === 'kamm' ? d.__dash[i] : [1, 0][i];
     if (d.kol) return [1, 0][i];
     if (d.ehemals) return ehemDash(d, i);
     if (d.themalinie) return d.themalinie.unsicher ? [0.07, 0.06][i] : [1, 0][i];
     if (d.netzlinie) return netzUnsicher(d.netzlinie) ? [0.07, 0.06][i] : [1, 0][i];
+    if (d.alexGesamt) return [0.004, 0.006][i];   // ganzer Feldzug, schwach gestrichelt
     if (d.vw) return d.vwArt === 'fluss' ? [0.02, 0.045][i] : [1, 0][i];   // fließende Partikel auf dem Strom
     if (d.eu) return [1, 0][i];
     if (d.strasse) return strassenDash(d, i);
@@ -2111,10 +2554,13 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.geo) return d.geoArt === 'fluss' ? (GEO_HAUPTFLUSS[d.geo.id] ? 2.2 : 1.6) : d.geoTeil === 'band' ? 10 : 1.8;
     if (d.kol) return kolFrisch(d.kol) ? 2.2 : 1.1;
     if (d.ehemals) return 1.1;
     if (d.themalinie) return d.themalinie.typ === 'flaeche' ? 1.4 : 2;
     if (d.netzlinie) return netzStrich(d);
+    if (d.alexGesamt) return 1.5;
+    if (d.vw && d.vw.gruppe === 'alexander' && !d.vw.__laeuft) return d.vwArt === 'band' ? 11 : d.vwArt === 'schatten' ? 6 : 3.2;
     if (d.vw && d.vw.gruppe === 'kolonisation') return d.vwArt === 'band' ? (d.vw.__laeuft ? 10 : 3) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 4 : 1.6) : d.vwArt === 'fluss' ? 1.8 : (d.vw.__laeuft ? 3 : 1.1);
     if (d.vw) return d.vwArt === 'band' ? (d.vw.__laeuft ? 22 : 9) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 9 : 4) : d.vwArt === 'fluss' ? 2.6 : (d.vw.__laeuft ? 5.5 : 2.2);
     if (d.eu) return 2;
@@ -2168,6 +2614,7 @@
             : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
           return t.outerHTML;
         }
+        if (d.geo) { t.appendChild(el('b', null, d.geo.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode((d.geo.heute ? 'heute ' + d.geo.heute + ' · ' : '') + 'Klick für Infos')); return t.outerHTML; }
         if (d.limes) {
           t.appendChild(el('b', null, d.limes.name + ' · ' + LIMES_ART[d.limes.art].name)); t.appendChild(el('br'));
           t.appendChild(document.createTextNode('etwa ' + fmtYear(d.limes.von) + ' bis ' + fmtYear(d.limes.bis) + ' · Verlauf schematisch · Klick für Infos'));
@@ -2189,13 +2636,16 @@
           return t.outerHTML;
         }
         if (d.kontakt) { t.appendChild(el('b', null, d.kontakt.name + ' (' + fmtYear(d.kontakt.jahr) + ')')); return t.outerHTML; }
-        if (d.vw) { t.appendChild(el('b', null, d.vw.volk + ' (' + d.vw.von + '–' + d.vw.bis + ')')); t.appendChild(el('br')); t.appendChild(document.createTextNode(d.vw.text + ' · Weg schematisch')); return t.outerHTML; }
+        if (d.alexGesamt) { t.appendChild(el('b', null, 'Alexanderzug ' + fmtYear(ALEXZUG.von) + ' bis ' + fmtYear(ALEXZUG.bis))); t.appendChild(el('br')); t.appendChild(document.createTextNode('ganzer Weg in ' + ALEXZUG.etappen.length + ' Etappen (nach Arrian) · Weg schematisch')); return t.outerHTML; }
+        if (d.vw) { t.appendChild(el('b', null, d.vw.volk + ' (' + shortYear(d.vw.von) + '–' + shortYear(d.vw.bis) + ')')); t.appendChild(el('br')); t.appendChild(document.createTextNode(d.vw.text + ' · Weg schematisch')); return t.outerHTML; }
         if (d.eu) { t.appendChild(el('b', null, d.eu.jahr + ': ' + d.eu.titel)); t.appendChild(el('br')); t.appendChild(document.createTextNode('Portugal · Weg schematisch')); return t.outerHTML; }
         t.appendChild(el('b', null, d.route.name)); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(TEIL_TXT[d.teil] + ': ' + BELEGT_TXT[PARTS[d.route.id][d.teil].belegt] + ' · Klick für Infos'));
         return t.outerHTML;
       })
       .onPathClick(function (d) {
+        if (d.geo) { toast(geoText(d)); return; }
+        if (d.alexGesamt || d.vw) { toast(d.vw ? d.vw.volk + ': ' + d.vw.text + ' · Weg schematisch' : 'Alexanderzug: ' + ALEXZUG.text + ' · Weg schematisch'); return; }
         if (d.kol) openKolonie(d.kol);
         else if (d.ehemals) infoOeffnen(d.ehZiel);
         else if (d.themalinie) openThemaObjekt(d.themalinie, d.themaM);
@@ -2640,7 +3090,7 @@
     if (fertig.length) {
       fertig.forEach(penEnde);
       PENS = PENS.filter(function (q) { return fertig.indexOf(q) < 0; });
-      pfadeSetzen(zhPaths(zv)); globe.htmlElementsData(zhHtml(zv)); refreshLabels(); zhErzUpdate();
+      pfadeSetzen(geoPaths().concat(zhPaths(zv))); globe.htmlElementsData(zhHtml(zv).concat(geoSchilder())); refreshLabels(); zhErzUpdate();
     }
   }
   /* neue Fahrten (Zheng He: Startjahr erreicht; Europa: Ereignisjahr erreicht) bekommen eine Feder */
@@ -2744,7 +3194,7 @@
     refreshLabels();
     globe.htmlElementsData(zhHtml(zv));
     globe.pathColor(pathColor).pathStroke(pathStroke);
-    pfadeSetzen(zhPaths(zv).concat(netzePaths(), themenPaths()));
+    pfadeSetzen(geoPaths().concat(zhPaths(zv), netzePaths(), themenPaths()));
     zv.aktiv.forEach(function (v, i) { if (v.__flag.__el) v.__flag.__el.style.setProperty('--dy', (-14 - i * 28) + 'px'); });
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -3194,6 +3644,10 @@
       if (state.limes && !state.on.rom) toast('Grenzanlagen erscheinen mit dem Römischen Reich – bitte „Römisches Reich“ einblenden.');
       else if (state.limes && state.epoche === 'antike' && !limesSchluessel(state.year)) toast('Grenzanlagen: Hadrianswall ab 122, Limes in Germanien etwa 100–260 n. Chr.');
     });
+    $('#tglGeo').addEventListener('click', function () {
+      setState({ globus: { geo: !state.geo } });
+      if (state.geo) toast('Historische Geographie: Flüsse, Gebirge, Meere und Landschaften mit antiken Namen (Grundkurs-Skript, Kap. 8). Näher heranzoomen zeigt mehr Namen.');
+    });
     function setTrade(k, v) { var o = {}; o[k] = v; setState({ handel: o }); }
     $('#tglHandel').addEventListener('click', function () { setTrade('on', !TRADE.on); });
     $('#tglLand').addEventListener('click', function () { setTrade('land', !TRADE.land); });
@@ -3274,6 +3728,7 @@
   function bindRest() {
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
+        if (STIFT.modus) { stiftModus(false); return; }
         if (warenSchliessen()) return;
         if (modalSchliessen()) return;
         if (closeInfo()) return;
@@ -3308,7 +3763,7 @@
   /* Alle Anzeige-Schalter auf einmal: Reiche, Globus-Ebenen, Handel und Straßen, Zheng He, Netze, Themenebenen.
      Was im eingestellten Jahr keine Daten hat, bleibt trotzdem unsichtbar (jede Ebene filtert selbst nach Zeit). */
   function allesSetzen(v) {
-    var t = { reiche: {}, globus: { orte: v, schlachten: v, vw: v, alexander: v, kolonisation: v, limes: v },
+    var t = { reiche: {}, globus: { orte: v, schlachten: v, vw: v, alexander: v, kolonisation: v, limes: v, geo: v },
       handel: { on: v, land: v, see: v, waren: v, gesandt: v, karawanen: v, strassen: v, schiff: v, hanseide: v },
       zh: { on: v, fahrten: {} }, netze: {}, themen: {} };
     DATA.reihen.forEach(function (r) { t.reiche[r] = v; });
@@ -3332,7 +3787,7 @@
       kamera: { lat: Math.round(pov.lat * 1000) / 1000, lng: Math.round(pov.lng * 1000) / 1000, alt: Math.round(pov.altitude * 1000) / 1000 },
       drehen: state.rotate,
       reiche: reiche,
-      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw, alexander: state.alexander, kolonisation: state.kolonisation, limes: state.limes },
+      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw, alexander: state.alexander, kolonisation: state.kolonisation, limes: state.limes, geo: state.geo },
       handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff, hanseide: TRADE.hanseide },
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
@@ -3340,7 +3795,8 @@
       themen: themenZustand(),
       kolonien: Object.assign({}, KOL.an),
       niveau: TX_NIV,
-      fenster: kopie(FENSTER)
+      fenster: kopie(FENSTER),
+      zeichnung: stiftZustand()
     };
   }
   /* Teilzustand anwenden. opt.quelle: 'lokal' (eigene Bedienung), 'lehrer' (Live-Session), 'tafelbild' (Start);
@@ -3366,6 +3822,7 @@
           if (state.kolonisation) ebeneLaden('kolonisation'); neu = true;
         }
         if ('limes' in t.globus && !!t.globus.limes !== state.limes) { state.limes = !!t.globus.limes; chipSetzen('#tglLimes', state.limes); neu = true; }
+        if ('geo' in t.globus && !!t.globus.geo !== state.geo) { state.geo = !!t.globus.geo; chipSetzen('#tglGeo', state.geo); if (state.geo) ebeneLaden('geo'); neu = true; }
         if ('schlachten' in t.globus && !!t.globus.schlachten !== state.schlachten) {
           state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
         }
@@ -3413,6 +3870,7 @@
         globe.pointOfView({ lat: t.kamera.lat, lng: t.kamera.lng, altitude: t.kamera.alt || homeAlt() }, flugDauer(opt.dauer != null ? opt.dauer : 0));
       }
       if ('fenster' in t) fensterAnwenden(t.fenster || {});
+      if ('zeichnung' in t) stiftAnwenden(t.zeichnung || []);
     } finally {
       ZUSTAND.kameraFolgt = false;
       ZUSTAND.still--;
@@ -3490,7 +3948,8 @@
     if (!f || !f.meta) return;
     Object.keys(f.meta).forEach(function (r) { DATA.meta[r] = Object.assign({ frueh: true }, f.abschnitt === 'mittelalter' ? { mittelalter: true } : {}, f.meta[r]); });
     DATA.reihen = DATA.reihen.concat(f.reihen || Object.keys(f.meta));
-    ['regionen', 'ereignisse', 'schlachten', 'orte', 'wanderungen'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
+    ['regionen', 'ereignisse', 'schlachten', 'orte', 'wanderungen', 'epochen', 'alexander_stationen'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
+    if (f.epochen_quelle) DATA.epochen_quelle = f.epochen_quelle;
   }
   function reicheFiltern(tb) {
     var z = tb && tb.zeitraum; if (!z) return;
@@ -3499,7 +3958,8 @@
       var m = DATA.meta[r];
       if (m.bis <= z.von || m.von >= z.bis) weg[r] = 1;
       // frühe Hochkulturen nur, wenn das Tafelbild in diese Zeit reicht oder sie ausdrücklich nennt
-      else if (m.frueh && z.von >= SEGS[0].von && !(liste && liste.indexOf(r) >= 0)) weg[r] = 1;
+      // (Mittelalter-Reiche tragen ebenfalls „frueh“, sind aber keine frühen Hochkulturen: sie bleiben, wenn sie in den Zeitraum fallen)
+      else if (m.frueh && !m.mittelalter && z.von >= SEGS[0].von && !(liste && liste.indexOf(r) >= 0)) weg[r] = 1;
     });
     if (!Object.keys(weg).length) return;
     DATA.reihen = DATA.reihen.filter(function (r) { return !weg[r]; });
@@ -3518,11 +3978,20 @@
     $('#maSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].mittelalter; });
     if (frueh >= SEGS[0].von) return;
     var von = Math.floor(frueh / 500) * 500, S = SEGS[0];
+    var antike = { von: S.von, bis: S.bis, a: 0.2, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub };
     S.teile = [
       { von: von, bis: S.von, a: 0, b: 0.2, takt: 12, tick: 500, major: 1000, alt: 1000, start: -2560, kurz: true,
         name: 'Frühe Hochkulturen', sub: 'Ägypten, Mesopotamien, Indus, China' },
-      { von: S.von, bis: S.bis, a: 0.2, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }
+      antike
     ];
+    // Reicht der Vorlauf vor 800 v. Chr. zurück, bekommen Archaik und Klassik (800–300 v. Chr.) einen eigenen, breiteren Teil:
+    // Griechische Geschichte und Roms Königszeit/frühe Republik (Grundkurs-Skript) wären sonst nur wenige Pixel breit.
+    if (von < -800) {
+      S.teile[0].bis = -800; S.teile[0].b = 0.1;
+      S.teile.splice(1, 0, { von: -800, bis: S.von, a: 0.1, b: 0.27, takt: 40, tick: 50, major: 100, alt: 200, start: -480, kurz: true,
+        name: 'Archaik und Klassik', sub: 'Griechenland · Rom: Königszeit und frühe Republik' });
+      antike.a = 0.27;
+    }
     S.von = von; YMIN = Math.min(YMIN, von);
   }
   /* Freies Erkunden (ohne Tafelbild-Zeitraum): Die Lücke 480–1400 wird zum Teil „Mittelalter“ mit eigenem Maßstab,
@@ -3553,7 +4022,7 @@
 
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
-  var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
+  var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', geo: '#tglGeo', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
     gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec', alexander: '#tglAlex', kolonisation: '#tglKolon' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
@@ -3570,7 +4039,7 @@
     var k = st.kamera, fp = (tb.fokuspunkte || []).filter(function (f) { return f.id === k; })[0];
     if (fp) t.kamera = fokusKamera(fp); else if (k && typeof k === 'object') t.kamera = fokusKamera(k);
     if (tb.reiche && tb.reiche.aktiv) { t.reiche = {}; DATA.reihen.forEach(function (r) { t.reiche[r] = tb.reiche.aktiv.indexOf(r) >= 0; }); }
-    t.globus = {}; ['orte', 'schlachten', 'vw', 'alexander', 'kolonisation', 'limes'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
+    t.globus = {}; ['orte', 'schlachten', 'vw', 'alexander', 'kolonisation', 'limes', 'geo'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
     t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
     if ('handel' in a) t.handel.on = !!a.handel;
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
@@ -3643,9 +4112,11 @@
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
-    // MITTEL: Reich hat Gebiete nach 480. Ohne durchgehendes Mittelalter (Tafelbilder) zählen nur Gebiete ab 1400.
-    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.von >= SEGS[1].von || (MA_DURCHGEHEND && f.properties.bis > ANTIKE_ENDE + 1)) MITTEL[f.properties.reich] = 1; });
+    // MITTEL: Reich hat Gebiete nach 480. Ohne durchgehendes Mittelalter (Tafelbilder) zählen nur Gebiete, die in den
+    // Abschnitt ab 1400 hineinreichen (auch wenn sie früher beginnen, z. B. die Mamluken seit 1250).
+    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.bis > SEGS[1].von || (MA_DURCHGEHEND && f.properties.bis > ANTIKE_ENDE + 1)) MITTEL[f.properties.reich] = 1; });
     (DATA.wanderungen || []).forEach(function (w, i) { w.__lauf = lauf(w.pfad); vwVorbereiten(w, i); });
+    alexVorbereiten();
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
@@ -3664,7 +4135,8 @@
       state: state, trade: TRADE, zh: ZH, kar: KAR, openMap: openMap, closeMap: closeMap, setYear: setYear, globe: globe, tradeVisible: tradeVisible, zhVisible: zhVisible,
       getState: getState, applyState: applyState, setState: setState, geraet: GERAET, ebeneLaden: ebeneLaden, netze: NETZE, themen: THEMEN, netzePaths: netzePaths, netzeOrte: netzeOrte, segs: SEGS };
     window.ChronoGlobe = { getState: getState, applyState: applyState, setState: setState, abonnieren: abonnieren,
-      setzeRechte: function (fn) { DARF = typeof fn === 'function' ? fn : function () { return true; }; }, globe: globe, homeAlt: homeAlt };
+      setzeRechte: function (fn) { DARF = typeof fn === 'function' ? fn : function () { return true; }; }, globe: globe, homeAlt: homeAlt,
+      stift: stiftLeiste, stiftModus: stiftModus };
     document.dispatchEvent(new CustomEvent('chronoglobe:bereit'));
   }).catch(function (err) {
     var m = document.createElement('div'); m.className = 'toast show'; m.style.bottom = '50%';

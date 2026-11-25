@@ -140,6 +140,23 @@ Erzeugt mit `build_fruehe_kulturen.py` → `data/fruehe_reiche.json`. Gebiete si
 
 Nicht abrufbar waren am 25.11.2026 (Server lieferte HTML statt PDF): ISAC OIP 8 und SAOC 12, Murnane (Medinet Habu), Brown-Reader, UMass- und Utah-Vorlesungen, OAPEN (Knodell). Sie sind nicht eingeflossen.
 
+## Griechenland und Rom nach dem Grundkurs „Alte Geschichte“ (seit 25.11.2026)
+
+Maßgeblich für Griechenland und Rom ist der Grundkurs „Alte Geschichte“ (Skript des Instituts für Altertumswissenschaften, FSU Jena, WS 2022/23, Redaktionsstand 14.10.2022; im Folgenden GK). Übernommen sind nur Eckdaten und Epochen, in eigenen Worten; Ereignisse tragen im Feld `quelle` die Seite im GK. Das Skript selbst liegt nicht im Repository.
+
+| Bereich | GK | Umsetzung |
+|---|---|---|
+| Epochen | S. 4, 57, 66 | Leisten „Griechenland“ und „Rom“ über den Reichsspuren und Epochenhinweis in den Infokarten (nur freier Modus); `epochen` in `data/fruehe_reiche.json` |
+| Minoer, Mykener | S. 3, 57 | Kreta ab 2000 v. Chr., Aufgabe des Palastes von Knossos um 1200 (frühere Datierung ins 14. Jh. als umstritten genannt); Palastzeit 1450–1200, Nachpalastzeit bis 1050 |
+| Athen, Sparta, Theben | S. 58–63 | Archonten 683/82, Drakon, Solon, Peisistratiden, Kleisthenes 508/07; Messenische Kriege; Kasse des Seebunds 455/54, Kalliasfrieden 450/49 (umstritten), Dreißigjähriger Frieden 446/45, Eurymedon um 466; neues Reich „Theben“ (371–335) mit Leuktra, Mantineia, Messenien frei 369 |
+| Persien | S. 60, 62 | Ausdehnung in Schritten: Meder 550, Lyder 547/46, Babylon 539, Indus unter Dareios I.; Kunaxa 401, Knidos 394, Königsfriede 386 |
+| Makedonien, Diadochen, Hellenismus | S. 63–65 | Philokrates 346, Lamischer Krieg, Diadochenkriege, Königsproklamationen 306, Antigoniden, Syrische Kriege, Makedonische Kriege, Apameia 188, Tag von Eleusis 168 |
+| Rom | S. 66–80 | Gebiete ab 753 (legendär) in Schritten bis 300 v. Chr. (`build_fruehe_kulturen.py`), Ereignisse von der Königszeit bis 476 (`build_reiche.py`); Sardinien/Korsika 237, Magnesia 189 (GK nennt „am Mäander“; gemeint ist Magnesia am Sipylos), Gallien 58–51 |
+| Karthago, Parther, Sasaniden | S. 65, 68, 72, 76–80 | Ereignisse in den Infokarten der Nachbarreiche |
+| Alexanderzug | S. 63, 86 | Ein durchgehender Weg in acht Etappen, Stationen (`alexander_stationen`), Umkehr am Hyphasis 326; Siwa nach Plut. Alex. 27 (GK S. 86) |
+| Zitat am Hyphasis | – | Arr. an. 5,26, nur der geprüfte Teilsatz; deutsch nach der gemeinfreien englischen Übersetzung von E. J. Chinnock (London 1884), abgerufen über Wikisource („The Anabasis of Alexander/Book V/Chapter XXVI“) [Übers. d. Verf.]. Der griechische Text war am 25.11.2026 nicht abrufbar (Perseus). Hinweis auf die Gestaltung antiker Reden (Thuk. 1,22, GK S. 81) |
+| Völkerwanderung | S. 3, 77–79 | Beginn „um 375“ mit Hinweis, dass das Jahr nicht belegt ist; Rheinübergang 406/07; Gotenfoedus 382; ergänzt: Theoderich nach Italien 489–493, Westgoten nach Vouillé (507) nach Spanien, Langobarden 568; Schlachten Soissons 486 und Vouillé 507; je Zug ein **Auslöser** und **Stationen unterwegs** (Überfälle, Plünderungen, Belagerungen) mit Quellenstelle (u. a. Ammianus, Zosimos, Hieronymus Brief 123, Hydatius, Jordanes, Prokop, Paulus Diaconus); Motive, die in der Forschung umstritten sind, als umstritten gekennzeichnet (`VW_KONTEXT` in `build_reiche.py`) |
+
 ## Griechische Poleis und Kolonisation (seit 25.11.2026)
 
 Erzeugt mit `build_poleis.py`; die Rohdaten liegen nur lokal unter `quellen/lokal/poleis/` (per `.gitignore` ausgeschlossen).
@@ -153,7 +170,35 @@ Darstellungsregeln: Poleis erscheinen ab ihrem Gründungsdatum (nur für Kolonie
 
 ## Mittelalter 480–1453 (seit 25.11.2026)
 
-`build_mittelalter.py` → `data/mittelalter_reiche.json`: Byzanz (als Fortsetzung des Reichs „rom“), Langobarden, Kalifate, al-Andalus, christliche Reiche Iberiens, chinesische Dynastien, Liao und Jin, Mongolen, Seldschuken, Fatimiden/Ayyubiden/Mamluken, frühe Osmanen, Ostfranken/HRR, Frankreich, England, Rus, Bulgarien, Ungarn, Polen, Nordindien. Nur angedeutet: grobe, von Hand gesetzte Umrisse und gerundete Handbuchdaten; keine Belegstellen je Ereignis. Für den Unterricht als Orientierung gedacht, nicht als Grenzkarte.
+`build_mittelalter.py` → `data/mittelalter_reiche.json`: Byzanz (als Fortsetzung des Reichs „rom“), Langobarden, Kalifate, al-Andalus, christliche Reiche Iberiens, chinesische Dynastien, Liao und Jin, Mongolen, Seldschuken, Fatimiden/Ayyubiden/Mamluken, frühe Osmanen, Ostfranken/HRR, Frankreich, England, Rus, Bulgarien, Ungarn, Polen, Nordindien. Nur angedeutet: von Hand gesetzte Umrisse und gerundete Handbuchdaten; keine Belegstellen je Ereignis. Für den Unterricht als Orientierung gedacht, nicht als Grenzkarte.
+
+Ergänzt am 25.11.2026, damit Mitteleuropa keine Lücken mehr hat:
+- Frankenreich 487–843 in Stufen (Chlodwig, Vouillé 507, Burgund/Provence 534/37, Friesland 734, Septimanien 759, Langobardenreich 774, Awarenkriege 796, Sachsen 804) als Teil des Reichs „franken“; Westgoten in Gallien enden 507.
+- Neu: Awaren (568–796), Lotharingien und Burgund/Arelat (843–1032), Regnum Italiae (843–962), Kirchenstaat (756–1453), Fürstentum Benevent (bis 1077, beim Reich „langob“), Sizilien und Süditalien (902–1453), Serbien (1180–1453), Litauen (1240–1453), Deutscher Orden (1230–1453), englische Besitzungen in Frankreich (1154–1453), Galizien-Wolhynien (1240–1349).
+- Umrisse neu gezogen entlang der Linien, die die Handbücher nennen: Vertrag von Verdun 843 (Schelde, Maas, Saône, Rhône), Elbe und Saale, Enns, Alpenhauptkamm, Pyrenäen, Karpatenbogen, Erzgebirge, Sudeten, Böhmerwald. Stufen für HRR (880, 962, 1032, 1150, 1335), Polen (1138, 1320, 1349), Ungarn (1102 mit Kroatien), Bulgarien (Krum, Simeon, Samuel, Iwan Assen II.), Rus (Kiewer Rus, Nordost-Rus unter der Goldenen Horde), Mongolen-Khanate.
+- Zeitlich berichtigt: Byzanz in Italien erst im Gotenkrieg (535–552), Thrakien nach 1354 osmanisch (Adrianopel 1369), Seldschuken in Bagdad ab 1055, sasanidisches Mesopotamien bis 637 und Medien bis 642.
+
+## Grenzen bereinigen: `build_grenzen.py` (seit 25.11.2026)
+
+Die drei Reichsdateien (`data/reiche.json`, `data/fruehe_reiche.json`, `data/mittelalter_reiche.json`) entstehen unabhängig. `build_grenzen.py` läuft danach und schreibt sie zurück:
+
+1. Grenzen in der Nähe (≤ 0,35°) großer Flüsse und Gebirgskämme werden auf diese Linien gelegt (Saumstücke von 0,6° Länge; jedes Stück gehört ganz zu dem Reich, das es überwiegend bedeckt). Flächen unter 1,5 Grad² (Stadtstaaten, Inseln) bleiben unverändert.
+2. Schmale Landstreifen (≤ 1°) zwischen gleichzeitigen Reichen werden etwa auf der Mittellinie geteilt. Große unbesetzte Räume bleiben leer, wenn dort kein Reich belegt ist (z. B. Westalpen vor 15 v. Chr., Walachei um 1000).
+3. Gleichzeitige Flächen überdecken sich nicht mehr. Vorrang haben Rom und Han, sonst die kleinere, genauer gezeichnete Fläche; die unterlegene verliert das Gebiet nur für die Jahre der Überschneidung (Zeitabschnitte werden geteilt, neue ids ab 9001). Oberhoheit (Tribut, Lehnshoheit, z. B. Goldene Horde über die Rus) steht im Text, nicht als zweite Fläche. Flächen der Art „einfluss“ bleiben unberührt.
+4. Küsten exakt nach `data/land.json`.
+
+Prüfung ohne Änderung: `python build_grenzen.py --pruefen` (Stichjahre alle 25 Jahre; Rückgabewert 1 bei Überlappungen über 0,05 Grad²; kleinere sind Rundungsreste; schmale Lücken zwischen Nachbarn werden nur gemeldet, weil manche historisch richtig sind). Koordinaten werden auf 0,01° (≈ 1 km) gerundet. Stand nach dem Lauf: keine Überlappungen außer Rundungsresten; von 978 schmalen Lücken (Stichjahre) bleiben rund 200, meist historisch freie Räume (Alpen vor der Eroberung, Steppengrenzen, Walachei), einige Grenzstreifen sind noch zu prüfen.
+
+## Historische Geographie: `build_geographie.py` → `data/geographie.json` (seit 25.11.2026)
+
+| Bestandteil | Quelle | Hinweis |
+|---|---|---|
+| Flussläufe | Natural Earth 1:10 Mio., *Rivers + lake centerlines* und *Rivers Europe* (gemeinfrei, naturalearthdata.com) | heutige Läufe; antike Läufe wichen besonders in Deltas und Schwemmebenen ab |
+| Gebirge | Natural Earth 1:10 Mio., *Geography regions* (Umrisse der Gebirge) | Kammlinie = Mittelachse des Umrisses, schematisch |
+| Namen, Auswahl | Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, Kap. 8 „Historische Geographie“ (S. 41–42) und Karten S. 43–45; Hydaspes und Hyphasis S. 63; Elbe S. 71; Ebro-Grenze S. 68 | Einträge ohne Seitenangabe sind ergänzt und in der Anzeige so gekennzeichnet (Huang He, Jangtse, Haimos, Kaukasos, Zagros, Pindos, Libanos, Mare Ionium, Hellespontos, Parnassos, Vesuv, Ätna) |
+| Landschaften | Skript S. 42 („Wichtige antike Landschaften, Provinzen und Städte“) und Karten S. 43–45 | Beschriftungspunkte von Hand gesetzt |
+
+Die Natural-Earth-Daten lädt das Skript einmalig nach `quellen/lokal/naturalearth/` (nicht im Repository). Die App lädt nur `data/geographie.json` vom eigenen Server.
 
 ## Archäologische Funde, Alexanderzug
 

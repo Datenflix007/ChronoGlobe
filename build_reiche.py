@@ -25,8 +25,8 @@ def U(*gs): return unary_union(gs)
 #  Reiche (Reihenfolge = Priorität bei Überlappung; Rom und Han zuerst)
 # ======================================================================
 META = {
- 'rom':   dict(name='Römisches Reich', von=-300, bis=1453, farbe='#c4342c', zentrum=[18, 41], rahmen=[-13, 27.5, 46, 56.5], haupt=True,
-              kurz='Vom Stadtstaat zum Weltreich rund um das Mittelmeer.'),
+ 'rom':   dict(name='Römisches Reich', von=-753, bis=1453, farbe='#c4342c', zentrum=[18, 41], rahmen=[-13, 27.5, 46, 56.5], haupt=True,
+              kurz='Vom Stadtstaat zum Weltreich rund um das Mittelmeer: Königszeit (753–510 v. Chr., Gründungsdatum legendär), Republik (510–27 v. Chr.), Kaiserzeit (27 v. Chr.–284 n. Chr.), Spätantike (284–565); Ostrom/Byzanz bis 1453.'),
  'han':   dict(name='Han-Reich', von=-206, bis=220, farbe='#e09e0c', zentrum=[108, 34], rahmen=[72, 8, 134, 49], haupt=True,
               kurz='Chinesisches Kaiserreich, Gegenstück zu Rom im Osten Eurasiens.'),
  'karth': dict(name='Karthago', von=-300, bis=-146, farbe='#8e44ad', zentrum=[10, 36],
@@ -52,8 +52,8 @@ META = {
  'hunnen':dict(name='Hunnen', von=370, bis=469, farbe='#c08a5b', zentrum=[34, 47],
               kurz='Steppenvolk, das ab 375 n. Chr. die Völkerwanderung auslöst; unter Attila (434–453) auf dem Höhepunkt.'),
  # --- Europa (Kontext): Nachfolgestaaten Westroms. kontext=True: grau im Menü, keine Schriftrolle ---
- 'franken': dict(name='Franken', von=257, bis=843, farbe='#7d8a5a', zentrum=[5.5, 50.9], kontext=True,
-              kurz='Germanischer Verband am Niederrhein; Salfranken ab 358 in Toxandrien, ab etwa 457 Kleinkönigreich um Tournai (Childerich I.). Grundlage des späteren Frankenreichs.'),
+ 'franken': dict(name='Franken (Merowinger und Karolinger)', von=257, bis=843, farbe='#7d8a5a', zentrum=[5.5, 50.9], kontext=True,
+              kurz='Germanischer Verband am Niederrhein; Salfranken ab 358 in Toxandrien, ab etwa 457 Kleinkönigreich um Tournai (Childerich I.). Chlodwig (481/82–511) begründet das Frankenreich der Merowinger; ab 751 Karolinger, unter Karl dem Großen (768–814, Kaiser 800) von der Elbe bis Mittelitalien. 843 im Vertrag von Verdun geteilt.'),
  'alaman': dict(name='Alamannen', von=260, bis=506, farbe='#8f7a5c', zentrum=[8.6, 48.5], kontext=True,
               kurz='Germanischer Verband; besetzt nach 260 das aufgegebene Dekumatland, nach 455 auch Elsass und Nordschweiz.'),
  'westgot': dict(name='Westgotenreich', von=418, bis=711, farbe='#8a6f8f', zentrum=[0.5, 43.5], kontext=True,
@@ -241,7 +241,7 @@ reg('rom','Italia (Mittelitalien)',italia_c,-300,476,seite='w')
 reg('rom','Italia (Süditalien, nach dem Krieg gegen Pyrrhos)',italia_s,-272,476,seite='w')
 reg('rom','Sicilia (Syrakus, ganz römisch ab 210 v. Chr.)',sic_ost,-212,476,seite='w')
 reg('rom','Sicilia (erste Provinz, 241 v. Chr.)',sicilia,-241,476,seite='w')
-reg('rom','Sardinia et Corsica (Provinz 227 v. Chr.)',sardinia,-238,476,seite='w')
+reg('rom','Sardinia et Corsica (237 v. Chr. annektiert, Provinz 227 v. Chr.)',sardinia,-237,476,seite='w')
 reg('rom','Gallia cisalpina (Norditalien, ab 42 v. Chr. Teil Italiens)',cisalpina,-222,476,seite='w')
 reg('rom','Hispania Baetica (Hauptstadt Corduba)',baetica,-206,476,seite='w')
 reg('rom','Hispania Tarraconensis (Küste; Hauptstadt Tarraco)',hisp_early,-206,476,seite='w')
@@ -326,7 +326,7 @@ reg('han','Westliche Regionen (Osten)',tarim_east,123,150,art='einfluss')
 # ---- Karthago ----
 reg('karth','Kernland um Karthago',karth_core,-300)
 reg('karth','West-Sizilien',sicilia_w,-300,-241)
-reg('karth','Sardinien und Korsika',sardinia,-300,-238)
+reg('karth','Sardinien und Korsika',sardinia,-300,-237)   # 237 v. Chr. von Rom annektiert (Grundkurs-Skript S. 68)
 reg('karth','Libysche Küste',karth_lib,-300,-201)
 reg('karth','Küste Mauretaniens',karth_maur,-300,-201)
 reg('karth','Hispanien (Barkiden)',karth_hisp,-237,-206)
@@ -357,8 +357,9 @@ reg('parth','Persis',persis,-141)
 reg('parth','Armenien (Einfluss)',armenia,-66,art='einfluss')
 
 # ---- Sasaniden ----
-for nm, g in [('Mesopotamien',mesopot),('Medien',media),('Persis (Stammland)',persis),('Parthyene',parthyene),('Ost-Iran',ostiran)]:
-    reg('sasan', nm, g, 224)
+# Arabische Eroberung: Ktesiphon 637, Nahavand 642, Tod Yazdegerds III. 651
+for nm, g, bis in [('Mesopotamien',mesopot,637),('Medien',media,642),('Persis (Stammland)',persis,None),('Parthyene',parthyene,None),('Ost-Iran',ostiran,None)]:
+    reg('sasan', nm, g, 224, bis)
 reg('sasan','Armenien (Einfluss)',armenia,252,art='einfluss')
 reg('sasan','Kuschanschahr (Baktrien)',baktria,240)
 
@@ -397,11 +398,12 @@ reg('franken','Rheinfranken um Köln',fr_koeln,457)
 reg('franken','Tournai und Cambrai (Childerich I.)',fr_tournai,457)
 reg('alaman','Dekumatland',agri_dec,260)
 reg('alaman','Elsass und Nordschweiz',al_elsass,455)
-reg('westgot','Aquitanien (Föderatenvertrag)',wg_aquit,418)
+reg('westgot','Aquitanien (Föderatenvertrag)',wg_aquit,418,507)   # 507 Vouillé: Aquitanien fränkisch
 reg('westgot','Septimanien (Narbonne)',wg_sept,462)
-reg('westgot','Gallien bis zur Loire',wg_gall,470)
-reg('westgot','Hispanien (Eroberung unter Eurich)',hisp_all,472)
-reg('westgot','Provence (Arles, Marseille)',wg_prov,474)
+reg('westgot','Gallien bis zur Loire',wg_gall,470,507)
+nord_pyr = P((-2.2,43.55),(-1.85,43.4),(-1.5,43.1),(-0.6,42.8),(0.7,42.7),(2.0,42.45),(3.15,42.45),(3.4,42.5),(3.4,44.3),(-2.2,44.3))   # nördlich der Pyrenäen
+reg('westgot','Hispanien (Eroberung unter Eurich)',hisp_all.difference(nord_pyr),472)
+reg('westgot','Provence (Arles, Marseille)',wg_prov,474,508)   # 508 an die Ostgoten, 537 fränkisch
 reg('sueben','Gallaecia',sueb_core,411)
 reg('sueben','Lusitanien und Baetica',sueb_ext,439,456)
 reg('vandal','Baetica (Silingen und Hasdingen)',baetica,411,429)
@@ -478,23 +480,107 @@ for i, p in enumerate(pieces):
 #  Ereignisse (Texte für Infokarten + Marker auf der Zeitleiste)
 # ======================================================================
 E = [
- ('rom',-300,'Rom erobert Mittelitalien','Nach den Samnitenkriegen beherrscht Rom große Teile Mittelitaliens. Bündnisse mit unterworfenen Städten sichern die Macht.'),
- ('rom',-272,'Rom beherrscht Italien','Nach dem Sieg über Pyrrhos (275 v. Chr.) fällt 272 v. Chr. Tarent. Rom kontrolliert die Halbinsel südlich der Poebene.'),
- ('rom',-241,'Erster Punischer Krieg gewonnen','Sizilien wird erste römische Provinz (241 v. Chr.), kurz darauf Sardinien und Korsika (238 v. Chr.).'),
- ('rom',-218,'Zweiter Punischer Krieg','Hannibal zieht mit Elefanten über die Alpen und besiegt Rom bei Cannae (216 v. Chr.). Erst 202 v. Chr. siegt Scipio bei Zama.'),
- ('rom',-146,'Karthago und Korinth zerstört','Africa, Makedonien und Achaia werden römisch. Rom ist Vormacht im Mittelmeer.'),
- ('rom',-133,'Erbe von Pergamon','Attalos III. vererbt sein Reich an Rom (Provinz Asia). Numantia in Hispanien fällt. In Rom beginnen die Reformen der Gracchen.'),
- ('rom',-64,'Pompeius ordnet den Osten','Syrien, Pontus und Kilikien werden Provinzen. Das Seleukidenreich ist erloschen.'),
- ('rom',-50,'Caesar erobert Gallien','Nach dem Gallischen Krieg (58–50 v. Chr.) reicht Rom bis an den Rhein. 44 v. Chr. wird Caesar ermordet.'),
- ('rom',-30,'Ägypten wird römisch','Nach dem Sieg bei Actium (31 v. Chr.) und dem Tod Kleopatras fällt Ägypten an Rom. 27 v. Chr. wird Octavian zu Augustus.'),
- ('rom',9,'Augustus sichert die Grenzen','Donauprovinzen entstehen. Nach der Varusschlacht (9 n. Chr.) bleibt der Rhein die Grenze in Germanien.'),
- ('rom',43,'Eroberung Britanniens','Unter Kaiser Claudius beginnt 43 n. Chr. die Eroberung Britanniens. Thrakien und Mauretanien werden Provinzen.'),
- ('rom',117,'Größte Ausdehnung unter Trajan','Dakien und Arabia sind Provinzen (106 n. Chr.). Mesopotamien wurde 116/117 nur kurz erobert und ist nicht eingezeichnet.'),
- ('rom',260,'Reichskrise im 3. Jahrhundert','Kaiser Valerian gerät in persische Gefangenschaft. Das Dekumatland wird aufgegeben, um 271 auch Dakien.'),
- ('rom',395,'Reichsteilung in West- und Ostrom','Nach dem Tod Theodosius’ I. erben seine Söhne das Reich: Honorius den Westen (Westrom), Arcadius den Osten (Ostrom, Hauptstadt Konstantinopel).'),
- ('rom',410,'Plünderung Roms','Westgoten unter Alarich plündern Rom. Britannien wird aufgegeben.'),
- ('rom',439,'Vandalen erobern Karthago','Westrom verliert Nordafrika, seine reichste Provinz. Hispanien und Gallien gehen in den folgenden Jahrzehnten an germanische Reiche.'),
- ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Julius Nepos hält sich bis 480 in Dalmatien. Ostrom (Byzanz) besteht bis 1453 weiter.'),
+ # Rom bis 476, Karthago, Hellenistische Reiche, Parther, Sasaniden nach dem Grundkurs „Alte Geschichte“ (Skript FSU Jena,
+ # WS 2022/23; Seite im 6. Feld). Ein Ereignis beschreibt den Zustand bis zum nächsten (Infokarte, Marker auf der Zeitleiste).
+ # 5. Feld: Anzeige des Jahres. Die Gebiete Roms vor 300 v. Chr. stehen in build_fruehe_kulturen.py.
+ ('rom',-753,'Gründung Roms (Sage)','Nach der späteren Überlieferung (Varro) wird Rom am 21. April 753 v. Chr. gegründet; das Datum ist legendär. Zuerst herrschen latinische Könige (Romulus, Numa Pompilius, Tullus Hostilius, Ancus Marcius).','753 v. Chr. (Sage)','66'),
+ ('rom',-650,'Etruskische Könige','Unter Tarquinius Priscus, Servius Tullius und Tarquinius Superbus wächst Rom zur Stadt. Von den Etruskern übernehmen die Römer u. a. Alphabet, Vorzeichenschau und Amtsinsignien.','um 650 v. Chr.','66'),
+ ('rom',-510,'Beginn der Republik','Der letzte König wird vertrieben; jährlich gewählte Beamte (später zwei Konsuln) führen den Staat. Es beginnen die Ständekämpfe zwischen Patriziern und Plebejern.','um 510 v. Chr.','66'),
+ ('rom',-494,'Auszug der Plebs','Mit der ersten secessio plebis erzwingen die Plebejer das Volkstribunat. Nach dem Latinerkrieg (498–493 v. Chr.) besteht der Latinische Bund.','494 v. Chr.','66'),
+ ('rom',-450,'Zwölftafelgesetz','Ein Zehnmännerkollegium (decemviri) schreibt das Recht auf zwölf Tafeln nieder.','450 v. Chr.','66'),
+ ('rom',-396,'Veji erobert','Nach zehnjährigem Krieg (406–396 v. Chr.) erobert Rom die etruskische Nachbarstadt Veji.','396 v. Chr.','66'),
+ ('rom',-387,'Gallierkatastrophe','Kelten besiegen die Römer und plündern die Stadt (nach anderer Zählung 390 v. Chr.). Danach entsteht die Servianische Mauer (380 v. Chr.).','387 v. Chr.','66'),
+ ('rom',-367,'Licinisch-sextische Gesetze','Plebejer werden zum Konsulat zugelassen; es folgen der erste plebejische Zensor (351) und Prätor (337 v. Chr.).','367 v. Chr.','66'),
+ ('rom',-338,'Ende des Latinischen Bundes','Nach dem Latinerkrieg (340–338 v. Chr.) löst Rom den Bund auf und schließt Einzelverträge mit den Städten.','338 v. Chr.','66'),
+ ('rom',-326,'Zweiter Samnitenkrieg','Im Krieg gegen die Samniten (326–304 v. Chr.) wird Kampanien römisch; Rom legt planmäßig Militärkolonien an.','326 v. Chr.','66'),
+ ('rom',-298,'Dritter Samnitenkrieg','Der Dritte Samnitenkrieg (298–290 v. Chr.) macht Rom zur Vormacht Mittelitaliens.','298 v. Chr.','66'),
+ ('rom',-287,'Ende der Ständekämpfe','Die lex Hortensia gibt den Beschlüssen der Plebs Gesetzeskraft. Patrizier und reiche Plebejer bilden die neue Führungsschicht (Nobilität).','287 v. Chr.','66–67'),
+ ('rom',-280,'Krieg gegen Pyrrhos','Tarent ruft König Pyrrhos von Epirus zu Hilfe; Rom kämpft gegen ihn, die Samniten und Lukaner (280–272 v. Chr.).','280 v. Chr.','67'),
+ ('rom',-272,'Hegemonie in Italien','Rom beherrscht Italien südlich der Poebene; die Bundesgenossen stellen Truppen (italische Wehrgemeinschaft).','272 v. Chr.','67'),
+ ('rom',-264,'Erster Punischer Krieg','Rom und Karthago kämpfen um Sizilien (264–241 v. Chr.); 260 v. Chr. siegt Rom erstmals zur See (Mylae).','264 v. Chr.','68'),
+ ('rom',-241,'Sizilien römisch','Nach dem Seesieg bei den Ägatischen Inseln räumt Karthago Sizilien. 237 v. Chr. annektiert Rom Sardinien und Korsika.','241 v. Chr.','68'),
+ ('rom',-227,'Erste Provinzen','Sizilien sowie Sardinien und Korsika werden Provinzen unter Prätoren.','227 v. Chr.','68'),
+ ('rom',-218,'Zweiter Punischer Krieg','Hannibal zieht über die Alpen und siegt am Trasimenischen See (217) und bei Cannae (216 v. Chr.); erst 202 v. Chr. besiegt ihn Scipio bei Zama.','218 v. Chr.','68'),
+ ('rom',-201,'Frieden mit Karthago','Karthago muss Hispanien räumen; 198 v. Chr. richtet Rom dort zwei Provinzen ein (Hispania citerior und ulterior).','201 v. Chr.','68'),
+ ('rom',-196,'Freiheitserklärung','Nach dem Sieg bei Kynoskephalai (197 v. Chr.) erklärt T. Quinctius Flamininus die Griechen für frei.','196 v. Chr.','68'),
+ ('rom',-188,'Friede von Apameia','Antiochos III. muss nach Magnesia (189 v. Chr.) Kleinasien diesseits des Tauros räumen.','188 v. Chr.','65, 68'),
+ ('rom',-168,'Pydna','Rom beendet die makedonische Monarchie; im selben Jahr zwingt eine Senatsgesandtschaft Antiochos IV. zum Rückzug aus Ägypten („Tag von Eleusis“).','168 v. Chr.','68'),
+ ('rom',-146,'Karthago und Korinth zerstört','Africa (146) und Macedonia (148 v. Chr.) werden Provinzen, ebenso Achaea. Rom ist Vormacht im Mittelmeer.','146 v. Chr.','68'),
+ ('rom',-133,'Erbe von Pergamon','Attalos III. vermacht Rom sein Reich (Provinz Asia ab 129 v. Chr.). Numantia fällt. Tiberius Gracchus will als Volkstribun Land an arme Bürger verteilen und wird erschlagen.','133 v. Chr.','68–69'),
+ ('rom',-123,'Gaius Gracchus','Gaius Gracchus setzt als Volkstribun (123–122 v. Chr.) die Reformen seines Bruders fort und wird ebenfalls getötet. 121 v. Chr. wird Gallia Narbonensis Provinz.','123 v. Chr.','68–69'),
+ ('rom',-107,'Marius','Kimbern und Teutonen fallen ein (113–101 v. Chr.). Marius, mehrfach Konsul, reformiert das Heer und besiegt sie bei Aquae Sextiae (102) und Vercellae (101 v. Chr.).','107 v. Chr.','69'),
+ ('rom',-91,'Bundesgenossenkrieg','Die italischen Bundesgenossen kämpfen gegen Rom (91–89 v. Chr.).','91 v. Chr.','69'),
+ ('rom',-88,'Sulla marschiert auf Rom','Sulla führt erstmals ein Heer gegen die eigene Stadt und kämpft danach gegen Mithridates VI. von Pontos (87–84 v. Chr.).','88 v. Chr.','69'),
+ ('rom',-82,'Diktatur Sullas','Nach seinem zweiten Marsch auf Rom lässt Sulla Gegner ächten (Proskriptionen); Diktatur 82–79 v. Chr.','82 v. Chr.','69'),
+ ('rom',-73,'Spartacus','Sklavenaufstand in Italien unter Spartacus (73–71 v. Chr.).','73 v. Chr.','69'),
+ ('rom',-64,'Pompeius ordnet den Osten','Pompeius besiegt Mithridates und ordnet die römische Herrschaft im Osten neu (64/63 v. Chr.); das Seleukidenreich wird Provinz Syria.','64/63 v. Chr.','65, 69'),
+ ('rom',-60,'Erstes Triumvirat','Pompeius, Caesar und Crassus verbünden sich; 59 v. Chr. ist Caesar Konsul.','60 v. Chr.','70'),
+ ('rom',-58,'Caesar erobert Gallien','Im Gallischen Krieg (58–51 v. Chr.) unterwirft Caesar Gallien bis an den Rhein. 53 v. Chr. fällt Crassus gegen die Parther bei Carrhae.','58 v. Chr.','70'),
+ ('rom',-49,'Bürgerkrieg','Caesar überschreitet den Rubikon. Pompeius unterliegt bei Pharsalos (48) und wird in Ägypten ermordet; Caesar siegt auch bei Thapsus (46) und Munda (45 v. Chr.).','49 v. Chr.','70'),
+ ('rom',-44,'Ermordung Caesars','Caesar, Diktator auf Lebenszeit, wird am 15. März 44 v. Chr. ermordet.','44 v. Chr.','70'),
+ ('rom',-43,'Zweites Triumvirat','Antonius, Octavian und Lepidus herrschen gemeinsam (lex Titia); Proskriptionen, Tod Ciceros. 42 v. Chr. siegen sie bei Philippi über die Caesarmörder.','43 v. Chr.','70'),
+ ('rom',-31,'Actium','Octavian besiegt Antonius und Kleopatra VII.; 30 v. Chr. wird Ägypten römische Provinz.','31 v. Chr.','70'),
+ ('rom',-27,'Augustus: Beginn der Kaiserzeit','Octavian erhält den Namen Augustus und begründet den Prinzipat; die Provinzen werden in kaiserliche und senatorische geteilt.','27 v. Chr.','70–71'),
+ ('rom',9,'Varusschlacht','Der Versuch, Germanien bis zur Elbe zur Provinz zu machen (12 v.–9 n. Chr.), scheitert; der Rhein bleibt die Grenze.','9 n. Chr.','71'),
+ ('rom',14,'Julisch-claudische Dynastie','Auf Augustus folgen Tiberius (14–37), Caligula (37–41), Claudius (41–54) und Nero (54–68).','14 n. Chr.','71'),
+ ('rom',43,'Eroberung Britanniens','Unter Claudius beginnt die Eroberung Britanniens.','43 n. Chr.','71'),
+ ('rom',64,'Brand Roms','Nach dem Brand Roms lässt Nero Christen verfolgen. 67–70 n. Chr. kämpft Rom gegen den Jüdischen Aufstand.','64 n. Chr.','71'),
+ ('rom',69,'Vierkaiserjahr','Galba, Otho, Vitellius und Vespasian kämpfen um die Herrschaft; Vespasian begründet die flavische Dynastie (69–96).','69 n. Chr.','71'),
+ ('rom',98,'Trajan','Unter den Adoptivkaisern (96–180) erreicht das Reich seine größte Ausdehnung; Trajan erobert Dakien (101–106 n. Chr.).','98 n. Chr.','71'),
+ ('rom',117,'Größte Ausdehnung','Dakien und Arabia sind Provinzen. Mesopotamien wurde im Partherkrieg (114–117) nur kurz erobert und ist nicht eingezeichnet. Hadrian (117–138) sichert die Grenzen.','117 n. Chr.','71'),
+ ('rom',166,'Pest und Markomannenkriege','Unter Mark Aurel (161–180) wütet eine Seuche; an der Donau kämpft Rom gegen Markomannen (169–175, 178–180 n. Chr.).','166 n. Chr.','72'),
+ ('rom',193,'Severer','Nach Bürgerkriegen setzt sich Septimius Severus durch (193–211). Caracalla gibt 212 n. Chr. fast allen freien Reichsbewohnern das Bürgerrecht (Constitutio Antoniniana).','193 n. Chr.','72'),
+ ('rom',235,'Soldatenkaiser','Mit Maximinus Thrax beginnt die Zeit der Soldatenkaiser (235–284): rasch wechselnde Kaiser, Einfälle an Rhein, Donau und Euphrat.','235 n. Chr.','72'),
+ ('rom',260,'Reichskrise','Šābuhr I. nimmt Kaiser Valerian gefangen. Das Gallische Sonderreich (260–274) und das Palmyrenische Teilreich (bis 272) lösen sich ab; der Limes fällt (259/60).','260 n. Chr.','72'),
+ ('rom',274,'Aurelian','Aurelian (270–275) besiegt die Sonderreiche und stellt die Einheit des Reiches wieder her.','274 n. Chr.','72'),
+ ('rom',284,'Diocletian: Beginn der Spätantike','Diocletian (284–305) ordnet Heer, Verwaltung und Steuern neu; 293 n. Chr. teilen sich vier Herrscher die Macht (Tetrarchie). 303 beginnt eine Christenverfolgung.','284 n. Chr.','76'),
+ ('rom',312,'Konstantin','Konstantin siegt an der Milvischen Brücke; 313 n. Chr. wird das Christentum erlaubte Religion (Mailänder Übereinkunft).','312 n. Chr.','76'),
+ ('rom',324,'Konstantin Alleinherrscher','Nach dem Sieg über Licinius regiert Konstantin allein; 325 Konzil von Nicaea, 330 n. Chr. Einweihung Konstantinopels.','324 n. Chr.','76'),
+ ('rom',376,'Goten an der Donau','Von den Hunnen bedrängt, überqueren Goten die Donau; 378 n. Chr. fällt Kaiser Valens bei Adrianopel. 382 werden sie als Föderaten angesiedelt.','376 n. Chr.','77'),
+ ('rom',380,'Christentum als Reichsreligion','Theodosius I. verlangt im Edikt Cunctos populos das nicaenische Bekenntnis; 391/92 n. Chr. verbieten Gesetze die heidnischen Kulte.','380 n. Chr.','77'),
+ ('rom',395,'Reichsteilung in West- und Ostrom','Nach dem Tod Theodosius’ I. erben seine Söhne das Reich: Honorius den Westen, Arcadius den Osten (Hauptstadt Konstantinopel).','395 n. Chr.','77'),
+ ('rom',406,'Germanen über den Rhein','Vandalen, Alanen und Sueben überschreiten den Rhein (406/07) und ziehen 409 n. Chr. nach Spanien.','406 n. Chr.','78'),
+ ('rom',410,'Plünderung Roms','Westgoten unter Alarich plündern Rom. Britannien wird aufgegeben; 418 n. Chr. werden die Westgoten in Aquitanien angesiedelt.','410 n. Chr.','78'),
+ ('rom',429,'Vandalen in Africa','Die Vandalen unter Geiserich setzen nach Nordafrika über.','429 n. Chr.','78'),
+ ('rom',439,'Vandalen erobern Karthago','Westrom verliert Nordafrika, seine reichste Provinz. 451 n. Chr. stellen sich Aëtius und die Westgoten Attila auf den Katalaunischen Feldern entgegen.','439 n. Chr.','78'),
+ ('rom',455,'Vandalen plündern Rom','Nach dem Tod Valentinians III. verfällt das westliche Kaisertum; Heermeister wie Rikimer bestimmen die Politik.','455 n. Chr.','78'),
+ ('rom',476,'Ende Westroms','Odoaker setzt den letzten weströmischen Kaiser Romulus Augustulus ab. Julius Nepos hält sich bis 480 in Dalmatien. Ostrom besteht weiter.','476 n. Chr.','78'),
+ # --- Karthago (GK S. 68) ---
+ ('karth',-300,'Seemacht im westlichen Mittelmeer','Karthago beherrscht Nordafrika, West-Sizilien, Sardinien und Küsten Hispaniens.','um 300 v. Chr.'),
+ ('karth',-264,'Erster Punischer Krieg','Krieg gegen Rom um Sizilien (264–241 v. Chr.); 241 muss Karthago die Insel räumen, 237 v. Chr. verliert es Sardinien und Korsika.','264 v. Chr.','68'),
+ ('karth',-237,'Die Barkiden in Hispanien','Hamilkar Barkas, Hasdrubal (seit 229) und Hannibal (seit 221 v. Chr.) besetzen Spanien; 226 v. Chr. wird der Ebro als Grenze festgelegt.','237 v. Chr.','68'),
+ ('karth',-218,'Hannibal gegen Rom','Hannibal greift Italien an und siegt bei Cannae (216 v. Chr.), muss Italien aber schließlich räumen.','218 v. Chr.','68'),
+ ('karth',-201,'Niederlage','Nach Zama (202 v. Chr.) verliert Karthago Hispanien.','201 v. Chr.','68'),
+ ('karth',-149,'Dritter Punischer Krieg','Rom belagert Karthago (149–146 v. Chr.) und zerstört die Stadt.','149 v. Chr.','68'),
+ # --- Hellenistische Reiche (GK S. 64–65) ---
+ ('ptol',-300,'Ptolemaios I.','Ptolemaios I. Soter herrscht seit 305 v. Chr. als König über Ägypten (Hauptstadt Alexandria).','um 300 v. Chr.','64'),
+ ('ptol',-285,'Ptolemaios II.','Unter Ptolemaios II. Philadelphos (285–246 v. Chr.) blüht Alexandria; im 1. und 2. Syrischen Krieg (274–271, 260–253) kämpft er mit den Seleukiden um Syrien.','285 v. Chr.','64–65'),
+ ('ptol',-246,'Dritter Syrischer Krieg','Nach dem Tod Ptolemaios’ II. und Antiochos’ II. beginnt der Laodikekrieg (246–241 v. Chr.).','246 v. Chr.','65'),
+ ('ptol',-217,'Raphia','Ptolemaios IV. besiegt Antiochos III. (4. Syrischer Krieg, 219–217 v. Chr.).','217 v. Chr.','65'),
+ ('ptol',-202,'Fünfter Syrischer Krieg','Antiochos III. kämpft mit Erfolg um Koilesyrien (202–195 v. Chr.).','202 v. Chr.','65'),
+ ('ptol',-168,'Tag von Eleusis','Eine römische Gesandtschaft zwingt Antiochos IV. zum Abzug aus Ägypten.','168 v. Chr.','65'),
+ ('ptol',-31,'Actium','Kleopatra VII. und Antonius unterliegen Octavian; 30 v. Chr. endet das Ptolemäerreich mit dem Selbstmord Kleopatras.','31 v. Chr.','65'),
+ ('seleu',-300,'Seleukos I.','Seleukos I. Nikator (König seit 305, gest. 281 v. Chr.) herrscht von Syrien bis Baktrien; ab 312/11 v. Chr. wird nach der seleukidischen Ära gezählt.','um 300 v. Chr.','46, 64'),
+ ('seleu',-281,'Kurupedion','Seleukos besiegt Lysimachos, wird aber im selben Jahr von Ptolemaios Keraunos ermordet. Antiochos I. (281–261) folgt.','281 v. Chr.','64'),
+ ('seleu',-240,'Abfall im Osten','Im „Bruderkrieg“ zwischen Seleukos II. und Antiochos Hierax (240–238?) lösen sich Parthien und Baktrien.','um 240 v. Chr.','65'),
+ ('seleu',-212,'Anabasis Antiochos’ III.','Antiochos III. zieht nach Osten gegen die Parther (212–205 v. Chr.).','212 v. Chr.','65'),
+ ('seleu',-192,'Antiochoskrieg','Krieg gegen Rom (192–188 v. Chr.); Niederlage bei Magnesia (189).','192 v. Chr.','65'),
+ ('seleu',-188,'Friede von Apameia','Das Reich verliert Kleinasien diesseits des Tauros.','188 v. Chr.','65'),
+ ('seleu',-141,'Mesopotamien an die Parther','Der Partherkönig Mithradates I. (171–139/38 v. Chr.) erobert Westiran und Mesopotamien.','141 v. Chr.','65'),
+ ('seleu',-64,'Ende','Der Rest des Reiches wird 64/63 v. Chr. römische Provinz Syria.','64/63 v. Chr.','65'),
+ ('parth',-247,'Arsakes I.','Arsakes I. (247–217 v. Chr.) begründet das Reich der Arsakiden; ab 247 v. Chr. wird nach ihnen gezählt.','247 v. Chr.','46, 65'),
+ ('parth',-171,'Mithradates I.','Mithradates I. (171–139/38 v. Chr.) erobert Westiran und Mesopotamien.','171 v. Chr.','65'),
+ ('parth',-53,'Carrhae','Die Parther vernichten das Heer des Crassus. 20 v. Chr. geben sie die erbeuteten Feldzeichen an Augustus zurück.','53 v. Chr.','70–71'),
+ ('parth',114,'Partherkrieg Trajans','Trajan erobert Mesopotamien (114–117 n. Chr.); Hadrian gibt die Eroberungen auf.','114 n. Chr.','71'),
+ ('parth',161,'Kriege mit Rom','Partherkriege des Lucius Verus (161–166) und des Septimius Severus (195, 197/98 n. Chr.).','161 n. Chr.','72'),
+ # --- Sasaniden (GK S. 72, 76–77, 80) ---
+ ('sasan',224,'Ardašīr I.','Ardašīr I. (224–240) stürzt die Arsakiden und begründet das Sasanidenreich.','224 n. Chr.','72'),
+ ('sasan',240,'Šābuhr I.','Šābuhr I. (240–272) dringt bis Antiochia vor (253) und nimmt 260 n. Chr. Kaiser Valerian gefangen.','240 n. Chr.','72'),
+ ('sasan',298,'Friede von Nisibis','Nach dem Perserzug des Galerius (297/98 n. Chr.) schließt Persien Frieden mit Rom.','298 n. Chr.','76'),
+ ('sasan',363,'Perserfeldzug Julians','Kaiser Julian zieht gegen Persien und fällt auf dem Feldzug.','363 n. Chr.','77'),
+ ('sasan',531,'Xusrō I.','Xusrō I. Anōširvān (531–579) schließt 532 den „Ewigen Frieden“ mit Justinian und fällt 540 n. Chr. in Syrien ein.','531 n. Chr.','80'),
+ ('sasan',604,'Xusrō II.','Xusrō II. erobert große Teile Ostroms (604–627), wird aber von Herakleios zurückgeschlagen.','604 n. Chr.','80'),
+ ('sasan',642,'Nihavand','Die Araber besiegen die Perser; das Sasanidenreich endet 651 n. Chr.','642 n. Chr.','80'),
  ('rom',1400,'Byzanz um 1400','Vom Oströmischen Reich sind nur Konstantinopel, Teile der Peloponnes (Morea) und einige Inseln übrig. Die Osmanen beherrschen den Balkan und den Westen Kleinasiens.'),
  ('rom',1403,'Thessalonike wieder byzantinisch','Nach der Niederlage der Osmanen gegen Timur bei Ankara (1402) erhält Byzanz Thessalonike zurück.'),
  ('rom',1423,'Thessalonike an Venedig','Byzanz übergibt die von den Osmanen belagerte Stadt an Venedig. 1430 erobern die Osmanen sie.'),
@@ -510,7 +596,11 @@ E = [
  ('han',107,'Rückzug aus dem Westen','Aufstände führen zum Abzug aus dem Tarimbecken; Ban Yong stellt den Einfluss ab 123 n. Chr. teilweise wieder her.'),
  ('han',184,'Aufstand der Gelben Turbane','Bauernaufstände und Machtkämpfe der Generäle zerrütten das Reich. 220 n. Chr. endet die Han-Dynastie; es folgen die Drei Reiche.'),
 ]
-events = [{'reich': r, 'jahr': j, 'label': ('um ' if True else '') + (f'{-j} v. Chr.' if j < 0 else f'{j} n. Chr.'), 'titel': t, 'note': n} for r, j, t, n in E]
+def _label(j): return f'{-j} v. Chr.' if j < 0 else f'{j} n. Chr.'
+GK = 'Grundkurs „Alte Geschichte“, Skript Institut für Altertumswissenschaften, FSU Jena, WS 2022/23'
+# 4 Felder: Jahr exakt anzeigen; 5. Feld: eigene Anzeige (z. B. „um 650 v. Chr.“, „64/63 v. Chr.“); 6. Feld: Seite im Grundkurs-Skript
+events = [{'reich': e[0], 'jahr': e[1], 'label': e[4] if len(e) > 4 else ('um ' + _label(e[1]) if e[1] == 1400 else _label(e[1])), 'titel': e[2], 'note': e[3],
+           **({'quelle': GK + ', S. ' + e[5]} if len(e) > 5 else {})} for e in E]
 
 # ======================================================================
 #  Schlachten
@@ -521,7 +611,18 @@ S = [
  ('Zama',-202,9.30,36.15,['rom','karth'],'Scipio besiegt Hannibal; Ende des Zweiten Punischen Krieges.'),
  ('Baideng',-200,113.3,40.1,['han','xiong'],'Die Xiongnu kesseln Kaiser Gaozu ein; die Han zahlen danach Tribut.'),
  ('Kynoskephalai',-197,22.55,39.40,['rom'],'Rom besiegt Makedonien.'),
- ('Magnesia',-190,27.53,38.62,['rom','seleu'],'Rom besiegt Antiochos III.; die Seleukiden verlieren Kleinasien.'),
+ ('Magnesia',-189,27.53,38.62,['rom','seleu'],'Rom besiegt Antiochos III. bei Magnesia am Sipylos (Winter 190/189 v. Chr.); die Seleukiden verlieren Kleinasien.'),
+ ('Mylae',-260,15.24,38.22,['rom','karth'],'Erster Seesieg Roms über Karthago.'),
+ ('Ägatische Inseln',-241,12.20,37.95,['rom','karth'],'Seesieg Roms; Karthago räumt Sizilien.'),
+ ('Trasimenischer See',-217,12.10,43.18,['rom','karth'],'Hannibal vernichtet ein römisches Heer aus dem Hinterhalt.'),
+ ('Kurupedion',-281,27.90,38.60,['seleu'],'Seleukos I. besiegt Lysimachos, der fällt.'),
+ ('Arausio',-105,4.81,44.14,['rom'],'Kimbern und Teutonen besiegen zwei römische Heere.'),
+ ('Vercellae',-101,8.42,45.32,['rom'],'Marius und Catulus vernichten die Kimbern.'),
+ ('Thapsus',-46,11.05,35.62,['rom'],'Caesar besiegt die Anhänger des Senats in Africa.'),
+ ('Munda',-45,-4.90,37.40,['rom'],'Letzter Sieg Caesars im Bürgerkrieg (Lage des Schlachtfelds umstritten).'),
+ ('Philippi',-42,24.29,41.01,['rom'],'Antonius und Octavian besiegen die Caesarmörder Cassius und Brutus.'),
+ ('Abrittus',251,26.56,43.52,['rom'],'Die Goten unter Cniva besiegen Kaiser Decius, der fällt.'),
+ ('Naïssus',268,21.90,43.32,['rom'],'Claudius II. Gothicus besiegt die Goten.'),
  ('Pydna',-168,22.60,40.40,['rom'],'Ende des makedonischen Königtums.'),
  ('Karthago',-146,10.32,36.85,['rom','karth'],'Rom zerstört Karthago nach dreijähriger Belagerung.'),
  ('Numantia',-133,-2.44,41.81,['rom'],'Die keltiberische Stadt fällt nach langer Belagerung.'),
@@ -541,6 +642,8 @@ S = [
  ('Kalinga-Krieg',-261,85.8,20.3,['maurya'],'Ashoka erobert Kalinga; danach wendet er sich dem Buddhismus zu.'),
  ('Milvische Brücke',312,12.47,41.94,['rom'],'Konstantin siegt über Maxentius.'),
  ('Adrianopel',378,26.56,41.68,['rom'],'Goten vernichten das oströmische Heer; Kaiser Valens fällt.'),
+ ('Vouillé',507,0.17,46.64,['franken','westgot'],'Chlodwig besiegt den Westgotenkönig Alarich II., der fällt.'),
+ ('Soissons',486,3.32,49.38,['franken','syagrius'],'Chlodwig besiegt Syagrius.'),
  ('Katalaunische Felder',451,4.37,48.95,['rom','hunnen'],'Aëtius und die Westgoten halten Attila auf.'),
 ]
 battles = [{'name': n, 'jahr': j, 'lng': x, 'lat': y, 'reiche': rs, 'note': t} for n, j, x, y, rs, t in S]
@@ -657,18 +760,18 @@ for r, n, x, y, v, b, st in cities:
 #  Völkerwanderung: Züge als Linien [lng, lat], von/bis = Jahre, in denen der Zug gezeichnet wird (schematisch!)
 # ======================================================================
 WANDERUNGEN = [
- dict(volk='Hunnen', farbe='#c08a5b', von=370, bis=376, pfad=[[50,47.5],[45,47.8],[40,47.5],[35,47.0],[31,46.6]], text='um 375: Hunnen überqueren den Don, besiegen Alanen und Ostgoten'),
+ dict(volk='Hunnen', farbe='#c08a5b', von=370, bis=376, pfad=[[50,47.5],[45,47.8],[40,47.5],[35,47.0],[31,46.6]], text='um 375: Hunnen überqueren den Don und besiegen Alanen und Ostgoten – nach verbreiteter Datierung Beginn der Völkerwanderung (das Jahr ist in den Quellen nicht belegt)'),
  dict(volk='Hunnen', farbe='#c08a5b', von=395, bis=410, pfad=[[31,46.6],[27,46.5],[23,46.8],[20,47.0]], text='um 400: Hunnen in der Ungarischen Tiefebene'),
  dict(volk='Hunnen', farbe='#c08a5b', von=450, bis=451, pfad=[[20,47.0],[16,48.0],[12,48.6],[8.3,49.6],[4.4,48.9]], text='451: Attila zieht nach Gallien (Katalaunische Felder)'),
  dict(volk='Hunnen', farbe='#c08a5b', von=452, bis=453, pfad=[[20,47.0],[16,46.3],[13.37,45.77],[11.5,45.4],[10.8,45.2]], text='452: Attila in Italien (Aquileia zerstört)'),
- dict(volk='Westgoten', farbe='#8a6f8f', von=376, bis=378, pfad=[[28.5,45.4],[27.4,44.1],[26.6,42.9],[26.56,41.68]], text='376: Westgoten überqueren die Donau, 378 Sieg bei Adrianopel'),
- dict(volk='Westgoten', farbe='#8a6f8f', von=395, bis=401, pfad=[[26.56,41.68],[23.5,40.8],[22.4,39.5],[22.9,37.9],[21.6,38.6],[20.4,40.4],[19.6,42.0],[17.2,44.2],[14.5,45.7],[13.37,45.77]], text='395–401: Westgoten unter Alarich in Griechenland und Illyricum, dann Zug nach Italien'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=376, bis=378, pfad=[[28.5,45.4],[27.4,44.1],[26.6,42.9],[26.56,41.68]], text='376: Goten überqueren die Donau; 378 Sieg bei Adrianopel, 382 als Föderaten angesiedelt'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=395, bis=401, pfad=[[26.56,41.68],[23.5,40.8],[22.4,39.5],[22.9,37.9],[21.6,38.6],[20.4,40.4],[19.6,42.0],[17.2,44.2],[14.5,45.7],[13.37,45.77]], text='395–401: Westgoten unter Alarich in Griechenland und Illyricum; 401 erster Einfall in Italien'),
  dict(volk='Westgoten', farbe='#8a6f8f', von=401, bis=410, pfad=[[13.37,45.77],[11.3,44.5],[12.5,43.1],[12.5,41.9]], text='410: Alarich plündert Rom'),
  dict(volk='Westgoten', farbe='#8a6f8f', von=410, bis=418, pfad=[[12.5,41.9],[11.5,43.6],[8.5,44.3],[5.5,43.5],[3.0,43.2],[2.17,41.39],[1.44,43.6]], text='412–418: über Südgallien nach Hispanien; 418 Ansiedlung in Aquitanien (Toulouse)'),
- dict(volk='Vandalen', farbe='#5f7a99', von=401, bis=406, pfad=[[17,50.5],[13,50.5],[10,50.2],[8.27,50.0]], text='31.12.406: Vandalen, Sueben und Alanen überqueren den Rhein bei Mainz'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=401, bis=406, pfad=[[17,50.5],[13,50.5],[10,50.2],[8.27,50.0]], text='406/07: Vandalen, Alanen und Sueben überqueren den Rhein (Tag und Ort umstritten)'),
  dict(volk='Vandalen', farbe='#5f7a99', von=406, bis=409, pfad=[[8.27,50.0],[5.5,49.3],[3.0,48.0],[1.2,46.0],[-0.5,44.5],[-1.5,43.2]], text='406–409: Zug durch Gallien bis zu den Pyrenäen'),
- dict(volk='Vandalen', farbe='#5f7a99', von=409, bis=422, pfad=[[-1.5,43.2],[-3.0,41.5],[-4.5,39.5],[-5.5,37.6]], text='409: Einfall in Hispanien; Vandalen in der Baetica'),
- dict(volk='Vandalen', farbe='#5f7a99', von=429, bis=439, pfad=[[-5.5,37.6],[-5.6,36.0],[-5.3,35.6],[-2.0,35.2],[2.0,36.4],[6.0,36.8],[8.5,36.8],[10.32,36.85]], text='429: Übergang nach Afrika; 439 Eroberung Karthagos'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=409, bis=422, pfad=[[-1.5,43.2],[-3.0,41.5],[-4.5,39.5],[-5.5,37.6]], text='409: Vandalen, Alanen und Sueben in Hispanien; Vandalen in der Baetica'),
+ dict(volk='Vandalen', farbe='#5f7a99', von=429, bis=439, pfad=[[-5.5,37.6],[-5.6,36.0],[-5.3,35.6],[-2.0,35.2],[2.0,36.4],[6.0,36.8],[8.5,36.8],[10.32,36.85]], text='429: Vandalen unter Geiserich setzen nach Africa über; 430 Hippo Regius, 439 Eroberung Karthagos'),
  dict(volk='Vandalen', farbe='#5f7a99', von=455, bis=456, pfad=[[10.32,36.85],[11.0,38.5],[12.0,40.5],[12.3,41.7]], text='455: Vandalen plündern Rom (über das Meer)'),
  dict(volk='Sueben', farbe='#6f8a8a', von=409, bis=411, pfad=[[-1.5,43.2],[-4.5,42.6],[-7.0,42.2],[-8.43,41.55]], text='411: Sueben in Gallaecia (Hauptort Bracara)'),
  dict(volk='Burgunder', farbe='#a07a6a', von=406, bis=413, pfad=[[11,50.3],[9.5,50.0],[8.36,49.63]], text='413: Burgunderreich um Worms'),
@@ -676,7 +779,92 @@ WANDERUNGEN = [
  dict(volk='Angeln, Sachsen, Jüten', farbe='#8c7f6a', von=440, bis=455, pfad=[[9.5,54.8],[7.5,54.2],[4.5,53.3],[2.0,52.5],[1.2,51.4]], text='um 450: Angeln, Sachsen und Jüten setzen nach Britannien über'),
  dict(volk='Alamannen', farbe='#8f7a5c', von=255, bis=260, pfad=[[10.8,50.2],[10.0,49.3],[9.0,48.6]], text='um 260: Alamannen besetzen das Dekumatland'),
  dict(volk='Ostgoten', farbe='#6d7f6d', von=454, bis=456, pfad=[[31,46.6],[27,46.0],[22,46.2],[19,46.5]], text='456: Ostgoten als Föderaten in Pannonien'),
+ # ergänzt nach dem Grundkurs-Skript (FSU Jena, WS 2022/23), S. 3 und 79
+ dict(volk='Ostgoten', farbe='#6d7f6d', von=489, bis=493, pfad=[[25.4,43.6],[22.0,44.0],[20.5,44.8],[19.6,45.0],[16.5,45.6],[14.5,46.05],[13.5,45.9],[11.0,45.44],[12.2,44.42]], text='489–493: Theoderich zieht im Auftrag Kaiser Zenos nach Italien, belagert ab 490 Ravenna und herrscht ab 493 über Italien'),
+ dict(volk='Westgoten', farbe='#8a6f8f', von=507, bis=511, pfad=[[1.44,43.6],[3.0,43.18],[2.17,41.39],[-0.9,41.65],[-4.02,39.86]], text='507: Nach der Niederlage bei Vouillé gegen Chlodwig ziehen sich die Westgoten nach Spanien zurück (Westgotenreich 507–711/25)'),
+ dict(volk='Langobarden', farbe='#9c7b4e', von=568, bis=572, pfad=[[18.5,46.3],[16.0,46.2],[13.5,46.1],[12.0,45.5],[10.5,45.3],[9.16,45.19]], text='568: Die Langobarden fallen in Italien ein – die letzte germanische Staatsgründung auf Reichsboden'),
 ]
+
+# Auslöser und Stationen unterwegs (Überfälle, Plünderungen, Belagerungen) je Zug, Schlüssel (Volk, von).
+# Station: (Jahr, lng, lat, Kurztext, Beleg). Die App blendet eine Station ab ihrem Jahr ein; liegt sie am Weg,
+# zusätzlich erst, wenn die Feder die Stelle passiert hat. Umstrittenes ist als umstritten gekennzeichnet.
+VW_KONTEXT = {
+ ('Hunnen', 370): ('Gründe der Westwanderung unklar (Klima, Druck in Zentralasien – umstritten)', [
+    (371, 42.0, 47.6, 'Alanen am Don besiegt und eingegliedert', 'Ammianus 31,3,1'),
+    (375, 33.5, 47.2, 'Reich der Greutungen zerbricht; Ermanarich tot', 'Ammianus 31,3,1–2')]),
+ ('Hunnen', 395): ('Hunnen rücken den Goten nach; Weideland an der Donau', [
+    (408, 22.6, 43.9, '408: Uldin über die Donau, Castra Martis genommen', 'Sozomenos 9,5')]),
+ ('Hunnen', 450): ('Honoria-Brief (450) und Streit um Tribute; Attila fordert Teile des Westreichs (Motive umstritten)', [
+    (451, 6.18, 49.12, '7. April 451: Metz geplündert', 'Hydatius 150'),
+    (451, 1.9, 47.9, '451: Orléans belagert, von Aëtius entsetzt', 'Jordanes, Getica 194–195')]),
+ ('Hunnen', 452): ('Nach dem Rückschlag in Gallien erneuter Druck auf Westrom', [
+    (452, 13.37, 45.77, 'Aquileia nach langer Belagerung zerstört', 'Jordanes, Getica 219–221'),
+    (452, 11.0, 45.44, 'Padua, Verona, Mailand geplündert', 'Jordanes, Getica 222'),
+    (453, 10.7, 45.15, 'Gesandtschaft Papst Leos I. am Mincio; Abzug (Gründe umstritten: Seuche, Hunger)', 'Prosper Tiro 1367')]),
+ ('Westgoten', 376): ('Hunnenvorstoß um 375: Terwingen unter Fritigern bitten um Aufnahme ins Reich', [
+    (377, 27.6, 43.2, 'Aufstand bei Marcianopolis nach Hunger und Übergriffen römischer Beamter', 'Ammianus 31,4–5'),
+    (377, 26.5, 42.6, 'Plünderungen in Thrakien', 'Ammianus 31,6')]),
+ ('Westgoten', 395): ('Tod Theodosius’ I. (395): Alarich fordert Jahrgelder und ein Kommando', [
+    (396, 22.9, 37.9, 'Korinth, Argos und Sparta geplündert; Athen verschont', 'Zosimos 5,5–6'),
+    (397, 21.8, 37.7, 'Von Stilicho in der Pholoe eingeschlossen, Alarich entkommt', 'Zosimos 5,7'),
+    (399, 20.4, 40.4, 'Ostrom macht Alarich zum Heermeister in Illyricum', 'Claudian, In Eutropium 2,214–218')]),
+ ('Westgoten', 401): ('Ostrom entzieht Alarich um 400 den Rückhalt; in Italien sucht er Jahrgelder und Land (Motive umstritten)', [
+    (402, 10.99, 45.44, '402/03: Niederlagen gegen Stilicho bei Pollentia und Verona', 'Claudian, De bello Gothico'),
+    (408, 12.2, 44.42, '408: Stilicho in Ravenna hingerichtet; Föderaten laufen zu Alarich über', 'Zosimos 5,34–35'),
+    (409, 12.6, 42.2, '408/09: Rom belagert, hohes Lösegeld', 'Zosimos 5,41'),
+    (410, 12.5, 41.9, '24. Aug. 410: Rom drei Tage geplündert', 'Orosius 7,39')]),
+ ('Westgoten', 410): ('Alarich stirbt 410 in Kalabrien; Ataulf führt die Goten aus dem ausgezehrten Italien nach Gallien', [
+    (413, 3.0, 43.18, '413: Narbonne besetzt; 414 Hochzeit Ataulfs mit Galla Placidia', 'Olympiodor fr. 24'),
+    (415, 2.17, 41.39, 'Römische Seeblockade, Hunger; Ataulf in Barcelona ermordet', 'Orosius 7,43')]),
+ ('Vandalen', 401): ('Druck in Mitteleuropa (Hunnen? umstritten); Rheingrenze für Italien von Truppen entblößt', [
+    (406, 8.6, 50.1, 'Kampf gegen Franken am Rhein; König Godegisel fällt', 'Renatus Frigeridus bei Gregor von Tours 2,9')]),
+ ('Vandalen', 406): ('Rheinübergang am 31.12.406 (Datum umstritten); Usurpation Konstantins III. lähmt die Abwehr', [
+    (407, 8.27, 50.0, 'Mainz zerstört, Worms nach langer Belagerung genommen', 'Hieronymus, Brief 123,15'),
+    (407, 4.03, 49.26, 'Reims, Amiens, Arras, Tournai verwüstet', 'Hieronymus, Brief 123,15'),
+    (408, 1.44, 43.6, 'Toulouse hält stand (Bischof Exuperius)', 'Hieronymus, Brief 123,15')]),
+ ('Vandalen', 409): ('Pyrenäenpässe im römischen Bürgerkrieg ungesichert (Herbst 409)', [
+    (410, -3.7, 40.4, 'Plünderung und Hungersnot in Hispanien', 'Hydatius 46–48'),
+    (418, -4.8, 38.3, '416–418: Westgoten im römischen Auftrag gegen Silingen und Alanen', 'Hydatius 63–68'),
+    (422, -5.5, 37.6, 'Sieg über das römisch-gotische Heer des Castinus', 'Hydatius 77')]),
+ ('Vandalen', 429): ('Druck der Westgoten in Hispanien; reiches, schwach verteidigtes Africa (Ruf durch Bonifatius umstritten)', [
+    (430, 7.77, 36.88, 'Hippo Regius belagert; Augustinus stirbt während der Belagerung', 'Possidius, Vita Augustini 28–31'),
+    (439, 10.32, 36.85, '19. Okt. 439: Karthago ohne Kampf genommen', 'Prosper Tiro 1339')]),
+ ('Vandalen', 455): ('Ermordung Valentinians III. (455): Geiserich sieht den Vertrag als erloschen', [
+    (455, 12.5, 41.9, 'Juni 455: Rom 14 Tage geplündert, Kaiserin Eudoxia verschleppt', 'Prokop, Vandalenkrieg 1,5')]),
+ ('Sueben', 409): ('Mit Vandalen und Alanen über den Rhein und die Pyrenäen', [
+    (411, -7.0, 42.2, '411: Gallaecia bei der Verteilung der Provinzen (durch Los)', 'Hydatius 49')]),
+ ('Burgunder', 406): ('Rheinübergang 406/07 und römischer Bürgerkrieg: Die Rheingrenze ist offen', [
+    (411, 8.27, 50.0, '411: Jovinus in Mainz zum Kaiser erhoben, Burgunder und Alanen dabei', 'Olympiodor fr. 17')]),
+ ('Burgunder', 436): ('Einfall in die Belgica (435); Aëtius lässt sie durch hunnische Hilfstruppen schlagen', [
+    (436, 8.0, 49.4, '436: Niederlage gegen Hunnen im römischen Dienst; König Gundahar fällt (Kern der Nibelungensage)', 'Prosper Tiro 1322')]),
+ ('Angeln, Sachsen, Jüten', 440): ('Römische Truppen um 407–410 abgezogen; britannische Herrscher werben Söldner an (Gildas; Vortigern umstritten)', [
+    (442, 0.5, 52.3, 'um 441/42: Britannien unter sächsischer Herrschaft', 'Gallische Chronik von 452'),
+    (450, 1.3, 51.35, 'Hengist und Horsa in Kent (legendär)', 'Beda, Kirchengeschichte 1,15'),
+    (455, -0.6, 51.8, 'Aufstand der Söldner: Plünderungen bis an das westliche Meer', 'Gildas, De excidio 23–24')]),
+ ('Alamannen', 255): ('Krise des 3. Jh.: Grenztruppen gegen Perser und Usurpatoren abgezogen', [
+    (259, 9.19, 45.46, '259/60: Einfall bis Italien, Niederlage bei Mediolanum', 'Zonaras 12,24'),
+    (260, 10.9, 48.37, '260: Juthungen auf dem Rückweg aus Italien bei Augsburg geschlagen', 'Augsburger Siegesaltar')]),
+ ('Ostgoten', 454): ('Tod Attilas (453) und Schlacht am Nedao: Das Hunnenreich zerfällt', [
+    (455, 20.0, 46.4, 'Am Nedao siegen die Gepiden über Attilas Söhne', 'Jordanes, Getica 260–264')]),
+ ('Ostgoten', 489): ('Kaiser Zeno schickt Theoderich gegen Odoaker – und hat die Goten so vom Balkan fort', [
+    (489, 19.0, 45.3, '488/89: Kämpfe mit den Gepiden an der Ulca (Vuka)', 'Ennodius, Panegyricus 28–35'),
+    (489, 13.6, 45.85, '489: Sieg über Odoaker am Isonzo, dann bei Verona', 'Anonymus Valesianus 50'),
+    (493, 12.2, 44.42, '490–493: Ravenna belagert; Theoderich tötet Odoaker beim Gastmahl', 'Anonymus Valesianus 53–56')]),
+ ('Westgoten', 507): ('Niederlage bei Vouillé (507) gegen Chlodwig; König Alarich II. fällt', [
+    (508, 1.44, 43.6, '508: Franken nehmen Toulouse', 'Gregor von Tours 2,37'),
+    (508, 3.0, 43.18, 'Theoderich sichert den Westgoten Septimanien', 'Jordanes, Getica 302')]),
+ ('Langobarden', 568): ('Druck der Awaren an der Donau; Byzanz nach Gotenkrieg und Pest geschwächt', [
+    (568, 13.43, 46.09, '568: Forum Iulii (Cividale) erstes Herzogtum', 'Paulus Diaconus 2,9'),
+    (569, 9.19, 45.46, '569: Mailand eingenommen', 'Paulus Diaconus 2,25'),
+    (572, 9.16, 45.19, '569–572: Pavia drei Jahre belagert, dann Königssitz', 'Paulus Diaconus 2,26–27')]),
+}
+for w in WANDERUNGEN:
+    k = VW_KONTEXT.get((w['volk'], w['von']))
+    if not k: continue
+    w['ausloeser'] = k[0]
+    w['stationen'] = [dict(jahr=j, lng=x, lat=y, text=t, quelle=q) for j, x, y, t, q in k[1]]
+fehlt = [(w['volk'], w['von']) for w in WANDERUNGEN if 'ausloeser' not in w]
+if fehlt: print('Zug ohne Auslöser:', fehlt)
 
 out = {'meta': META, 'reihen': ORDER, 'regionen': feats, 'ereignisse': events, 'schlachten': battles, 'orte': orte, 'wanderungen': WANDERUNGEN}
 path = os.path.join(HERE, 'data/reiche.json')

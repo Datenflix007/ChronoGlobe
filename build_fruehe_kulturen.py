@@ -7,6 +7,8 @@ in der Fachliteratur übliche Eckdaten. Viele Jahreszahlen der frühen Zeit sind
 Jahreszahlen nach der konventionellen Chronologie, gerundet: Ägypten nach Shaw, Ian (Hg.): The Oxford History of
 Ancient Egypt, Oxford 2000; Mesopotamien nach Van De Mieroop, Marc: A History of the Ancient Near East, ca. 3000–323 BC,
 3. Aufl., Chichester 2016 (mittlere Chronologie). Abweichende Datierungen der Forschung sind im Text als umstritten benannt. Die Datei
+Griechenland, Makedonien, Persien und Rom vor 300 v. Chr.: Eckdaten und Epochen nach dem Grundkurs „Alte Geschichte“
+(Skript Institut für Altertumswissenschaften, FSU Jena, WS 2022/23; „GK“ mit Seitenzahl). Die Datei
 hat dasselbe Format wie data/reiche.json (meta, reihen, regionen, ereignisse, schlachten, orte) und wird in js/app.js
 zu den Kerndaten hinzugefügt. Tafelbilder laden nur Reiche, die in ihren Zeitraum fallen.
 
@@ -33,20 +35,22 @@ META = {
                   kurz='Erste belegte Dynastien Chinas am Gelben Fluss; Orakelknochen mit früher chinesischer Schrift.'),
     'nubien': dict(name='Nubien: Kerma und Kusch', von=-2400, bis=-300, farbe='#6b8e23', zentrum=[31.5, 19.5],
                    kurz='Reiche am oberen Nil: Kerma (bis um 1450 v. Chr.), später Kusch mit Napata; die Könige von Kusch beherrschen um 728–664 v. Chr. Ägypten.'),
-    'minoer': dict(name='Minoisches Kreta', von=-1900, bis=-1300, farbe='#e07a5f', zentrum=[24.9, 35.2],
-                   kurz='Palastkultur auf Kreta (Knossos, Phaistos, Malia); nach 1450 v. Chr. herrschen in Knossos Griechisch sprechende Eliten (Linear B).'),
-    'mykener': dict(name='Mykenisches Griechenland', von=-1600, bis=-1100, farbe='#8d6e63', zentrum=[22.6, 37.7],
-                    kurz='Burgen und Paläste wie Mykene, Tiryns, Pylos und Theben; Verwaltung mit Linear-B-Tafeln; um 1200 v. Chr. brechen die Paläste zusammen.'),
-    'athen': dict(name='Athen und die Attischen Seebünde', von=-508, bis=-338, farbe='#1fa2c8', zentrum=[24.5, 38.0],
-                  kurz='Athen nach den Reformen des Kleisthenes, Vormacht des Delisch-Attischen Seebunds (478/7–404 v. Chr.) und des Zweiten Seebunds (378/7 v. Chr.).'),
-    'sparta': dict(name='Sparta und der Peloponnesische Bund', von=-700, bis=-338, farbe='#9b2335', zentrum=[22.4, 37.2],
-                   kurz='Militärstaat auf der Peloponnes; führt seit dem 6. Jh. v. Chr. den Peloponnesischen Bund, besiegt Athen 404 v. Chr., verliert 371 v. Chr. bei Leuktra.'),
+    'minoer': dict(name='Minoisches Kreta', von=-2000, bis=-1200, farbe='#e07a5f', zentrum=[24.9, 35.2],
+                   kurz='Palastkultur auf Kreta (Knossos, Phaistos, Malia): Alt- und Neupalastzeit (2000–1450 v. Chr.); im 15. Jh. übernehmen Griechisch sprechende Achaier die Kontrolle (Linear B); um 1200 wird der Palast von Knossos aufgegeben.'),
+    'mykener': dict(name='Mykenisches Griechenland', von=-1600, bis=-1050, farbe='#8d6e63', zentrum=[22.6, 37.7],
+                    kurz='Späthelladikum (1600–1150 v. Chr.): Burgen und Paläste wie Mykene, Tiryns, Pylos und Theben, Verwaltung mit Linear-B-Tafeln (Palastzeit 1450–1200); um 1200/1150 brechen die Paläste zusammen, es folgt die Nachpalastzeit (bis 1050).'),
+    'athen': dict(name='Athen und die Attischen Seebünde', von=-683, bis=-338, farbe='#1fa2c8', zentrum=[24.5, 38.0],
+                  kurz='Polis Athen: seit 683/82 jährlich neun Archonten, Reformen Solons (594/93) und des Kleisthenes (508/07 v. Chr.); Vormacht des Ersten Attischen Seebunds (478/77–404) und des Zweiten Seebunds (seit 378 v. Chr.).'),
+    'sparta': dict(name='Sparta und der Peloponnesische Bund', von=-750, bis=-338, farbe='#9b2335', zentrum=[22.4, 37.2],
+                   kurz='Polis auf der Peloponnes mit zwei Königen, Gerusia, Ephoren und Volksversammlung (Apella); unterwirft in den Messenischen Kriegen (um 730/20 und 650/620) Messenien, führt ab 550 den Peloponnesischen Bund, besiegt Athen 404 und verliert 371 v. Chr. bei Leuktra.'),
+    'theben': dict(name='Theben und der Böotische Bund', von=-371, bis=-335, farbe='#6d8b3a', zentrum=[23.3, 38.4],
+                   kurz='Thebanische Hegemonie nach dem Sieg über Sparta bei Leuktra (371 v. Chr.) bis zum Tod des Epameinondas bei Mantineia (362); 338 bei Chaironeia besiegt, 335 v. Chr. von Alexander zerstört.'),
     'makedonien': dict(name='Makedonien und das Reich Alexanders', von=-359, bis=-168, farbe='#d4a017', zentrum=[40.0, 35.0],
                        kurz='Philipp II. macht Makedonien zur Vormacht Griechenlands; sein Sohn Alexander erobert das Perserreich bis zum Indus. Nach 323 v. Chr. teilen die Diadochen das Reich.'),
     'perser': dict(name='Perserreich (Achämeniden)', von=-550, bis=-330, farbe='#b5477a', zentrum=[53.0, 32.0],
                    kurz='Von Kyros II. gegründetes Großreich vom Mittelmeer bis zum Indus; endet mit Alexander dem Großen.'),
 }
-REIHEN = ['mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'makedonien', 'shang', 'perser']
+REIHEN = ['mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'theben', 'makedonien', 'shang', 'perser']
 
 NIL = [[29.6, 31.6], [32.3, 31.3], [31.5, 30.0], [31.3, 27.5], [33.0, 26.0], [33.0, 24.0], [32.6, 24.0], [32.2, 26.0], [30.6, 27.8], [30.4, 29.5], [29.6, 30.8]]
 
@@ -78,6 +82,18 @@ ALEX_2 = GRIECHENLAND.union(PERSIEN.intersection(box(20, 28, 39, 43))).union(NIL
 ALEX_3 = GRIECHENLAND.union(PERSIEN.intersection(box(20, 24, 55, 43))).union(NILTAL)                    # 331–329: Mesopotamien, Persis
 ALEX_4 = GRIECHENLAND.union(PERSIEN).union(NILTAL).union(INDUS)                                         # 329–323: bis zum Indus
 SUMER = [[44.0, 32.6], [46.2, 32.2], [47.8, 30.6], [48.0, 29.9], [46.6, 30.0], [45.0, 31.0], [44.0, 32.0]]
+LAKONIEN = Polygon([[22.2, 37.4], [22.6, 37.4], [23.2, 36.8], [22.9, 36.4], [22.4, 36.4], [22.2, 36.8]])
+BOIOTIEN = Polygon([[22.7, 38.55], [23.6, 38.62], [24.05, 38.35], [23.4, 38.12], [22.8, 38.2]])
+# Perserreich schrittweise (GK S. 60): Meder 550, Lyder 547/46, Babylon 539; Indus erst unter Dareios I.
+MEDER = PERSIEN.intersection(box(34, 24, 75, 43)).difference(box(30, 24, 47.5, 35.0)).difference(box(67, 20, 80, 45))
+LYDER = MEDER.union(PERSIEN.intersection(box(26, 35, 34, 43)))
+KYROS = PERSIEN.difference(box(67, 20, 80, 45))
+# Rom vor 300 v. Chr. (GK S. 66), grob
+ROMKERN = Polygon([[12.25, 42.05], [12.75, 42.05], [12.8, 41.75], [12.35, 41.7]])
+LATIUM = Polygon([[12.15, 42.1], [12.95, 42.15], [13.4, 41.75], [13.6, 41.3], [13.0, 41.2], [12.4, 41.6]])
+VEJI = Polygon([[11.9, 42.4], [12.6, 42.35], [12.7, 42.05], [12.1, 42.0]])
+KAMPANIEN = Polygon([[13.6, 41.4], [14.4, 41.4], [14.8, 40.8], [14.3, 40.55], [13.8, 40.9]])
+MITTELITALIEN = Polygon([[10.8, 43.3], [12.4, 43.6], [13.9, 42.6], [14.7, 41.9], [15.3, 41.2], [14.9, 40.6], [14.3, 40.55], [12.0, 41.8], [11.0, 42.6]])
 # (reich, name, von, bis, umriss [lng, lat] oder shapely-Fläche)
 # Ägypten und Mesopotamien nach Epochen; Jahreszahlen gerundet nach der konventionellen Chronologie
 # (Ägypten: Shaw 2000; Mesopotamien: Van De Mieroop 2016, mittlere Chronologie). Grenzen nur angedeutet.
@@ -120,21 +136,21 @@ REGIONEN = [
     ('nubien', 'Königreich Kusch (Napata)', -800, -300, [[30.4, 20.8], [31.6, 20.8], [33.8, 19.4], [34.2, 16.5], [32.6, 16.0], [31.4, 18.0], [30.2, 19.5]]),
     ('nubien', 'Kusch beherrscht Ägypten (25. Dynastie)', -728, -664, NIL),
     # --- Ägäis: Minoer und Mykener (Kreta-Daten nach JAR 2023; Kollaps um 1200 nach Middleton 2008) ---
-    ('minoer', 'Kreta: Ältere Paläste (Knossos, Phaistos, Malia)', -1900, -1700, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
-    ('minoer', 'Kreta: Jüngere Paläste und Seehandel', -1700, -1450, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
-    ('minoer', 'Knossos unter mykenischer Herrschaft (Linear B)', -1450, -1300, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
-    ('mykener', 'Argolis: Schachtgräberzeit (Mykene)', -1600, -1400, [[22.4, 37.95], [23.1, 37.95], [23.2, 37.45], [22.6, 37.4]]),
-    ('mykener', 'Palastzeit: Mykene, Tiryns, Pylos, Theben', -1400, -1200, PELOPONNES.union(MITTELGRIECHENLAND).union(ATTIKA)),
-    ('mykener', 'Nachpalastzeit (Kleinreiche)', -1200, -1100, PELOPONNES),
+    ('minoer', 'Kreta: Altpalastzeit (Knossos, Phaistos, Malia)', -2000, -1700, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
+    ('minoer', 'Kreta: Neupalastzeit, Vorherrschaft in der Ägäis', -1700, -1450, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
+    ('minoer', 'Kreta unter Kontrolle der Achaier (Spätminoikum, Linear B)', -1450, -1200, [[23.5, 35.7], [26.4, 35.4], [26.4, 34.9], [23.5, 35.1]]),
+    ('mykener', 'Argolis: Schachtgräberzeit (Mykene)', -1600, -1450, [[22.4, 37.95], [23.1, 37.95], [23.2, 37.45], [22.6, 37.4]]),
+    ('mykener', 'Palastzeit: Mykene, Tiryns, Pylos, Theben', -1450, -1200, PELOPONNES.union(MITTELGRIECHENLAND).union(ATTIKA)),
+    ('mykener', 'Nachpalastzeit (Kleinreiche)', -1200, -1050, PELOPONNES),
     # --- Athen und Sparta (Daten nach Kagan, Yale CLCV 205; Thukydides; Xenophon; Marshall 1905) ---
     ('athen', 'Athen (Attika)', -508, -478, ATTIKA),
     ('athen', 'Delisch-Attischer Seebund', -478, -404, SEEBUND_1),
     ('athen', 'Athen nach der Niederlage', -404, -378, ATTIKA),
     ('athen', 'Zweiter Attischer Seebund', -378, -355, SEEBUND_2),
     ('athen', 'Athen nach dem Bundesgenossenkrieg', -355, -338, ATTIKA),
-    ('sparta', 'Sparta (Lakonien und Messenien)', -700, -550, LAKONIEN_MESSENIEN),
+    ('sparta', 'Sparta (Lakonien und Messenien)', -720, -550, LAKONIEN_MESSENIEN),
     ('sparta', 'Peloponnesischer Bund', -550, -371, PELOPONNES.difference(ARGOLIS)),
-    ('sparta', 'Sparta nach Leuktra (ohne Messenien)', -371, -338, [[22.2, 37.4], [22.6, 37.4], [23.2, 36.8], [22.9, 36.4], [22.4, 36.4], [22.2, 36.8]]),
+    ('sparta', 'Sparta ohne Messenien', -369, -338, [[22.2, 37.4], [22.6, 37.4], [23.2, 36.8], [22.9, 36.4], [22.4, 36.4], [22.2, 36.8]]),
     # --- Makedonien und Alexander (Arrian, Anabasis; Gebiete angedeutet) ---
     ('makedonien', 'Makedonien unter Philipp II.', -359, -338, MAKEDONIEN),
     ('makedonien', 'Makedonische Vorherrschaft (Korinthischer Bund)', -338, -334, GRIECHENLAND),
@@ -142,8 +158,8 @@ REGIONEN = [
     ('makedonien', 'Reich Alexanders: bis Syrien und Ägypten', -333, -331, ALEX_2),
     ('makedonien', 'Reich Alexanders: Mesopotamien und Persis', -331, -329, ALEX_3),
     ('makedonien', 'Reich Alexanders: bis zum Indus', -329, -323, ALEX_4),
-    ('makedonien', 'Alexanderreich unter den Diadochen (Nachfolgekämpfe)', -323, -301, ALEX_4),
-    ('makedonien', 'Makedonien der Antigoniden', -301, -168, MAKEDONIEN.union(Polygon([[21.0, 39.6], [23.3, 39.9], [23.0, 38.7], [21.2, 38.6]]))),
+    ('makedonien', 'Alexanderreich unter den Diadochen (Nachfolgekämpfe)', -323, -300, ALEX_4),   # bis -300: dort setzen Ptolemäer und Seleukiden ein (data/reiche.json)
+    ('makedonien', 'Makedonien der Antigoniden', -300, -168, MAKEDONIEN.union(Polygon([[21.0, 39.6], [23.3, 39.9], [23.0, 38.7], [21.2, 38.6]]))),
     # --- weitere frühe Reiche ---
     ('indus', 'Kerngebiet der Indus-Kultur', -2600, -1900, [[66.5, 30.5], [70.0, 32.5], [74.5, 32.5], [76.5, 30.0], [74.0, 27.0], [72.0, 24.0], [70.5, 22.0], [68.5, 23.2], [67.0, 25.0], [66.5, 28.0]]),
     ('hethiter', 'Hethiterreich (Anatolien)', -1650, -1180, [[27.5, 40.5], [36.0, 41.5], [40.5, 40.3], [40.0, 37.5], [36.5, 36.0], [34.0, 36.5], [30.0, 37.0], [27.5, 38.0]]),
@@ -152,7 +168,7 @@ REGIONEN = [
     ('shang', 'Westliche Zhou', -1046, -771, [[105.0, 36.5], [112.0, 38.5], [118.0, 37.5], [120.0, 35.0], [118.0, 32.0], [111.0, 31.5], [106.0, 33.0]]),
     ('shang', 'Östliche Zhou und Streitende Reiche', -770, -221, [[103.0, 36.0], [110.0, 40.0], [119.0, 40.5], [122.0, 37.0], [121.0, 31.0], [118.0, 28.5], [112.0, 28.0], [106.0, 29.0], [103.0, 31.0]]),
     # Ionien und die Inseln gehören 478/7–387/6 v. Chr. zum Seebund bzw. sind umkämpft (Kalliasfrieden 449, Königsfrieden 387/6)
-    ('perser', 'Perserreich (Achämeniden)', -550, -478, PERSIEN),
+    ('perser', 'Perserreich unter Dareios I. (bis zum Indus)', -518, -478, PERSIEN),
     ('perser', 'Perserreich (ohne Ionien und die Inseln)', -478, -387, PERSIEN.difference(SEEBUND_1.buffer(0.15))),
     ('perser', 'Perserreich (Achämeniden)', -387, -334, PERSIEN),
     ('perser', 'Perserreich (ohne Kleinasien)', -334, -333, PERSIEN.difference(box(20, 30, 33, 43))),
@@ -160,7 +176,22 @@ REGIONEN = [
     ('perser', 'Perserreich (Rest im Osten)', -331, -330, PERSIEN.difference(box(20, 24, 55, 43))),
     ('perser', 'Ägypten (erste persische Herrschaft)', -525, -404, NIL),
     ('perser', 'Ägypten (zweite persische Herrschaft)', -343, -332, NIL),
+    # --- nach dem Grundkurs-Skript ergänzt (GK S. 57–66); am Ende, damit die ids der Flächen davor gleich bleiben ---
+    ('athen', 'Polis Athen (Attika) vor Kleisthenes', -683, -508, ATTIKA),
+    ('sparta', 'Sparta (Lakonien)', -750, -720, LAKONIEN),
+    ('sparta', 'Sparta nach Leuktra (Lakonien und Messenien)', -371, -369, LAKONIEN_MESSENIEN),
+    ('theben', 'Theben und der Böotische Bund', -371, -335, BOIOTIEN.difference(ATTIKA)),
+    ('perser', 'Reich der Meder und Perser unter Kyros II.', -550, -547, MEDER),
+    ('perser', 'Perserreich mit Lydien (547/46 v. Chr.)', -547, -539, LYDER),
+    ('perser', 'Perserreich nach der Eroberung Babylons (539 v. Chr.)', -539, -518, KYROS),
+    # Rom vor 300 v. Chr. (ab 300 v. Chr. in data/reiche.json); Gründungsdatum legendär
+    ('rom', 'Rom in der Königszeit', -753, -510, ROMKERN),
+    ('rom', 'Rom und Latium (Latinischer Bund)', -510, -396, LATIUM),
+    ('rom', 'Rom und Latium mit Veji', -396, -338, LATIUM.union(VEJI)),
+    ('rom', 'Rom nach dem Latinerkrieg: Latium und Kampanien', -338, -304, LATIUM.union(VEJI).union(KAMPANIEN)),
+    ('rom', 'Rom nach dem Zweiten Samnitenkrieg (Mittelitalien)', -304, -300, MITTELITALIEN),
 ]
+GK = 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. %s'
 EREIGNISSE = [
     # --- Mesopotamien ---
     ('mesopotamien', -3500, 'um 3500 v. Chr.', 'Uruk wird zur ersten Großstadt', 'Uruk wächst zur größten Stadt ihrer Zeit. Große Tempel, Verwaltung und Arbeitsteilung entstehen.'),
@@ -217,33 +248,33 @@ EREIGNISSE = [
     ('nubien', -728, 'um 728 v. Chr.', 'Pharaonen aus Kusch', 'König Pije aus Kusch erobert Ägypten; seine Nachfolger regieren als 25. Dynastie, bis die Assyrer sie vertreiben.'),
     ('nubien', -664, '664 v. Chr.', 'Rückzug nach Napata', 'Die Könige von Kusch verlieren Ägypten und regieren weiter in Nubien; später wird Meroë ihr Zentrum.'),
     # --- Minoer und Mykener ---
-    ('minoer', -1900, 'um 1900 v. Chr.', 'Erste Paläste auf Kreta', 'In Knossos, Phaistos und Malia entstehen große Palastanlagen als Zentren von Kult, Vorratshaltung und Verwaltung.'),
+    ('minoer', -2000, 'um 2000 v. Chr.', 'Erste Paläste auf Kreta', 'In Knossos, Phaistos und Malia entstehen große Palastanlagen als Zentren von Kult, Vorratshaltung und Verwaltung (Mittelminoikum, Linear A).', 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. 3, 57'),
     ('minoer', -1700, 'um 1700 v. Chr.', 'Neubau der Paläste', 'Nach Zerstörungen werden die Paläste größer wieder aufgebaut; kretische Waren gelangen bis nach Ägypten.'),
     ('minoer', -1600, 'um 1600 oder um 1550 v. Chr.', 'Ausbruch des Thera-Vulkans', 'Der Vulkan auf Santorin begräbt die Stadt Akrotiri. Das Jahr ist umstritten: manche datieren ins späte 17. Jh. v. Chr., andere in die Mitte des 16. Jh.; die Forschung neigt derzeit eher zur späteren Datierung.', 'JAR 2023 (Bronzezeitliches Kreta), S. 13; Knapp/Manning, AJA 120 (2016)'),
     ('minoer', -1450, 'um 1500–1450 v. Chr.', 'Zerstörungen auf Kreta', 'Viele Paläste werden zerstört; nur Knossos bleibt. Dort herrscht nun eine Griechisch sprechende Elite, die mit Linear-B-Tafeln verwaltet.', 'JAR 2023 (Bronzezeitliches Kreta), S. 13'),
-    ('minoer', -1350, 'spätes 14. Jh. v. Chr.', 'Ende des Palastes von Knossos', 'Der Palast von Knossos wird zerstört; Chania im Westen Kretas besteht wohl noch etwas länger.', 'JAR 2023 (Bronzezeitliches Kreta), S. 13'),
+    ('minoer', -1200, 'um 1200 v. Chr.', 'Aufgabe des Palastes von Knossos', 'Der Palast von Knossos wird aufgegeben. Die Datierung ist umstritten: Andere setzen seine Zerstörung schon ins späte 14. Jh. v. Chr.; Chania im Westen Kretas besteht wohl noch etwas länger.', 'GK S. 57; JAR 2023 (Bronzezeitliches Kreta), S. 13'),
     ('mykener', -1600, 'um 1600 v. Chr.', 'Schachtgräber von Mykene', 'Reiche Fürstengräber mit Goldmasken zeigen den Aufstieg einer Kriegerelite auf dem griechischen Festland.'),
-    ('mykener', -1400, 'um 1400 v. Chr.', 'Palastzeit', 'Paläste wie Mykene, Tiryns, Pylos und Theben verwalten ihr Umland mit Linear-B-Tafeln; Pylos teilt sein Reich in zwei Provinzen.', 'Bennet, Palaces and their Regions, PDF-S. 9'),
+    ('mykener', -1450, 'um 1450 v. Chr.', 'Palastzeit', 'Paläste wie Mykene, Tiryns, Pylos und Theben verwalten ihr Umland mit Linear-B-Tafeln; Pylos teilt sein Reich in zwei Provinzen.', 'GK S. 3, 57; Bennet, Palaces and their Regions, PDF-S. 9'),
     ('mykener', -1250, 'um 1250 v. Chr.', 'Löwentor und Zyklopenmauern', 'Mykene und Tiryns werden mit gewaltigen Mauern befestigt.'),
     ('mykener', -1200, 'um 1200 v. Chr.', 'Zusammenbruch der Paläste', 'Die Paläste werden zerstört und nicht wieder aufgebaut. Als Ursachen werden Erdbeben, Dürre, innere Krisen und Angriffe diskutiert – meist im Zusammenspiel; umstritten.', 'Middleton, Durham-Diss. 2008, Bd. I, Abstract; Knapp/Manning, AJA 120 (2016)'),
     ('mykener', -1150, 'um 1150 v. Chr.', 'Nachpalastzeit', 'Kleinere Herrschaften bestehen weiter. Ob man die folgende Zeit „Dunkle Jahrhunderte“ oder „Frühe Eisenzeit“ nennt, ist in der Forschung umstritten.', 'Kotsonas, AJA 120 (2016)'),
     # --- Athen ---
-    ('athen', -508, 'um 508 v. Chr.', 'Reformen des Kleisthenes', 'Kleisthenes ordnet die Bürgerschaft neu; Athen wird zur Demokratie.'),
+    ('athen', -508, '508/07 v. Chr.', 'Reformen des Kleisthenes', 'Nach dem Abzug der Spartaner teilt Kleisthenes die Bürger in zehn Phylen aus Stadt, Küste und Binnenland und schafft den Rat der 500; Athen wird zur Demokratie.', 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. 58–59'),
     ('athen', -499, '499 v. Chr.', 'Ionischer Aufstand', 'Die Griechen Ioniens erheben sich gegen Persien. Athen schickt 20 Schiffe, Eretria fünf; 498 brennt Sardes.', 'Kagan, Yale CLCV 205, Handout „The Persian Wars“, S. 4'),
     ('athen', -490, '490 v. Chr.', 'Marathon', 'Die Athener und Plataier besiegen das persische Heer bei Marathon.', 'Kagan, Yale CLCV 205, Handout „The Persian Wars“'),
     ('athen', -480, '480 v. Chr.', 'Salamis', 'Die griechische Flotte siegt bei Salamis über die Flotte des Xerxes; Athen hat seine Flotte zuvor stark ausgebaut.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“, S. 3'),
     ('athen', -478, '478/7 v. Chr.', 'Delisch-Attischer Seebund', 'Athen gründet mit Inselstädten und Küstenorten einen Bund gegen Persien. Die Kasse liegt im Apollon-Heiligtum auf Delos; der erste Tribut beträgt 460 Talente.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“, S. 3'),
     ('athen', -470, 'um 470 v. Chr.', 'Naxos muss im Bund bleiben', 'Naxos will austreten und wird gezwungen zu bleiben – aus dem Bund wird nach und nach eine Herrschaft Athens.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“, S. 4'),
-    ('athen', -454, '454/3 v. Chr.', 'Bundeskasse nach Athen', 'Die Kasse des Seebunds wird von Delos nach Athen gebracht; mit Bundesgeldern baut Perikles später die Akropolis aus.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
-    ('athen', -449, '449 v. Chr.', 'Kalliasfrieden', 'Nach antiken Berichten schließen Athen und Persien Frieden. Ob dieser Vertrag wirklich so geschlossen wurde, ist in der Forschung umstritten.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
-    ('athen', -445, '445 v. Chr.', 'Dreißigjähriger Frieden', 'Athen und der Peloponnesische Bund erkennen ihre Machtbereiche gegenseitig an.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
+    ('athen', -455, '455/54 v. Chr.', 'Bundeskasse nach Athen', 'Die Kasse des Seebunds wird von Delos nach Athen gebracht; mit Bundesgeldern baut Perikles später die Akropolis aus.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
+    ('athen', -450, '450/49 v. Chr.?', 'Kalliasfrieden', 'Nach antiken Berichten schließen Athen und Persien Frieden. Ob dieser Vertrag wirklich so geschlossen wurde, ist in der Forschung umstritten.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
+    ('athen', -446, '446/45 v. Chr.', 'Dreißigjähriger Frieden', 'Athen und der Peloponnesische Bund erkennen ihre Machtbereiche gegenseitig an.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“'),
     ('athen', -431, '431 v. Chr.', 'Peloponnesischer Krieg', 'Der Krieg zwischen Athen und Sparta mit ihren Bündnissen beginnt; Thukydides beschreibt ihn als Zeitzeuge.', 'Thukydides, Buch I–II'),
     ('athen', -415, '415–413 v. Chr.', 'Sizilische Expedition', 'Athens großer Feldzug gegen Syrakus endet mit der Vernichtung von Heer und Flotte.', 'Thukydides, Buch VI–VII'),
     ('athen', -404, '404 v. Chr.', 'Kapitulation Athens', 'Nach der Niederlage bei Aigospotamoi muss Athen kapitulieren; der Seebund ist aufgelöst.', 'Xenophon, Hellenika II'),
     ('athen', -378, '378/7 v. Chr.', 'Zweiter Attischer Seebund', 'Athen gründet einen neuen Bund. Das Dekret des Aristoteles verspricht den Mitgliedern Freiheit und Selbstverwaltung; ein Bundesrat (Synhedrion) tagt in Athen.', 'Marshall, The Second Athenian Confederacy (1905)'),
     ('athen', -357, '357–355 v. Chr.', 'Bundesgenossenkrieg', 'Wichtige Mitglieder fallen von Athen ab; nach dem Krieg ist der Bund nur noch klein.', 'Marshall, The Second Athenian Confederacy (1905), PDF-S. 131'),
     # --- Sparta ---
-    ('sparta', -700, 'um 700 v. Chr.', 'Sparta beherrscht Messenien', 'Sparta unterwirft Messenien; die Bevölkerung muss als Heloten für die Spartaner arbeiten.'),
+    ('sparta', -720, 'um 730/20 v. Chr.', 'Erster Messenischer Krieg', 'Sparta unterwirft Messenien; die Bevölkerung muss als Heloten für die Spartaner arbeiten.', 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. 58'),
     ('sparta', -550, 'Mitte 6. Jh. v. Chr.', 'Peloponnesischer Bund', 'Sparta schließt Bündnisse mit den meisten Städten der Peloponnes; Argos bleibt außen vor. Erstmals erwähnt wird der Bund für 501 v. Chr.', 'Kagan, Yale CLCV 205, Handout „The Persian Wars“, S. 3'),
     ('sparta', -494, '494 v. Chr.', 'Sieg über Argos', 'Kleomenes besiegt Argos bei Sepeia; Spartas Führung im Bund wird gefestigt.', 'Kagan, Yale CLCV 205, Handout „The Persian Wars“, S. 5'),
     ('sparta', -480, '480 v. Chr.', 'Thermopylen', 'König Leonidas hält mit einem kleinen Heer den Engpass, bis die Perser ihn umgehen.', 'Kagan, Yale CLCV 205, Handout „The Athenian Empire“, S. 3'),
@@ -255,7 +286,7 @@ EREIGNISSE = [
     ('sparta', -371, '371 v. Chr.', 'Niederlage bei Leuktra', 'Theben unter Epameinondas besiegt Sparta; bald darauf wird Messenien frei. Spartas Vormacht ist zu Ende.', 'Xenophon, Hellenika VI'),
     # --- Makedonien und Alexander ---
     ('makedonien', -359, '359 v. Chr.', 'Philipp II. wird König', 'Philipp II. baut ein schlagkräftiges Heer mit der langen Lanze (Sarissa) auf und macht Makedonien zur Großmacht.'),
-    ('makedonien', -338, '338/7 v. Chr.', 'Chaironeia und Korinthischer Bund', 'Philipp besiegt Athen und Theben bei Chaironeia und vereint die griechischen Staaten (ohne Sparta) unter seiner Führung.'),
+    ('makedonien', -338, '338 v. Chr.', 'Chaironeia und Korinthischer Bund', 'Philipp besiegt Athen und Theben bei Chaironeia und vereint die griechischen Staaten (ohne Sparta) unter seiner Führung.'),
     ('makedonien', -336, '336 v. Chr.', 'Alexander wird König', 'Philipp wird ermordet; sein zwanzigjähriger Sohn Alexander folgt ihm.'),
     ('makedonien', -334, '334 v. Chr.', 'Aufbruch nach Asien, Sieg am Granikos', 'Alexander setzt über den Hellespont und schlägt die Perser am Fluss Granikos.', 'Arrian, Anabasis I'),
     ('makedonien', -333, '333 v. Chr.', 'Issos', 'Alexander besiegt den Perserkönig Dareios III. bei Issos; Dareios flieht.', 'Arrian, Anabasis II'),
@@ -277,7 +308,48 @@ EREIGNISSE = [
     ('shang', -1046, 'um 1046 v. Chr.', 'Die Zhou stürzen die Shang', 'Die Zhou-Dynastie übernimmt die Herrschaft am Gelben Fluss.'),
     ('shang', -551, 'um 551 v. Chr.', 'Konfuzius', 'Nach der Überlieferung wird Konfuzius geboren; seine Lehre prägt China bis heute.'),
     ('shang', -221, '221 v. Chr.', 'Qin eint China', 'Qin Shihuangdi beendet die Zeit der Streitenden Reiche; 206 v. Chr. folgt die Han-Dynastie.'),
-    ('perser', -550, 'um 550 v. Chr.', 'Kyros II.', 'Kyros begründet das Perserreich; 539 v. Chr. erobert er Babylon.'),
+    # --- ergänzt nach dem Grundkurs-Skript (GK) ---
+    ('athen', -683, '683/82 v. Chr.', 'Neun Archonten', 'Athen wird von jährlich wechselnden Archonten geleitet; der Adel beherrscht die Polis.', GK % '58'),
+    ('athen', -624, '624 v. Chr.', 'Drakon', 'Drakon schreibt das Recht auf (Gesetzesfixierung).', GK % '58'),
+    ('athen', -594, '594/93 v. Chr.', 'Reformen Solons', 'Solon hebt die Schuldknechtschaft auf (Seisachtheia), teilt die Bürger nach Besitz in vier Klassen und schafft den Rat der 400.', GK % '58'),
+    ('athen', -561, '561 v. Chr.', 'Tyrannis der Peisistratiden', 'Peisistratos und seine Söhne herrschen als Tyrannen (561–511/10, ununterbrochen 546/45–528/27 v. Chr.).', GK % '58'),
+    ('athen', -514, '514 v. Chr.', 'Ermordung des Hipparchos', 'Harmodios und Aristogeiton ermorden den Tyrannen Hipparchos; sein Bruder Hippias herrscht weiter.', GK % '58'),
+    ('athen', -510, '511/10 v. Chr.', 'Sturz des Hippias', 'Mit spartanischer Hilfe wird der Tyrann Hippias vertrieben.', GK % '58'),
+    ('athen', -482, 'um 482 v. Chr.', 'Flottenbau', 'Auf Betreiben des Themistokles baut Athen eine große Flotte.', GK % '60'),
+    ('athen', -462, '462 v. Chr.', 'Ephialtes', 'Kimon wird verbannt (Ostrakismos); Ephialtes entmachtet den Areopag.', GK % '61'),
+    ('athen', -451, '451 v. Chr.', 'Bürgerrechtsgesetz des Perikles', 'Bürger ist nur noch, wessen Eltern beide Athener sind. 446–431 v. Chr. wird die Akropolis neu gestaltet.', GK % '61'),
+    ('athen', -430, '430 v. Chr.', 'Pest in Athen', 'Eine Seuche wütet in der belagerten Stadt; 429 v. Chr. stirbt Perikles.', GK % '62'),
+    ('athen', -421, '421 v. Chr.', 'Nikiasfriede', 'Der Archidamische Krieg (431–421 v. Chr.) endet mit einem Frieden auf Zeit.', GK % '62'),
+    ('athen', -411, '411/10 v. Chr.', 'Oligarchen in Athen', 'Im Ionisch-Dekeleischen Krieg (413–404) übernimmt eine Oligarchie kurzzeitig die Macht; Persien zahlt an Sparta.', GK % '62'),
+    ('athen', -399, '399 v. Chr.', 'Hinrichtung des Sokrates', 'Nach der Herrschaft der Dreißig (404/03 v. Chr.) ist die Demokratie wiederhergestellt; Sokrates wird verurteilt.', GK % '62'),
+    ('athen', -340, '340 v. Chr.', 'Hellenenbund gegen Makedonien', 'Demosthenes bringt ein Bündnis gegen Philipp II. zustande.', GK % '63'),
+    ('sparta', -650, 'um 650/620 v. Chr.', 'Zweiter Messenischer Krieg', 'Sparta schlägt einen Aufstand der Messenier nieder.', GK % '58'),
+    ('sparta', -400, '400 v. Chr.', 'Krieg gegen Persien', 'Sparta kämpft unter König Agesilaos in Kleinasien gegen Persien (400–394 v. Chr.).', GK % '62'),
+    ('sparta', -395, '395 v. Chr.', 'Korinthischer Krieg', 'Theben, Athen, Korinth und Argos kämpfen gegen Sparta (395–386); 394 v. Chr. siegt Persien bei Knidos über Spartas Flotte.', GK % '62'),
+    ('sparta', -369, '369 v. Chr.', 'Messenien unabhängig', 'Nach Leuktra wird Messenien frei; Sparta verliert die Hälfte seines Landes.', GK % '63'),
+    ('theben', -371, '371 v. Chr.', 'Leuktra', 'Theben unter Epameinondas besiegt Sparta; es beginnt die thebanische Hegemonie.', GK % '62–63'),
+    ('theben', -362, '362 v. Chr.', 'Mantineia', 'Theben siegt noch einmal, doch Epameinondas fällt; die Hegemonie endet.', GK % '63'),
+    ('theben', -338, '338 v. Chr.', 'Chaironeia', 'Philipp II. besiegt Theben und Athen.', GK % '63'),
+    ('theben', -335, '335 v. Chr.', 'Zerstörung Thebens', 'Alexander zerstört Theben nach einem Aufstand.', GK % '63'),
+    ('makedonien', -346, '346 v. Chr.', 'Friede des Philokrates', 'Athen erkennt die Eroberungen Philipps II. an.', GK % '63'),
+    ('makedonien', -335, '335 v. Chr.', 'Zerstörung Thebens', 'Alexander schlägt einen Aufstand nieder und zerstört Theben.', GK % '63'),
+    ('makedonien', -322, '323/22 v. Chr.', 'Lamischer Krieg', 'Athen und Verbündete erheben sich nach Alexanders Tod vergeblich gegen Makedonien. Philipp III. Arrhidaios und Alexander IV. werden Könige, die Satrapien verteilt.', GK % '63'),
+    ('makedonien', -321, '321/20 v. Chr.', 'Erster Diadochenkrieg', 'Alexanders Feldherren kämpfen um das Reich: Perdikkas und Eumenes gegen Antipatros, Krateros, Antigonos und Ptolemaios. 320 v. Chr. ordnet die Konferenz von Triparadeisos die Herrschaft neu.', GK % '64'),
+    ('makedonien', -315, '315 v. Chr.', 'Antigonos Herr von Asien', 'Im 2. Diadochenkrieg (319–315) fallen Eumenes und Olympias; 314 v. Chr. verbünden sich Kassandros, Lysimachos, Ptolemaios und Seleukos gegen Antigonos.', GK % '64'),
+    ('makedonien', -306, '306 v. Chr.', 'Königsproklamationen', 'Antigonos und Demetrios nehmen den Königstitel an, danach Ptolemaios, Kassandros, Lysimachos und Seleukos. Das Reich Alexanders ist geteilt.', GK % '64'),
+    ('makedonien', -294, '294 v. Chr.', 'Demetrios König in Makedonien', 'Demetrios Poliorketes gewinnt Makedonien, wird aber 288 v. Chr. vertrieben.', GK % '64'),
+    ('makedonien', -276, '276 v. Chr.', 'Antigonos II. Gonatas', 'Die Antigoniden herrschen dauerhaft in Makedonien; im Chremonideischen Krieg (268–261) besiegt Antigonos Athen, Sparta und Ptolemaios II.', GK % '64–65'),
+    ('makedonien', -222, '222 v. Chr.', 'Philipp V.', 'Philipp V. (222–179 v. Chr.) verbündet sich mit Hannibal: Erster Makedonischer Krieg gegen Rom (215–205).', GK % '65'),
+    ('makedonien', -200, '200 v. Chr.', 'Zweiter Makedonischer Krieg', 'Rom besiegt Philipp V. bei Kynoskephalai (197); 196 v. Chr. erklärt Flamininus die Griechen für frei.', GK % '65'),
+    ('makedonien', -171, '171 v. Chr.', 'Dritter Makedonischer Krieg', 'Krieg gegen König Perseus (171–168 v. Chr.).', GK % '65'),
+    ('perser', -547, '547/46 v. Chr.', 'Lyderreich erobert', 'Kyros besiegt König Kroisos von Lydien; um 540 v. Chr. wird Ionien persisch.', GK % '60'),
+    ('perser', -539, '539 v. Chr.', 'Eroberung Babylons', 'Kyros erobert Babylon; das Perserreich reicht bis ans Mittelmeer.', GK % '60'),
+    ('perser', -522, '522 v. Chr.', 'Dareios I.', 'Dareios I. (522–486) stürzt den (vermutlichen) Usurpator Gaumata; er gliedert das Reich in Satrapien. Um 510 v. Chr. ziehen die Perser bis zur Donau.', GK % '60'),
+    ('perser', -486, '486 v. Chr.', 'Xerxes', 'Xerxes (486–465 v. Chr.) zieht 480/79 gegen Griechenland und scheitert.', GK % '60'),
+    ('perser', -401, '401 v. Chr.', 'Zug des jüngeren Kyros', 'Kyros der Jüngere fällt bei Kunaxa im Kampf gegen seinen Bruder Artaxerxes II.; Xenophon beschreibt den Rückzug der griechischen Söldner.', GK % '27, 62'),
+    ('perser', -386, '386 v. Chr.', 'Königsfriede', 'Persien und Sparta setzen einen allgemeinen Frieden durch; Ionien ist wieder persisch.', GK % '62'),
+    ('hethiter', -1190, 'um 1200 v. Chr.', 'Ende des Hethiterreiches', 'Im Zusammenhang mit dem „Seevölkersturm“ endet das Hethiterreich; Ursachen und Ablauf sind umstritten.', GK % '57'),
+    ('perser', -550, '550 v. Chr.', 'Kyros II. erobert das Mederreich', 'Kyros der Große aus der Persis (um 558–530 v. Chr.) übernimmt das Reich der Meder.', 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. 60'),
     ('perser', -525, '525 v. Chr.', 'Kambyses erobert Ägypten', 'Der Perserkönig Kambyses II. besiegt den Pharao Psammetich III.; Ägypten wird persische Provinz.'),
     ('perser', -330, '330 v. Chr.', 'Ende durch Alexander', 'Alexander der Große besiegt Dareios III.; das Perserreich endet.'),
 ]
@@ -295,12 +367,18 @@ SCHLACHTEN = [
     dict(name='Salamis', jahr=-480, lng=23.53, lat=37.95, reiche=['athen', 'sparta', 'perser'], note='Die griechische Flotte besiegt die persische in der Meerenge vor Salamis.'),
     dict(name='Plataiai', jahr=-479, lng=23.27, lat=38.21, reiche=['sparta', 'athen', 'perser'], note='Sieg der Griechen unter Pausanias über das Heer des Mardonios.'),
     dict(name='Mykale', jahr=-479, lng=27.15, lat=37.65, reiche=['sparta', 'athen', 'perser'], note='Griechischer Sieg an der kleinasiatischen Küste; Samos, Chios und Lesbos schließen sich den Griechen an.'),
-    dict(name='Eurymedon', jahr=-469, lng=31.33, lat=36.83, reiche=['athen', 'perser'], note='Kimon besiegt mit der Flotte des Seebunds Perser zu Wasser und zu Land (Jahr unsicher, 469–466 v. Chr.).'),
+    dict(name='Eurymedon', jahr=-466, lng=31.33, lat=36.83, reiche=['athen', 'perser'], note='Kimon besiegt mit der Flotte des Seebunds Perser zu Wasser und zu Land (um 466 v. Chr.; Jahr unsicher).'),
     dict(name='Sphakteria', jahr=-425, lng=21.67, lat=36.93, reiche=['athen', 'sparta'], note='Athener nehmen spartanische Hopliten auf der Insel vor Pylos gefangen (Thukydides IV).'),
     dict(name='Syrakus', jahr=-413, lng=15.27, lat=37.07, reiche=['athen'], note='Untergang der athenischen Sizilien-Expedition (Thukydides VII).'),
     dict(name='Aigospotamoi', jahr=-405, lng=26.55, lat=40.33, reiche=['athen', 'sparta'], note='Lysander überrascht die athenische Flotte am Hellespont (Xenophon, Hellenika II 1).'),
-    dict(name='Leuktra', jahr=-371, lng=23.18, lat=38.24, reiche=['sparta'], note='Theben unter Epameinondas besiegt Sparta.'),
-    dict(name='Chaironeia', jahr=-338, lng=22.84, lat=38.50, reiche=['athen'], note='Philipp II. von Makedonien besiegt Athen und Theben; die Unabhängigkeit der Poleis endet.'),
+    dict(name='Leuktra', jahr=-371, lng=23.18, lat=38.24, reiche=['theben', 'sparta'], note='Theben unter Epameinondas besiegt Sparta.'),
+    dict(name='Chaironeia', jahr=-338, lng=22.84, lat=38.50, reiche=['makedonien', 'athen', 'theben'], note='Philipp II. von Makedonien besiegt Athen und Theben; die Unabhängigkeit der Poleis endet.'),
+    dict(name='Tanagra', jahr=-457, lng=23.53, lat=38.31, reiche=['athen', 'sparta'], note='Sparta siegt im Ersten Peloponnesischen Krieg über Athen; kurz darauf siegt Athen bei Oinophyta.'),
+    dict(name='Koroneia', jahr=-447, lng=22.96, lat=38.40, reiche=['athen'], note='Athen verliert Böotien.'),
+    dict(name='Arginusen', jahr=-406, lng=26.65, lat=39.03, reiche=['athen', 'sparta'], note='Seesieg Athens über Sparta; die siegreichen Strategen werden danach hingerichtet.'),
+    dict(name='Kunaxa', jahr=-401, lng=44.08, lat=33.36, reiche=['perser'], note='Kyros der Jüngere fällt im Kampf gegen Artaxerxes II.'),
+    dict(name='Knidos', jahr=-394, lng=27.37, lat=36.68, reiche=['perser', 'sparta'], note='Die persische Flotte unter Konon besiegt die spartanische.'),
+    dict(name='Mantineia', jahr=-362, lng=22.39, lat=37.62, reiche=['theben', 'sparta', 'athen'], note='Theben siegt, doch Epameinondas fällt; die thebanische Hegemonie endet.'),
     dict(name='Kadesch', jahr=-1274, lng=36.51, lat=34.56, reiche=['aegypten', 'hethiter'], note='Ramses II. gegen die Hethiter unter Muwattalli II.; keiner siegt eindeutig.'),
 ]
 # Züge (wie die Völkerwanderung in data/reiche.json; gruppe = eigener Schalter im Menü). Wege schematisch.
@@ -315,7 +393,44 @@ ALEXANDERZUG = [
     (-325, -324, 'Gedrosische Wüste – Karmanien – Persepolis – Susa', [[68.40, 25.40], [64.0, 25.6], [61.00, 27.20], [57.10, 29.10], [52.89, 29.93], [48.25, 32.19]]),
     (-324, -323, 'Susa – Opis – Ekbatana – Babylon (Tod im Juni 323)', [[48.25, 32.19], [44.50, 33.30], [48.52, 34.80], [44.42, 32.54]]),
 ]
-WANDERUNGEN = [dict(volk='Alexander der Große', gruppe='alexander', farbe=ALEX, von=v, bis=b, pfad=pf, text='%s–%s v. Chr.: %s' % (-v, -b, t)) for v, b, t, pf in ALEXANDERZUG]
+# spur: gezogene Etappen bleiben bis 300 v. Chr. sichtbar (in js/app.js mit der Zeit ausgegraut)
+WANDERUNGEN = [dict(volk='Alexander der Große', gruppe='alexander', farbe=ALEX, von=v, bis=b, spur=-300 - b, pfad=pf, text='%s–%s v. Chr.: %s' % (-v, -b, t)) for v, b, t, pf in ALEXANDERZUG]
+# Stationen des Alexanderzugs (Schlachten stehen in SCHLACHTEN). Eckdaten nach GK S. 63; Siwa: GK S. 86 (Plut. Alex. 27).
+GK_S = 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. %s'
+ALEX_STATIONEN = [
+    dict(name='Pella', jahr=-334, lng=22.52, lat=40.76, text='334 v. Chr.: Aufbruch zum Perserfeldzug aus der makedonischen Hauptstadt.', quelle=GK_S % '63'),
+    dict(name='Tyros', jahr=-332, lng=35.20, lat=33.27, text='332 v. Chr.: Nach monatelanger Belagerung fällt die Inselstadt.', quelle='Arrian, Anabasis II'),
+    dict(name='Alexandria', jahr=-331, lng=29.92, lat=31.20, text='Ägypten-Zug 332/31 v. Chr.: Alexander gründet Alexandria.', quelle=GK_S % '63'),
+    dict(name='Siwa', jahr=-331, lng=25.54, lat=29.20, text='Alexander besucht das Orakel des Ammon; nach Plutarch begrüßt ihn der Priester als Sohn des Gottes.', quelle=GK_S % '86' + ' (Plut. Alex. 27)'),
+    dict(name='Babylon', jahr=-331, lng=44.42, lat=32.54, text='331 v. Chr. nach Gaugamela eingenommen; 323 v. Chr. stirbt Alexander hier.', quelle=GK_S % '63'),
+    dict(name='Persepolis', jahr=-330, lng=52.89, lat=29.93, text='330 v. Chr.: Zerstörung von Persepolis; Dareios III. wird ermordet.', quelle=GK_S % '63'),
+    dict(name='Baktra', jahr=-329, lng=66.90, lat=36.76, text='330–327 v. Chr.: Eroberung des nordöstlichen Iran (Baktrien und Sogdien).', quelle=GK_S % '63'),
+    dict(name='Alexandria Eschate', jahr=-329, lng=69.60, lat=40.28, text='„Das äußerste Alexandria“ am Iaxartes (Syrdarja).', quelle='Arrian, Anabasis IV'),
+    dict(name='Taxila', jahr=-326, lng=72.83, lat=33.75, text='327–325 v. Chr.: Indischer Feldzug.', quelle=GK_S % '63'),
+    dict(name='Hyphasis', jahr=-326, lng=75.00, lat=31.50, text='326 v. Chr.: Am Hyphasis (Beas), einem Nebenfluss des Indus, verweigert das Heer den Weitermarsch; Alexander kehrt um.',
+         quelle=GK_S % '63',
+         zitat=dict(text='… es gibt kein Ende der Mühen außer den Mühen selbst, sofern sie zu ruhmvollen Taten führen.',
+                    sprecher='Alexander in seiner Rede am Hyphasis',
+                    beleg='Arr. an. 5,26; dt. nach der gemeinfreien engl. Übers. von E. J. Chinnock (London 1884) [Übers. d. Verf.]',
+                    hinweis='Die Rede hat Arrian (2. Jh. n. Chr.) gestaltet; antike Geschichtsschreiber geben Reden sinngemäß wieder (vgl. Thuk. 1,22).',
+                    von=-326, bis=-324)),
+    dict(name='Patala', jahr=-325, lng=68.40, lat=25.40, text='325 v. Chr.: Das Heer erreicht das Indusdelta; Rückkehr aus Indien.', quelle=GK_S % '63'),
+    dict(name='Susa', jahr=-324, lng=48.25, lat=32.19, text='324 v. Chr.: Massenhochzeit von Susa.', quelle=GK_S % '63'),
+    dict(name='Opis', jahr=-324, lng=44.50, lat=33.30, text='324 v. Chr.: Meuterei der makedonischen Soldaten in Opis.', quelle=GK_S % '63'),
+]
+# Epochen der Alten Geschichte (GK S. 4, 57, 66): eigene Leiste auf der Zeitleiste (js/app.js, nur freier Modus)
+EPOCHEN = [
+    dict(reihe='Griechenland', name='Minoisch-mykenische Kultur', von=-2000, bis=-1150),
+    dict(reihe='Griechenland', name='„Dark Ages“', von=-1150, bis=-800, hinweis='Bezeichnung umstritten (auch „Frühe Eisenzeit“)'),
+    dict(reihe='Griechenland', name='Archaik', von=-800, bis=-500, hinweis='Homer – Perserkriege'),
+    dict(reihe='Griechenland', name='Klassik', von=-500, bis=-323, hinweis='Perserkriege – Alexander der Große'),
+    dict(reihe='Griechenland', name='Hellenismus', von=-323, bis=-30, hinweis='Alexander der Große – Ende der Ptolemäer'),
+    dict(reihe='Rom', name='Königszeit', von=-753, bis=-510, hinweis='ab urbe condita (legendär) – Sturz der Könige'),
+    dict(reihe='Rom', name='Republik', von=-510, bis=-27, hinweis='Sturz der Könige – Augustus'),
+    dict(reihe='Rom', name='Kaiserzeit', von=-27, bis=284, hinweis='Augustus – Diocletian (Prinzipat)'),
+    dict(reihe='Rom', name='Spätantike', von=284, bis=565, hinweis='Diocletian – Tod Justinians'),
+]
+EPOCHEN_QUELLE = 'Grundkurs „Alte Geschichte“, Skript FSU Jena, WS 2022/23, S. 4; Epochen sind geschichtswissenschaftliche Konvention.'
 # Die Griechische Kolonisation hat ein eigenes Modul (data/kolonisation.json aus build_poleis.py, js/app.js KOL).
 
 ORTE = [
@@ -373,7 +488,7 @@ ORTE = [
     # --- Athen und Sparta ---
     ('athen', 'Athen', 23.73, 37.97, 1, [[-508, -338]]),
     ('makedonien', 'Pella', 22.52, 40.76, 1, [[-400, -168]]),
-    ('makedonien', 'Alexandria (Ägypten)', 29.92, 31.20, 2, [[-331, -301]]),
+    ('makedonien', 'Alexandria (Ägypten)', 29.92, 31.20, 2, [[-331, -300]]),
     ('makedonien', 'Babylon (Residenz Alexanders)', 44.42, 32.54, 2, [[-331, -311]]),
     ('athen', 'Piräus', 23.64, 37.94, 3, [[-493, -338]]),
     ('athen', 'Delos (Bundeskasse)', 25.27, 37.40, 2, [[-478, -454]]),
@@ -421,6 +536,7 @@ def main():
         'schlachten': SCHLACHTEN,
         'orte': [dict(reich=r, name=n, lng=x, lat=y, stufe=s, zeiten=z) for r, n, x, y, s, z in ORTE],
         'wanderungen': WANDERUNGEN,
+        'epochen': EPOCHEN, 'epochen_quelle': EPOCHEN_QUELLE, 'alexander_stationen': ALEX_STATIONEN,
     }
     with io.open(ZIEL, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(daten, f, ensure_ascii=False, separators=(',', ':'))

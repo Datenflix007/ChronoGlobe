@@ -67,7 +67,9 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
                 | { art: 'text', id, zurueck: { art, id } | null },
     waren: null | 'handel' | 'zh',
     modal: null | 'hilfe' | 'lehrer'
-  } }
+  },
+  zeichnung: [ { id, art: 'stift' | 'marker', fest, a, p: [lng, lat, lng, lat, …] }, … ]   // Leuchtstift der Lehrkraft
+}
 ```
 
 **Schnittstelle** (`window.ChronoGlobe`):
@@ -123,6 +125,18 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `offen` | `is_open` | nur Information |
 | `beendet` | – | Hinweis „Session beendet“, Kanal schließen |
 
+### Leuchtstift der Lehrkraft
+
+- Nur in der Lehreransicht: `session.js` ruft `ChronoGlobe.stift()` auf; die Leiste erscheint oben in der Mitte.
+- Werkzeuge: dünner Stift, breiter durchscheinender Marker, Radierer (einzelne Striche). Ziehen zeichnet, das Mausrad zoomt weiter.
+- Gezeichnetes ist zunächst **vorläufig**:
+  - „Stehen lassen“ macht es zur festen Beschriftung (`fest: true`).
+  - „Wegwischen“, Esc oder das Schließen des Stifts entfernen das Vorläufige.
+  - „Alles löschen“ entfernt auch Feststehendes (mit Rückfrage).
+- Die Striche liegen in Längen- und Breitengraden (2 Nachkommastellen) und drehen mit dem Globus; die Rückseite wird ausgeblendet. `a` ist der Kameraabstand beim Zeichnen; die Strichbreite wächst beim Heranzoomen mit.
+- Die Zeichnung gehört zum Zustand (`zeichnung`) und gilt wie die Filter immer für alle, auch bei „selbst bedienen“. Höchstens 3000 Punkte, damit der Zustand unter der Grenze von 64 KB in `teacher_update_state` bleibt.
+- Gezeichnet wird auf einer eigenen Fläche über dem Globus (`.stift-flaeche`, `STIFT` in `js/app.js`); solange der Stift an ist, nehmen Beschriftungen keine Klicks an.
+
 ### Schülerrechte
 
 | Recht | „Lehreransicht“ | „selbst bedienen“ |
@@ -132,7 +146,7 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `reiche` (Schriftrolle) | nur die Schriftrolle der Lehrkraft | eigene Schriftrollen, nur lokal |
 | `routen` (Routen, Orte, Gesandtschaften, Texte, Warenübersicht) | nur Fenster der Lehrkraft | eigene Fenster, nur lokal |
 
-- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau.
+- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Leuchtstift-Zeichnung.
 - Öffnet oder schließt die Lehrkraft ein Fenster und ist „Fenster mitsenden“ an, passiert das bei allen, auch bei „selbst bedienen“.
 - Die Lehrerhinweise werden nie mitgesendet.
 - Sobald Schüler:innen abweichen, erscheint „Zur Lehreransicht zurück“.

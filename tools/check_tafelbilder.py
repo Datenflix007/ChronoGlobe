@@ -12,7 +12,7 @@ import io, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TB = os.path.join(ROOT, 'tafelbilder')
-EBENEN = {'orte', 'schlachten', 'vw', 'limes', 'handel', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide', 'zh', 'bilder', 'netze'}
+EBENEN = {'orte', 'schlachten', 'vw', 'limes', 'geo', 'handel', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide', 'zh', 'bilder', 'netze'}
 AKTIV_EXTRA = {'strassen_ehemals', 'strassen_animieren'}
 DATEN = {'reiche', 'handel', 'zhenghe', 'texte', 'literatur', 'roemerstrassen', 'orbis_schiff', 'vignetten', 'fruehe_reiche', 'han_seidenstrasse', 'limes', 'netze'}
 # Handels- und Verkehrsnetze (data/netze/index.json): Datenschlüssel netz_<id>, in ebenen.aktiv.netze als Liste von ids
