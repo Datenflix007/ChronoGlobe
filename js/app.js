@@ -251,7 +251,7 @@
   function refreshHtml() {
     if (state.epoche === 'ming') { globe.htmlElementsData(zhHtml(CUR_ZV || zhVisible(state.year))); return; }
     var tv = CUR_TV || tradeVisible(state.year);
-    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), limesKastelle(), [STANDORT || JENA]));
+    globe.htmlElementsData(visibleCities().concat(visibleBattles(state.year), tv.kontakte, wareTags(tv), vwTags(), limesKastelle(), kolSchiffe(), [STANDORT || JENA]));
   }
   function battleEl(d) {
     if (d.__el) return d.__el;
@@ -271,8 +271,8 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    pfadeSetzen(ehemaligePaths(tv).concat(limesPaths(), tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths()));
-    globe.pointsData(hanStationen(state.year).concat(netzeOrte(), themenOrte()));
+    pfadeSetzen(antikePfade(tv));
+    globe.pointsData(antikePunkte());
     refreshHtml(); vwDrehenBald();
     karUpdate();
     setTimeout(scheduleTagSides, 50);
@@ -351,15 +351,16 @@
     try { globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, GERAET.pixel)); } catch (e) {}
     initTradeGlobe();
     globe.pointLat('lat').pointLng('lng').pointAltitude(0.0025).pointResolution(10).pointsTransitionDuration(0)
-      .pointRadius(function (s) { if (s.themaort) return (s.themaM.punkt || 0.13) * (s.o.groesse ? 0.7 + s.o.groesse * 0.16 : 1);   // Index-Feld „punkt“, Objekt-Feld „groesse“ (1–5)
+      .pointRadius(function (s) { if (s.kolort) return 0.09; if (s.themaort) return (s.themaM.punkt || 0.13) * (s.o.groesse ? 0.7 + s.o.groesse * 0.16 : 1);   // Index-Feld „punkt“, Objekt-Feld „groesse“ (1–5)
          if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
-      .pointColor(function (s) { if (s.themaort) return themaFarbe(s.themaM, 0.95); return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
+      .pointColor(function (s) { if (s.kolort) return kolFarbe(s.z, 0.95); if (s.themaort) return themaFarbe(s.themaM, 0.95); return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
       .pointLabel(function (s) { var t = el('div', 'gtip');
+        if (s.kolort) { t.appendChild(el('b', null, s.z.kolonie)); t.appendChild(el('br')); t.appendChild(document.createTextNode('Kolonie von ' + s.z.mutter + ', gegründet ' + kolJahrText(s.z) + ' · Klick für Infos')); return t.outerHTML; }
         if (s.themaort) { t.appendChild(el('b', null, s.o.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.themaM.name + ' · ' + Themen.zeitText(s.o) + ' · Klick für Infos')); return t.outerHTML; }
         if (s.netzort) { t.appendChild(el('b', null, netzOrtTitel(s))); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.typ + ' · ' + s.netzM.name + ' · Klick für Infos')); return t.outerHTML; }
         t.appendChild(el('b', null, s.py + ' (' + s.zh + ')')); t.appendChild(el('br'));
         t.appendChild(document.createTextNode(s.typ + ' · Seidenstraße der Han · Klick für Infos')); return t.outerHTML; })
-      .onPointClick(function (s) { if (s && s.themaort) openThemaObjekt(s.o, s.themaM); else if (s && s.hanstation) openHanStation(s); else if (s && s.netzort) openNetzOrt(s); });
+      .onPointClick(function (s) { if (s && s.kolort) openKolonie(s.z); else if (s && s.themaort) openThemaObjekt(s.o, s.themaM); else if (s && s.hanstation) openHanStation(s); else if (s && s.netzort) openNetzOrt(s); });
     globe.controls().addEventListener('change', scheduleTagSides);
     globe.controls().addEventListener('change', karDrawSoon);
     globe.controls().addEventListener('change', zoomPruefen);
@@ -637,7 +638,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + state.alexander + state.kolonisation + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y) + '|' + ehemaligeSchluessel(y, tv);
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + state.alexander + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y) + '|' + ehemaligeSchluessel(y, tv) + '|' + kolSchluessel(y);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -658,7 +659,7 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : ehemaligePaths(CUR_TV).concat(limesPaths(), tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths(), themenPaths()));
+      pfadeSetzen(state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)).concat(netzePaths(), themenPaths()) : antikePfade(CUR_TV));
       if (zuegeAn()) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
@@ -687,7 +688,7 @@
       var t = state.year === ANTIKE_ENDE ? 1500 : teilVon(state.year).takt || segOf(state.year).takt;
       playTimer = setTimeout(function () {
         if (state.year >= YMAX) { togglePlay(); return; }
-        if (PENS.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
+        if (PENS.length || KOL.pens.length) { step(); return; }   // erst weiter, wenn die laufenden Fahrten fertig gezeichnet sind
         setYear(plusJahre(state.year, 1)); step();
       }, t);
     })();
@@ -1126,9 +1127,9 @@
   function vwFarbe(w) { return VW_FARBE[w.volk] || w.farbe; }
   /* Gruppen von Zügen mit eigenem Schalter: Völkerwanderung (state.vw), Alexanderzug, Griechische Kolonisation
      (data/fruehe_reiche.json → wanderungen mit „gruppe“). „spur“: Jahre, die ein Zug nach der Ankunft sichtbar bleibt. */
-  var ZUG_GRUPPEN = { alexander: '#tglAlex', kolonisation: '#tglKolon' };
+  var ZUG_GRUPPEN = { alexander: '#tglAlex' };
   function zugAn(w) { var g = w.gruppe || 'vw'; return g === 'vw' ? state.vw : !!state[g]; }
-  function zuegeAn() { return state.vw || state.alexander || state.kolonisation; }
+  function zuegeAn() { return state.vw || state.alexander; }
   function vwAnteil(w, y) { return y < w.von ? -1 : Math.min(1, (y - w.von + 1) / (w.bis - w.von + 1)); }
   function vwSichtbar(w, y) { return zugAn(w) && vwAnteil(w, y) > 0 && y <= w.bis + (w.spur || VW_SPUR); }
   function vwVorbereiten(w, i) {
@@ -1197,7 +1198,7 @@
     });
   }
   function vwDrehenBald() { if (!VW_DREH) VW_DREH = requestAnimationFrame(vwDrehen); }
-  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'kolschiff' ? kolSchiffEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
 
   /* ---------- Eigener Standort (Pin) ---------- */
   // Standard-Pin: Jena; wird durch den eigenen Standort ersetzt, sobald dieser aktiviert ist
@@ -1253,7 +1254,8 @@
       } },
     schiff: { schl: 'orbis_schiff', url: 'data/orbis_schiff.json', noetig: function () { return TRADE.schiff; }, fertig: function (d) { initOrbis(d); } },
     hanseide: { schl: 'han_seidenstrasse', url: 'data/han_seidenstrasse.json', noetig: function () { return TRADE.hanseide; }, fertig: function (d) { initHanSeide(d); } },
-    limes: { schl: 'limes', url: 'data/limes.json', noetig: function () { return state.limes; }, fertig: function (d) { initLimes(d); } }
+    limes: { schl: 'limes', url: 'data/limes.json', noetig: function () { return state.limes; }, fertig: function (d) { initLimes(d); } },
+    kolonisation: { schl: 'kolonisation', url: 'data/kolonisation.json', noetig: function () { return state.kolonisation; }, fertig: function (d) { kolInit(d); } }
   };
   function ebeneLaden(k) {
     var e = NACHLADEN[k];
@@ -1585,6 +1587,119 @@
     if (!d.__dash) { var km = Math.max(1, lauf(d.pts).len * 6371); d.__dash = [Math.min(0.5, 45 / km), Math.min(0.5, 40 / km)]; }   // Strich ≈ 45 km
     return d.__dash[i];
   }
+
+  /* ---------- Griechische Kolonisation (data/kolonisation.json aus build_poleis.py) ----------
+     Wie bei den Entdeckungsfahrten: Erreicht die Zeitleiste ein Gründungsjahr, fährt ein Schiff von der Mutterstadt
+     zur neuen Kolonie und zeichnet die Route live (Feder: wachsende Strichlänge im Material der Linie). Danach bleibt die
+     Route in der Farbe der Mutterstadt bis 323 v. Chr. sichtbar, frische Gründungen kräftiger. Routen je Mutterstadt
+     schaltbar (getState().kolonien). Wege berechnet über Seepunkte, schematisch. Beim Abspielen wartet die Zeitleiste,
+     bis die laufenden Fahrten gezeichnet sind. */
+  var KOL = { daten: null, an: {}, farbe: {}, prev: {}, pens: [], raf: 0, last: 0, FRISCH: 30, DAUER: 2600 };
+  function kolInit(d) {
+    KOL.daten = d && Array.isArray(d.zuege) ? d : null;
+    if (!KOL.daten) return;
+    d.gruppen.forEach(function (g) { KOL.farbe[g.id] = g.farbe; if (!(g.id in KOL.an)) KOL.an[g.id] = true; });
+    d.zuege.forEach(function (z) {
+      z.__lauf = lauf(z.pfad);
+      z.__p = { id: 'kol-' + z.id, kol: z, pts: z.pfad };
+      z.__ort = { kolort: true, z: z, lng: z.pfad[z.pfad.length - 1][0], lat: z.pfad[z.pfad.length - 1][1] };
+    });
+    kolChipsBauen();
+  }
+  function kolChipsBauen() {
+    var box = $('#kolChips'); if (!box || !KOL.daten) return;
+    box.innerHTML = '';
+    KOL.daten.gruppen.forEach(function (g) {
+      if (!g.anzahl) return;
+      var b = el('button', 'chip plain thema kol'); b.type = 'button'; b.dataset.kol = g.id;
+      b.setAttribute('aria-pressed', String(!!KOL.an[g.id])); b.classList.toggle('on', !!KOL.an[g.id]);
+      b.style.setProperty('--c', g.farbe); b.title = g.name + ': ' + g.anzahl + ' Gründungen';
+      b.appendChild(el('i')); b.appendChild(el('span', null, g.name)); b.appendChild(el('small', null, g.anzahl + ' Gründungen'));
+      b.addEventListener('click', function () { var o = {}; o[g.id] = !KOL.an[g.id]; setState({ kolonien: o }); });
+      box.appendChild(b);
+    });
+    var r = el('div', 'row kol-alle');
+    [['Alle', true], ['Keine', false]].forEach(function (x) {
+      var b = el('button', 'small', x[0] + ' Mutterstädte'); b.type = 'button';
+      b.addEventListener('click', function () { var o = {}; KOL.daten.gruppen.forEach(function (g) { o[g.id] = x[1]; }); setState({ kolonien: o }); });
+      r.appendChild(b);
+    });
+    box.appendChild(r);
+    box.appendChild(el('p', 'hint', 'Gründungsdaten nach Hansen/Nielsen 2004 (Anhang 27), oft nur aufs Jahrhundert genau. Seewege schematisch.'));
+  }
+  function kolSichtbar(z, y) { return KOL.an[z.gruppe] && y >= z.jahr && y <= KOL.daten.bis; }
+  function kolAn() { return state.kolonisation && !!KOL.daten && state.epoche === 'antike'; }
+  function kolListe() { var y = state.year; return kolAn() ? KOL.daten.zuege.filter(function (z) { return kolSichtbar(z, y); }) : []; }
+  function kolSchluessel(y) {
+    if (!kolAn()) return '';
+    var n = 0, f = 0; KOL.daten.zuege.forEach(function (z) { if (kolSichtbar(z, y)) { n++; if (y - z.jahr < KOL.FRISCH) f++; } });
+    return 'k' + n + '.' + f + Object.keys(KOL.an).filter(function (g) { return KOL.an[g]; }).join('');
+  }
+  /* Pfade; neu sichtbare Routen (z. B. beim Abspielen) bekommen eine Feder, außer bei großen Sprüngen */
+  function kolPaths() {
+    var liste = kolListe(), neu = liste.filter(function (z) { return !KOL.prev[z.id]; }), jetzt = {};
+    liste.forEach(function (z) { jetzt[z.id] = 1; });
+    KOL.pens = KOL.pens.filter(function (q) { if (jetzt[q.z.id]) return true; q.z.__p.__pen = null; return false; });
+    var ruhig = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (Object.keys(KOL.prev).length && neu.length && neu.length <= 12 && !ruhig) neu.forEach(function (z) {
+      z.__p.__pen = 0.00001; z.__schiff = { kind: 'kolschiff', z: z, lng: z.pfad[0][0], lat: z.pfad[0][1] };
+      KOL.pens.push({ z: z, t0: performance.now() });
+    });
+    KOL.prev = jetzt;
+    if (!KOL.prev.__ && !liste.length) KOL.prev = { __: 1 };   // „schon einmal berechnet“ merken, auch wenn leer
+    if (KOL.pens.length && !KOL.raf) KOL.raf = requestAnimationFrame(kolFrame);
+    return liste.map(function (z) { return z.__p; });
+  }
+  function kolOrte() { return kolListe().filter(function (z) { return !kolPenVon(z); }).map(function (z) { return z.__ort; }); }
+  function kolPenVon(z) { return KOL.pens.filter(function (q) { return q.z === z; })[0]; }
+  function kolSchiffe() { return kolAn() ? KOL.pens.map(function (q) { return q.z.__schiff; }) : []; }
+  function kolFrame(now) {
+    if (!KOL.pens.length) { KOL.raf = 0; return; }
+    KOL.raf = requestAnimationFrame(kolFrame);
+    if (now - KOL.last < 40) return;
+    KOL.last = now;
+    var fertig = [];
+    KOL.pens.forEach(function (q) {
+      var t = Math.min(1, (now - q.t0) / KOL.DAUER), f = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      setPen(q.z.__p, f);
+      var tip = punktBei(q.z.__lauf, f); q.z.__schiff.lng = tip[0]; q.z.__schiff.lat = tip[1];
+      if (t >= 1) fertig.push(q);
+    });
+    refreshHtml();
+    if (fertig.length) {
+      fertig.forEach(function (q) { q.z.__p.__pen = null; });
+      KOL.pens = KOL.pens.filter(function (q) { return fertig.indexOf(q) < 0; });
+      pfadeSetzen(antikePfade(CUR_TV || tradeVisible(state.year)));   // Strichmuster zurücksetzen
+      globe.pointsData(antikePunkte()); refreshHtml();
+    }
+  }
+  function kolFarbe(z, a) { return netzRgba(KOL.farbe[z.gruppe] || '#b0bec5', a); }
+  function kolFrisch(z) { return state.year - z.jahr < KOL.FRISCH; }
+  function kolJahrText(z) { return (z.unsicher ? 'um ' : '') + fmtYear(z.jahr); }
+  var GALEERE = '<svg viewBox="0 0 32 28" aria-hidden="true"><path d="M2 17h28l-4 6H7z" fill="currentColor"/><path d="M16 3v13M16 4c-5 3-7 7-7 11h7zM17 5c4 3 6 6 6 10h-6z" fill="currentColor"/><path d="M6 23l-2 3M10 23l-2 3M14 23l-2 3M18 23l-2 3M22 23l-2 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+  function kolSchiffEl(d) {
+    if (d.__el) return d.__el;
+    var e = el('div', 'zhschiff kolschiff'), sy = el('span', 'zhs-sym'); sy.innerHTML = GALEERE; e.appendChild(sy);
+    e.style.setProperty('--c', KOL.farbe[d.z.gruppe] || '#b0bec5'); e.title = d.z.mutter + ' gründet ' + d.z.kolonie;
+    var t = el('b', 'kol-schild', d.z.kolonie + ' · ' + kolJahrText(d.z)); e.appendChild(t);
+    d.__el = e; return e;
+  }
+  function openKolonie(z) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'kolonie', id: z.id };
+    var g = KOL.daten.gruppen.filter(function (x) { return x.id === z.gruppe; })[0] || {};
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk see', 'Griechische Kolonisation · ' + (g.name || 'Mutterstadt')));
+      var h = el('h3', null, z.kolonie); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Gegründet von', z.mutter);
+      row(b, 'Gründung', kolJahrText(z) + ' (Inventar: „' + z.inventar + '“)');
+      if (z.unsicher) row(b, 'Hinweis', 'Das Gründungsjahr ist nur ungefähr bekannt, oft nur auf ein Jahrhundert genau.').classList.add('twarn');
+      row(b, 'Weg', 'Schematisch über Seewege berechnet – der tatsächliche Kurs der Siedler ist nicht überliefert.');
+      row(b, 'Daten', 'Hansen/Nielsen, An Inventory of Archaic and Classical Poleis (2004), Anhang 27; Digitalisierung D. Krasne (CC BY 4.0).');
+    });
+  }
+  /* alle Pfade bzw. Punkte des antiken Abschnitts (eine Stelle für refreshGlobe, Straßen-Feder und Kolonisation) */
+  function antikePfade(tv) { return ehemaligePaths(tv).concat(limesPaths(), tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths(), kolPaths()); }
+  function antikePunkte() { return hanStationen(state.year).concat(netzeOrte(), themenOrte(), kolOrte()); }
 
   /* ---------- Themenebenen (data/ebenen/, js/themen.js; Format und Editor: docs/EDITOR.md) ----------
      Register data/ebenen/index.json: { ebenen: [{ id, name, farbe, datei, von, bis, kurz }] }. Eine Ebenendatei wird erst
@@ -1951,6 +2066,7 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.kol) return kolFarbe(d.kol, kolFrisch(d.kol) ? 0.95 : 0.5);
     if (d.ehemals) return state.mode === 'schem' ? 'rgba(80,55,30,0.42)' : 'rgba(240,228,205,0.42)';
     if (d.themalinie) return themaFarbe(d.themaM, d.themalinie.typ === 'flaeche' ? 0.85 : 0.95);
     if (d.netzlinie) return netzLinienFarbe(d);
@@ -1975,6 +2091,7 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.kol) return [1, 0][i];
     if (d.ehemals) return ehemDash(d, i);
     if (d.themalinie) return d.themalinie.unsicher ? [0.07, 0.06][i] : [1, 0][i];
     if (d.netzlinie) return netzUnsicher(d.netzlinie) ? [0.07, 0.06][i] : [1, 0][i];
@@ -1994,6 +2111,7 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.kol) return kolFrisch(d.kol) ? 2.2 : 1.1;
     if (d.ehemals) return 1.1;
     if (d.themalinie) return d.themalinie.typ === 'flaeche' ? 1.4 : 2;
     if (d.netzlinie) return netzStrich(d);
@@ -2022,6 +2140,11 @@
       .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.kol) {
+          t.appendChild(el('b', null, d.kol.mutter + ' → ' + d.kol.kolonie)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode('Griechische Kolonisation · gegründet ' + kolJahrText(d.kol) + ' · Weg schematisch · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.ehemals) {
           t.appendChild(el('b', null, 'Ehemals: ' + d.ehName)); t.appendChild(el('br'));
           t.appendChild(document.createTextNode(d.ehArt + ' · dargestellt bis ' + fmtYear(d.ehBis) + ' · spätere Nutzung nicht belegt · Klick für Infos'));
@@ -2073,7 +2196,8 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
-        if (d.ehemals) infoOeffnen(d.ehZiel);
+        if (d.kol) openKolonie(d.kol);
+        else if (d.ehemals) infoOeffnen(d.ehZiel);
         else if (d.themalinie) openThemaObjekt(d.themalinie, d.themaM);
         else if (d.netzlinie) openNetzLinie(d.netzlinie, d.netzM);
         else if (d.strasse) openStrassenLinie(d);
@@ -3018,10 +3142,11 @@
       [['alexander', 'tglAlex', 'Alexander&shy;zug', 'Zug Alexanders des Großen 334–323 v. Chr. in acht Etappen (nach Arrian; Weg schematisch)', 'Alexanderzug: 334–323 v. Chr.'],
        ['kolonisation', 'tglKolon', 'Griechische Kolonisation', 'Gründungen von Kolonien durch griechische Mutterstädte, um 790–323 v. Chr. (Hansen/Nielsen 2004, Anhang 27; Wege schematisch)', 'Griechische Kolonisation: vor allem 750–550 v. Chr.']].forEach(function (z) {
         if (Array.isArray(ev) && ev.indexOf(z[0]) < 0) return;
-        if (!(DATA.wanderungen || []).some(function (w) { return w.gruppe === z[0]; })) return;
+        if (z[0] !== 'kolonisation' && !(DATA.wanderungen || []).some(function (w) { return w.gruppe === z[0]; })) return;
         var b = el('button', 'chip plain hs'); b.id = z[1]; b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.title = z[3];
         var sp = el('span'); sp.innerHTML = z[2]; b.appendChild(sp);
         nach.parentNode.insertBefore(b, nach.nextSibling); nach = b;
+        if (z[0] === 'kolonisation') { var kc = el('div', 'kol-chips'); kc.id = 'kolChips'; kc.hidden = true; $('#tglVw').parentNode.parentNode.insertBefore(kc, $('#tglVw').parentNode.nextSibling); }
         b.addEventListener('click', function () {
           var o = {}; o[z[0]] = !state[z[0]]; setState({ globus: o });
           if (state[z[0]]) toast(z[4] + ' – Zeitleiste abspielen oder Jahr wählen.');
@@ -3213,6 +3338,7 @@
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
       netze: netzeZustand(),
       themen: themenZustand(),
+      kolonien: Object.assign({}, KOL.an),
       niveau: TX_NIV,
       fenster: kopie(FENSTER)
     };
@@ -3235,6 +3361,10 @@
         if ('orte' in t.globus && !!t.globus.orte !== state.orte) { state.orte = !!t.globus.orte; chipSetzen('#tglOrte', state.orte); neu = true; }
         if ('vw' in t.globus && !!t.globus.vw !== state.vw) { state.vw = !!t.globus.vw; chipSetzen('#tglVw', state.vw); neu = true; }
         Object.keys(ZUG_GRUPPEN).forEach(function (g) { if (g in t.globus && !!t.globus[g] !== state[g]) { state[g] = !!t.globus[g]; chipSetzen(ZUG_GRUPPEN[g], state[g]); neu = true; } });
+        if ('kolonisation' in t.globus && !!t.globus.kolonisation !== state.kolonisation) {
+          state.kolonisation = !!t.globus.kolonisation; chipSetzen('#tglKolon', state.kolonisation); var kb = $('#kolChips'); if (kb) kb.hidden = !state.kolonisation;
+          if (state.kolonisation) ebeneLaden('kolonisation'); neu = true;
+        }
         if ('limes' in t.globus && !!t.globus.limes !== state.limes) { state.limes = !!t.globus.limes; chipSetzen('#tglLimes', state.limes); neu = true; }
         if ('schlachten' in t.globus && !!t.globus.schlachten !== state.schlachten) {
           state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
@@ -3258,6 +3388,10 @@
         });
         if ('bilder' in t.zh && !!t.zh.bilder !== BILDER.an) { BILDER.an = !!t.zh.bilder; chipSetzen('#tglBilder', BILDER.an); PENS.forEach(function (q) { zhSchiffStil(q.schiff); }); }
       }
+      if (t.kolonien) Object.keys(t.kolonien).forEach(function (g) {
+        if (!!t.kolonien[g] === !!KOL.an[g]) return;
+        KOL.an[g] = !!t.kolonien[g]; chipSetzen('.chip.kol[data-kol="' + g + '"]', KOL.an[g]); neu = true;
+      });
       if (t.themen) Object.keys(t.themen).forEach(function (id) {
         if (!themaMeta(id) || !!t.themen[id] === !!THEMEN.an[id]) return;
         themaSetzen(id, !!t.themen[id]); neu = true;
@@ -3296,7 +3430,7 @@
   /* Fenster aus einer Beschreibung öffnen bzw. schließen */
   function infoOeffnen(d) {
     if (!d) return;
-    var braucht = { orbis: 'schiff', strasse: 'strassen', strassen: 'strassen', hanstation: 'hanseide', hanlinie: 'hanseide', limes: 'limes' }[d.art];
+    var braucht = { orbis: 'schiff', strasse: 'strassen', strassen: 'strassen', hanstation: 'hanseide', hanlinie: 'hanseide', limes: 'limes', kolonie: 'kolonisation' }[d.art];
     if (braucht && !ebeneGeladen(braucht)) { ebeneLaden(braucht).then(function () { infoOeffnen(d); }); return; }
     var finde = function (L, id) { return (L || []).filter(function (x) { return x.id === id; })[0]; };
     if (d.art === 'route') { var v = routeById(d.id); if (v) openTradeInfo(v); }
@@ -3312,6 +3446,7 @@
     else if (d.art === 'limes') { var la = LIMES && finde(LIMES.abschnitte, d.id); if (la) openLimes(la, d.kastell ? LIMES.kastelle.filter(function (k) { return k.name === d.kastell; })[0] : null); }
     else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
     else if (d.art === 'netzquellen') openNetzQuellen();
+    else if (d.art === 'kolonie') { var kz = KOL.daten && finde(KOL.daten.zuege, d.id); if (kz) openKolonie(kz); }
     else if (d.art === 'thema') themaLaden(d.ebene).then(function (td) {
       var tm = themaMeta(d.ebene), to = td && (td.objekte || []).filter(function (x) { return x.id === d.id; })[0];
       if (tm && to) openThemaObjekt(to, tm);

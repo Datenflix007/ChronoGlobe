@@ -149,7 +149,7 @@ Erzeugt mit `build_poleis.py`; die Rohdaten liegen nur lokal unter `quellen/loka
 | `data/ebenen/griechische-poleis.json` (911 Poleis), `data/ebenen/delisch-attischer-seebund.json` (274 Mitglieder) | POLIS, Stanford University (digitale Fassung von Hansen/Nielsen, *An Inventory of Archaic and Classical Poleis*, 2004): `polis.stanford.edu/data/master_data_11_19_2013.csv` | **keine Lizenz angegeben** („frei zugänglich für akademische Nutzung“). **Vor einer Veröffentlichung klären** (Anfrage an das Stanford Classics Department) oder auf Pleiades-Koordinaten (CC BY) umstellen. |
 | `data/kolonisation.json` (157 Züge Mutterstadt → Kolonie) | Anhang 27 von Hansen/Nielsen 2004, digitalisiert von D. Krasne (v1.0, 2026) | CC BY 4.0 |
 
-Darstellungsregeln: Poleis erscheinen ab ihrem Gründungsdatum (nur für Kolonien bekannt, sonst ab 650 v. Chr.) bis 323 v. Chr. Gründungsdaten in der Notation des Inventars („C6m“ = Mitte 6. Jh.) werden auf ein Jahr umgerechnet und als unsicher markiert. Kolonisationswege sind schematisch (Luftlinie über einen Mittelpunkt).
+Darstellungsregeln: Poleis erscheinen ab ihrem Gründungsdatum (nur für Kolonien bekannt, sonst ab 650 v. Chr.) bis 323 v. Chr. Gründungsdaten in der Notation des Inventars („C6m“ = Mitte 6. Jh.) werden auf ein Jahr umgerechnet und als unsicher markiert. Kolonisationswege sind schematisch: berechnet über Wegpunkte auf See, nicht überliefert. 18 kurze Gründungen unter 60 km (teils ins Binnenland, z. B. Akrai von Syrakus) verlaufen direkt.
 
 ## Mittelalter 480–1453 (seit 25.11.2026)
 

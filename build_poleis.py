@@ -24,7 +24,8 @@ Darstellungsregeln (im Hinweis der Ebenen genannt):
 
     python build_poleis.py          # lädt die Quellen bei Bedarf und schreibt die drei Dateien
 """
-import csv, io, json, os, re, urllib.request
+import csv, heapq, io, json, math, os, re, urllib.request
+from shapely.geometry import LineString, shape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOKAL = os.path.join(HERE, 'quellen', 'lokal', 'poleis')
@@ -57,6 +58,101 @@ def laden(url, name):
         req = urllib.request.Request(url, headers={'User-Agent': 'ChronoGlobe-Datenaufbereitung'})
         with urllib.request.urlopen(req, timeout=120) as r, open(pfad, 'wb') as f: f.write(r.read())
     return open(pfad, encoding='utf-8', errors='replace').read()
+
+
+# ---------- Seewege für die Kolonisation ----------
+# Wegpunkte auf See (Länge, Breite). Kanten entstehen automatisch zwischen Punkten, deren Verbindung kein Land kreuzt.
+SEE = {
+    'saron': (23.55, 37.7), 'kykladen': (25.0, 37.2), 'nordaegaeis': (24.6, 39.8), 'thermaisch': (23.0, 40.1), 'thrakien': (25.0, 40.6),
+    'chalkidike': (24.2, 39.9), 'hellespont_w': (26.15, 40.05), 'hellespont_o': (26.8, 40.45), 'marmara': (28.0, 40.7), 'bosporus_s': (28.98, 40.98), 'bosporus_n': (29.12, 41.3),
+    'pontos_sw': (29.0, 42.5), 'pontos_w': (29.3, 44.0), 'pontos_nw': (30.8, 45.8), 'olbia': (31.6, 46.4), 'krim_s': (33.5, 44.2), 'kertsch': (36.4, 45.0),
+    'pontos_mitte': (34.0, 43.2), 'sinope': (35.2, 42.3), 'pontos_o': (39.0, 41.6), 'phasis': (41.3, 42.1),
+    'chios': (26.3, 38.5), 'samos': (27.0, 37.6), 'rhodos': (27.45, 36.2), 'kos': (27.0, 36.7), 'kreta_n': (25.0, 35.7), 'kythera': (23.0, 36.0),
+    'kreta_s': (24.5, 34.6), 'kyrene': (21.8, 33.2), 'syrte': (16.5, 32.8), 'nil': (30.3, 31.7), 'zypern_w': (32.0, 34.8), 'kilikien': (34.5, 36.3),
+    'pamphylien': (31.0, 36.4), 'lykien': (29.5, 36.0), 'levante': (35.0, 34.0),
+    'korinth_golf': (22.7, 38.1), 'patras': (21.6, 38.3), 'zakynthos': (20.5, 37.6), 'kerkyra': (19.8, 39.4), 'otranto': (19.0, 40.4),
+    'adria_s': (18.0, 41.8), 'adria_m': (15.6, 43.2), 'adria_n': (13.4, 44.6),
+    'tarent': (17.1, 39.9), 'kalabrien': (16.8, 38.6), 'messina_s': (15.5, 37.9), 'messina_n': (15.7, 38.35), 'syrakus': (15.45, 37.0),
+    'sizilien_s': (14.0, 36.8), 'sizilien_w': (12.1, 37.7), 'tyrrhen_s': (14.0, 39.2), 'neapel': (14.1, 40.55), 'tyrrhen_n': (11.0, 42.0),
+    'korsika_o': (10.0, 42.8), 'ligurien': (8.5, 43.8), 'lion': (5.3, 42.9), 'katalonien': (3.6, 42.0), 'valencia': (1.0, 40.5), 'cartagena': (-0.5, 37.6),
+    'sardinien_s': (8.9, 38.7), 'karthago': (10.5, 37.5), 'libyen_w': (13.0, 33.6),
+}
+_land = None
+# Meerengen, die in der groben Küstenlinie geschlossen sind: Golf von Korinth, Hellespont, Bosporus, Straße von Messina
+FEST = [('korinth_golf', 'patras'), ('patras', 'zakynthos'), ('hellespont_w', 'hellespont_o'), ('hellespont_o', 'marmara'),
+        ('marmara', 'bosporus_s'), ('bosporus_s', 'bosporus_n'), ('bosporus_n', 'pontos_sw'), ('messina_s', 'messina_n')]
+
+
+def land():
+    global _land
+    if _land is None:
+        _land = shape(json.load(open(os.path.join(HERE, 'data', 'land.json'), encoding='utf-8'))['geometry']).buffer(0).buffer(-0.03)
+    return _land
+
+
+def frei(a, b): return not LineString([a, b]).intersects(land())
+
+
+def km(a, b):
+    la1, la2, d = math.radians(a[1]), math.radians(b[1]), math.radians(b[0] - a[0])
+    return 6371 * math.acos(min(1, math.sin(la1) * math.sin(la2) + math.cos(la1) * math.cos(la2) * math.cos(d)))
+
+
+_kanten = None
+
+
+def seegraph():
+    global _kanten
+    if _kanten is None:
+        _kanten = {k: [] for k in SEE}
+        ks = list(SEE)
+        for i, a in enumerate(ks):
+            for b in ks[i + 1:]:
+                if km(SEE[a], SEE[b]) < 700 and frei(SEE[a], SEE[b]):
+                    d = km(SEE[a], SEE[b]); _kanten[a].append((b, d)); _kanten[b].append((a, d))
+        for a, b in FEST:
+            if not any(n == b for n, _ in _kanten[a]): d = km(SEE[a], SEE[b]); _kanten[a].append((b, d)); _kanten[b].append((a, d))
+    return _kanten
+
+
+def anschluss(pt):
+    """Seepunkte, die von einem Hafen aus erreichbar sind (ohne Land zu kreuzen); sonst der nächste."""
+    nah = sorted(SEE, key=lambda k: km(pt, SEE[k]))
+    frei_ = [k for k in nah[:6] if frei(pt, SEE[k])]
+    return frei_[:2] or nah[:1]
+
+
+def seeweg(a, b):
+    """Route von Hafen a nach Hafen b über die Seepunkte (Dijkstra); direkt, wenn die Luftlinie kein Land kreuzt."""
+    if frei(a, b) or km(a, b) < 60: return [a, b]
+    G = seegraph(); start, ziel = anschluss(a), set(anschluss(b))
+    dist, vor, q = {}, {}, []
+    for k in start: dist[k] = km(a, SEE[k]); heapq.heappush(q, (dist[k], k))
+    while q:
+        d, k = heapq.heappop(q)
+        if d > dist.get(k, 1e18): continue
+        if k in ziel:
+            weg = [k]
+            while weg[-1] in vor: weg.append(vor[weg[-1]])
+            return [a] + [list(SEE[x]) for x in reversed(weg)] + [b]
+        for n, w in G[k]:
+            if d + w < dist.get(n, 1e18): dist[n] = d + w; vor[n] = k; heapq.heappush(q, (d + w, n))
+    return [a, b]
+
+
+# Gruppen der Mutterstädte (Schalter im Menü, Farben)
+GRUPPEN = [
+    ('milet', 'Milet', '#4fc3f7', ['Miletos']),
+    ('korinth', 'Korinth', '#ff8a65', ['Korinthos', 'Korkyra']),
+    ('euboia', 'Chalkis und Eretria (Euböa)', '#ffd54f', ['Chalkis', 'Eretria']),
+    ('megara', 'Megara', '#81c784', ['Megara']),
+    ('phokaia', 'Phokaia und Massalia', '#ba68c8', ['Phokaia', 'Massalia']),
+    ('sparta', 'Sparta', '#e57373', ['Sparta/Lakedaimon']),
+    ('athen', 'Athen', '#64b5f6', ['Athenai']),
+    ('inseln', 'Inseln der Ägäis und Ionien', '#4db6ac', ['Samos', 'Paros', 'Thasos', 'Naxos', 'Andros', 'Chios', 'Rhodos', 'Lindos', 'Knidos', 'Mytilene', 'Klazomenai', 'Teos', 'Kolophon', 'Erythrai', 'Thera']),
+    ('westen', 'Tochterstädte im Westen', '#f0a35e', ['Syrakousai', 'Zankle/Messana', 'Sybaris', 'Kroton', 'Lokroi', 'Kyme', 'Gela', 'Akragas', 'Taras', 'Rhegion', 'Megara Hyblaia', 'Selinous']),
+]
+GRUPPE_VON = {n: g[0] for g in GRUPPEN for n in g[3]}
 
 
 def jahr_aus(t):
@@ -95,18 +191,19 @@ def main():
                                      mauern=z['Walls'] == '1', silber=z['Silver_1st'].strip(), bronze=z['Bronze_1st'].strip(),
                                      fame=float(z['Fame']) if re.match(r'^[\d.]+$', z['Fame'] or '') else 0)
     # Gründungen aus Anhang 27: erste (ursprüngliche) Gründung je Kolonie
-    gruendung, zuege = {}, []
+    gruendung, zuege, gesehen = {}, [], set()
     for a in app27:
         k, m = a['colony_hnid'].strip(), a['founder_hnid'].strip()
         j, uns = jahr_aus(a['hn_foundation_date'])
         if a['initial_foundation'] != 'True' or j is None: continue
         if k in poleis and (k not in gruendung or j < gruendung[k][0]): gruendung[k] = (j, uns, a['founder_name'].strip(), a['hn_foundation_date'].strip())
-        if k in poleis and m in poleis and VON_STANDARD - 200 <= j <= BIS_STANDARD:
+        if k in poleis and m in poleis and VON_STANDARD - 200 <= j <= BIS_STANDARD and (k, m) not in gesehen:
+            gesehen.add((k, m))
             K, M = poleis[k], poleis[m]
-            zuege.append({'volk': K['name'], 'gruppe': 'kolonisation', 'farbe': '#5fd3c4', 'von': j - 3, 'bis': j, 'spur': 9999,
-                          'pfad': [[M['lng'], M['lat']], [round((M['lng'] + K['lng']) / 2, 3), round((M['lat'] + K['lat']) / 2, 3)], [K['lng'], K['lat']]],
-                          'text': '%s gründet %s (%s, Inventar: „%s“%s)' % (M['name'], K['name'], ('um ' if uns else '') + str(-j) + ' v. Chr.', a['hn_foundation_date'].strip(), ', unsicher' if uns else '')})
-    zuege.sort(key=lambda z: z['von'])
+            pfad = [[round(x, 3), round(y, 3)] for x, y in seeweg([M['lng'], M['lat']], [K['lng'], K['lat']])]
+            zuege.append({'id': 'k%s-%s' % (k, m), 'kolonie': K['name'], 'mutter': M['name'], 'gruppe': GRUPPE_VON.get(M['name'], 'weitere'),
+                          'jahr': j, 'unsicher': bool(uns), 'inventar': a['hn_foundation_date'].strip(), 'pfad': pfad})
+    zuege.sort(key=lambda z: (z['jahr'], z['kolonie']))
 
     objekte, mitglieder, ids = [], [], set()
     for p in sorted(poleis.values(), key=lambda x: (-x['fame'], x['name'])):
@@ -143,7 +240,11 @@ def main():
     for name, d in (('griechische-poleis.json', ebene), ('delisch-attischer-seebund.json', bund)):
         with io.open(os.path.join(HERE, 'data', 'ebenen', name), 'w', encoding='utf-8', newline='\n') as f: json.dump(d, f, ensure_ascii=False, separators=(',', ':'))
     with io.open(os.path.join(HERE, 'data', 'kolonisation.json'), 'w', encoding='utf-8', newline='\n') as f:
-        json.dump({'_hinweis': 'Erzeugt mit build_poleis.py aus Appendix 27 von Hansen/Nielsen 2004 (Digitalisierung D. Krasne, CC BY 4.0). Wege schematisch.', 'zuege': zuege}, f, ensure_ascii=False, separators=(',', ':'))
+        gruppen = [dict(id=g[0], name=g[1], farbe=g[2], anzahl=sum(1 for z in zuege if z['gruppe'] == g[0])) for g in GRUPPEN]
+        gruppen.append(dict(id='weitere', name='Weitere Mutterstädte', farbe='#b0bec5', anzahl=sum(1 for z in zuege if z['gruppe'] == 'weitere')))
+        json.dump({'_hinweis': 'Erzeugt mit build_poleis.py aus Appendix 27 von Hansen/Nielsen 2004 (Digitalisierung D. Krasne, CC BY 4.0). '
+                               'Seewege berechnet über Wegpunkte auf See (schematisch, keine überlieferten Routen).',
+                   'quelle': QUELLE_APP27, 'bis': BIS_STANDARD, 'gruppen': gruppen, 'zuege': zuege}, f, ensure_ascii=False, separators=(',', ':'))
     print('Poleis: %d lokalisiert, %d mit Gründungsdatum, %d Seebund-Mitglieder, %d Kolonisationszüge' % (len(objekte), len(gruendung), len(mitglieder), len(zuege)))
 
 

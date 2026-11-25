@@ -316,8 +316,7 @@ ALEXANDERZUG = [
     (-324, -323, 'Susa – Opis – Ekbatana – Babylon (Tod im Juni 323)', [[48.25, 32.19], [44.50, 33.30], [48.52, 34.80], [44.42, 32.54]]),
 ]
 WANDERUNGEN = [dict(volk='Alexander der Große', gruppe='alexander', farbe=ALEX, von=v, bis=b, pfad=pf, text='%s–%s v. Chr.: %s' % (-v, -b, t)) for v, b, t, pf in ALEXANDERZUG]
-_kol = os.path.join(HERE, 'data', 'kolonisation.json')   # erzeugt von build_poleis.py
-if os.path.exists(_kol): WANDERUNGEN += json.load(open(_kol, encoding='utf-8'))['zuege']
+# Die Griechische Kolonisation hat ein eigenes Modul (data/kolonisation.json aus build_poleis.py, js/app.js KOL).
 
 ORTE = [
     # --- Mesopotamien ---
