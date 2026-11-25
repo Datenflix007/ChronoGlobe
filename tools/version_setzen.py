@@ -35,7 +35,7 @@ def manifest():
         for wurzel, _, dateien in os.walk(os.path.join(ROOT, ordner)):
             rel_w = os.path.relpath(wurzel, ROOT).replace(os.sep, '/')
             if rel_w.startswith(OHNE): continue
-            if ordner == 'img' and rel_w not in ('img', 'img/icons'): continue
+            if ordner == 'img' and rel_w not in ('img', 'img/icons', 'img/weltbilder'): continue
             for n in sorted(dateien):
                 if n.endswith(endungen) and rel_w + '/' + n != SELBST: d[rel_w + '/' + n] = kurz(os.path.join(wurzel, n))
     return dict(sorted(d.items()))

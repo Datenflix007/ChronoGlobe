@@ -200,6 +200,19 @@ Prüfung ohne Änderung: `python build_grenzen.py --pruefen` (Stichjahre alle 25
 
 Die Natural-Earth-Daten lädt das Skript einmalig nach `quellen/lokal/naturalearth/` (nicht im Repository). Die App lädt nur `data/geographie.json` vom eigenen Server.
 
+## Weltbilder: `build_weltbilder.py` → `data/weltbilder/` (seit 25.11.2026)
+
+Daten: `weltbilder_plinius.py`, `weltbilder_ebstorf.py`; Belege aus den Volltexten: `weltbilder_quellen.py`. Quellen werden beim ersten Lauf nach `quellen/lokal/weltbilder/` geladen.
+
+| Weltbild | Grundlage | Umgang |
+|---|---|---|
+| Die Welt nach Plinius (77 n. Chr.) | Plinius, Naturalis historia, Bücher 3–7 und 12: lateinischer Text nach Mayhoff (LacusCurtius); deutsche Übersetzung G. C. Wittstein, Leipzig 1881 (gemeinfrei, OCR-Text von archive.org) | rund 160 Orte, Völker, Flüsse, Gebirge, Meere, Irrtümer und Fabelwesen an heutiger Lage; dazu der Seeweg nach Indien (6,101–106). Der Build sucht jeden Eintrag im lateinischen Text (Buch, §) und den passenden Satz bei Wittstein (Seite, wörtliches Zitat; Stelle über die relative Lage im Buch abgeglichen). Fehlt ein Beleg, bricht er ab. Erläuterungen eigene Worte; Rand der bekannten Welt schematisch; Thule umstritten |
+| Ebstorfer Weltkarte (um 1300) | Abbildung: digitale Ausgabe der Leuphana Universität Lüneburg, Wikimedia Commons „Ebstorfer Weltkarte 2.jpg“ (7849 × 7798 px), gemeinfrei; laut Projektleitung kein Urheberrecht beansprucht. Literatur: H. Kugler (Hg.), Die Ebstorfer Weltkarte, Berlin 2007 | rund 160 Datenpunkte. Lage der Beschriftungen auf der Karte nach der interaktiven Leuphana-Ausgabe „HyperEbsKart“ (2008, Transkription H. Kugler), gesucht über den Wortlaut der Beschriftung; übernommen werden nur Lage und die kurze Ortsbeschriftung der Karte selbst, nicht Kuglers Übersetzungen oder Kommentare (wissenschaftliche Ausgabe, § 70 UrhG). Wirkliche Lage und Erläuterungen eigene Angaben; acht Bildfelder (Christus, Paradies, Gog und Magog …) von Hand abgelesen. Datierung umstritten (um 1235 oder um 1300) |
+
+**Schriftrolle:** Kachelpyramide aus dem großen Bild (5 Stufen, 512 px, `img/weltbilder/ebstorf/`, rund 25 MB). Geladen wird nur, was beim Heranzoomen sichtbar ist. Die Kacheln stehen nicht in `js/version.js` und werden nicht offline vorgeladen.
+
+**Projektion der Ebstorfer Karte (optional, Voreinstellung aus):** alle verortbaren Einträge als Passpunkte. Grundlage ist eine Ähnlichkeitsabbildung (Drehung, gleichmäßiger Maßstab), darauf eine geglättete Thin-Plate-Spline zum Anteil 0,8. Die Glättung wählt der Build als kleinste, bei der sich die Karte nicht faltet. Weil sich die Punkte einer Heilskarte stark widersprechen, weichen sie im Mittel rund 4°, einzelne über 20° ab (Werte in `projektion`). Die Darstellung zeigt die Verzerrung, keine „richtige“ Lage.
+
 ## Archäologische Funde, Alexanderzug
 
 - `data/ebenen/archaeologische-funde.json`: 33 Funde mit Entstehungszeit, Fundjahr und Aufbewahrungsort (Renfrew/Bahn 2016, Van De Mieroop 2016, George 2003 zum Gilgamesch-Epos, Shaw 2000).

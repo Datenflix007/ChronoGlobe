@@ -66,9 +66,11 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
                 | { art: 'netzlinie'|'netzort', netz, id } | { art: 'netzquellen' }
                 | { art: 'text', id, zurueck: { art, id } | null },
     waren: null | 'handel' | 'zh',
-    modal: null | 'hilfe' | 'lehrer'
+    modal: null | 'hilfe' | 'lehrer',
+    weltkarte: null | { id }   // Schriftrolle mit einer Originalkarte (Weltbilder)
   },
-  zeichnung: [ { id, art: 'stift' | 'marker', fest, a, p: [lng, lat, lng, lat, …] }, … ]   // Leuchtstift der Lehrkraft
+  zeichnung: [ { id, art: 'stift' | 'marker', fest, a, p: [lng, lat, lng, lat, …] }, … ],   // Leuchtstift der Lehrkraft
+  weltbild: { id: null | 'plinius' | 'ebstorf', projektion, deckkraft }                        // data/weltbilder/
 }
 ```
 
@@ -125,6 +127,17 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `offen` | `is_open` | nur Information |
 | `beendet` | – | Hinweis „Session beendet“, Kanal schließen |
 
+### Weltbilder (`WB` in `js/app.js`, `data/weltbilder/`, `build_weltbilder.py`)
+
+- Ein Weltbild zeigt die Welt nach einem Autor (Plinius) oder einer Karte (Ebstorfer Weltkarte). Jeder Eintrag ist ein Datenpunkt an seiner wirklichen Lage; Farbe nach Art, Namen je nach Zoom (`stufe`). Ein Klick öffnet eine Infokarte (`fenster.info.art = 'weltbild'`). `mitte` (Ebstorf: Jerusalem) ist hervorgehoben.
+- **Hülle:** Ein vorab entzerrtes Bild (gleichabständige Zylinderprojektion, Ausschnitt `projektion.bbox`) liegt als Kugelausschnitt knapp über dem Globus. Der Ausschnitt ist ein Klon des Globuskörpers mit eigener Geometrie, eigenem Material und eigener Textur; so wird three.js aus globe.gl mitbenutzt, ohne eine weitere Bibliothek zu laden.
+  - Wichtig: Textur und Material neu anlegen, nicht `clone()` – eine geklonte Textur teilt ihre Bildquelle mit der Grundtextur des Globus.
+  - `weltbild.projektion`: `true`/`false` oder `null` = Voreinstellung des Weltbilds (`projektion.standard`; Plinius an, Ebstorf aus).
+- **Karten:** Liegt die Karte auf dem Globus, sitzen die Einträge dort, wo die Karte sie zeichnet (`karte`); eine gestrichelte Linie führt zur wirklichen Lage.
+- **Schriftrolle:** `#wbOverlay` zeigt die Originalkarte als Kachelpyramide (`bild.kacheln`, `bild.stufen`): Je nach Zoom wird die passende Stufe nur für den sichtbaren Ausschnitt geladen, gröbere Stufen bleiben als Hintergrund. Rauten an den Einträgen (`bild`, Anteile von Breite und Höhe).
+- **Vergleichsansicht** („Neben dem Globus“, `fenster.weltkarte.neben`): Karte links, Globus rechts (`html.wb-neben`). Ein Klick auf einen Punkt der Karte fliegt den Globus dorthin, ein Klick auf dem Globus zeigt die Stelle auf der Karte.
+- Die Schriftrolle ist ein Fenster (`fenster.weltkarte`) und folgt bei Schüler:innen dem Recht „routen“.
+
 ### Leuchtstift der Lehrkraft
 
 - Nur in der Lehreransicht: `session.js` ruft `ChronoGlobe.stift()` auf; die Leiste erscheint oben in der Mitte.
@@ -146,7 +159,7 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `reiche` (Schriftrolle) | nur die Schriftrolle der Lehrkraft | eigene Schriftrollen, nur lokal |
 | `routen` (Routen, Orte, Gesandtschaften, Texte, Warenübersicht) | nur Fenster der Lehrkraft | eigene Fenster, nur lokal |
 
-- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Leuchtstift-Zeichnung.
+- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Weltbild, Leuchtstift-Zeichnung.
 - Öffnet oder schließt die Lehrkraft ein Fenster und ist „Fenster mitsenden“ an, passiert das bei allen, auch bei „selbst bedienen“.
 - Die Lehrerhinweise werden nie mitgesendet.
 - Sobald Schüler:innen abweichen, erscheint „Zur Lehreransicht zurück“.

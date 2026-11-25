@@ -12,14 +12,18 @@ import io, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TB = os.path.join(ROOT, 'tafelbilder')
-EBENEN = {'orte', 'schlachten', 'vw', 'limes', 'geo', 'handel', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide', 'zh', 'bilder', 'netze'}
-AKTIV_EXTRA = {'strassen_ehemals', 'strassen_animieren'}
+EBENEN = {'orte', 'schlachten', 'vw', 'limes', 'geo', 'handel', 'land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide', 'zh', 'bilder', 'netze', 'weltbild'}
+AKTIV_EXTRA = {'strassen_ehemals', 'strassen_animieren', 'weltbild_projektion'}
 DATEN = {'reiche', 'handel', 'zhenghe', 'texte', 'literatur', 'roemerstrassen', 'orbis_schiff', 'vignetten', 'fruehe_reiche', 'han_seidenstrasse', 'limes', 'netze'}
 # Handels- und Verkehrsnetze (data/netze/index.json): Datenschlüssel netz_<id>, in ebenen.aktiv.netze als Liste von ids
 try:
     NETZ_IDS = {n['id'] for n in json.load(io.open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'netze', 'index.json'), encoding='utf-8'))['netze'] if n.get('status') == 'verfuegbar'}
 except (OSError, ValueError, KeyError):
     NETZ_IDS = set()
+try:
+    WELTBILD_IDS = {w['id'] for w in json.load(io.open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'weltbilder', 'index.json'), encoding='utf-8'))['weltbilder']}
+except Exception:
+    WELTBILD_IDS = set()
 DATEN |= {'netz_' + i for i in NETZ_IDS}
 fehler, warnungen = [], []
 
@@ -106,6 +110,8 @@ for tid in ids:
         if x not in EBENEN | AKTIV_EXTRA: F(tid, 'ebenen.aktiv: unbekannte Ebene „%s“' % x)
         elif x == 'netze':
             if not isinstance(w, list) or any(i not in NETZ_IDS for i in w): F(tid, 'ebenen.aktiv.netze: Liste bekannter Netz-ids (%s)' % ', '.join(sorted(NETZ_IDS)))
+        elif x == 'weltbild':
+            if w is not None and w not in WELTBILD_IDS: F(tid, 'ebenen.aktiv.weltbild: id aus data/weltbilder/index.json (%s) oder null' % ', '.join(sorted(WELTBILD_IDS)))
         elif not isinstance(w, bool): F(tid, 'ebenen.aktiv.%s muss true/false sein' % x)
     lh = t.get('lehrerhinweise')
     if lh is not None:

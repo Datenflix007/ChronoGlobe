@@ -28,6 +28,7 @@ ChronoGlobe ist eine statische Seite ohne Build-Schritt: globe.gl, d3 und reines
      - `node tests/netze.test.js`
      - `python tests/test_netze_browser.py`
      - `python tests/test_csp.py` (bei neuen Skripten, Seiten oder externen Verbindungen)
+     - `python tests/test_weltbilder.py` (Weltbilder, Schriftrolle, Hülle auf dem Globus)
      - `python tests/test_editor.py`, `node tests/ki.test.js` und `node tools/check_beitraege.js` (Editor, KI-Assistent, Themenebenen, Beiträge)
 3. **Neue Tafelbilder:**
    - Aus `tafelbilder/_vorlage/` anlegen und in `tafelbilder/index.json` eintragen.

@@ -1,0 +1,103 @@
+{
+  "id": "welt-nach-plinius",
+  "titel": "Die Welt nach Plinius",
+  "kopf": "Digitales Tafelbild",
+  "untertitel": "Was wusste Rom von der Welt?",
+  "beschreibung": "Rund 150 Orte, Völker, Flüsse und Fabelwesen aus der Naturgeschichte des älteren Plinius (77 n. Chr.) auf dem Globus – jeder mit Stelle und Wortlaut der Übersetzung, dazu der Seeweg nach Indien und abgedunkelt, was jenseits der ihm bekannten Welt lag.",
+  "vorschaubild": "vorschau.jpg",
+  "zeitraum": {
+    "von": -50,
+    "bis": 150,
+    "epochen": [
+      "antike"
+    ]
+  },
+  "start": {
+    "jahr": 77,
+    "ansicht": "sat",
+    "kamera": "oikumene",
+    "drehen": false
+  },
+  "reiche": {
+    "verfuegbar": "alle",
+    "aktiv": []
+  },
+  "ebenen": {
+    "verfuegbar": [
+      "orte",
+      "geo",
+      "handel",
+      "land",
+      "see",
+      "waren",
+      "weltbild"
+    ],
+    "aktiv": {
+      "orte": false,
+      "geo": false,
+      "handel": false,
+      "weltbild": "plinius",
+      "weltbild_projektion": true
+    }
+  },
+  "fokuspunkte": [
+    {
+      "id": "oikumene",
+      "name": "Die bekannte Welt",
+      "knopf": "Überblick",
+      "lat": 32,
+      "lng": 45,
+      "alt": "standard"
+    },
+    {
+      "id": "westen",
+      "name": "Westrand: Gades und die Glücklichen Inseln",
+      "knopf": "→ Westen",
+      "lat": 33,
+      "lng": -8,
+      "alt": 1.3
+    },
+    {
+      "id": "norden",
+      "name": "Nordrand: Britannien, Thule, Hyperboreer",
+      "knopf": "→ Norden",
+      "lat": 58,
+      "lng": 10,
+      "alt": 1.6
+    },
+    {
+      "id": "afrika",
+      "name": "Südrand: Nil, Meroe, Blemmyer",
+      "knopf": "→ Afrika",
+      "lat": 22,
+      "lng": 22,
+      "alt": 1.6
+    },
+    {
+      "id": "osten",
+      "name": "Ostrand: Indien, Taprobane, Serer",
+      "knopf": "→ Osten",
+      "lat": 24,
+      "lng": 85,
+      "alt": 1.7
+    },
+    {
+      "id": "indien-seeweg",
+      "name": "Der Seeweg nach Indien (6,101–106)",
+      "knopf": "→ Seeweg nach Indien",
+      "lat": 18,
+      "lng": 55,
+      "alt": 2.0
+    }
+  ],
+  "lehrerhinweise": {
+    "ordner": "lehrerhinweise/",
+    "reiter": [
+      {
+        "id": "hinweise",
+        "titel": "Hinweise",
+        "datei": "01_hinweise.md"
+      }
+    ]
+  }
+}

@@ -138,6 +138,15 @@ with sync_playwright() as p:
     check('Reload Lehrkraft: Lehrermenü und Zustand bleiben', T.is_visible('.cg-lehrer') and T.evaluate(ST + '.jahr') == 250 and T.evaluate(ST + '.reiche.parth') is True)
     check('Reload Lehrkraft: Rechte bleiben', T.get_attribute('.cg-seg button[data-recht="zeit"][data-wert="selbst"]', 'aria-pressed') == 'true')
 
+    # --- Weltbilder ---
+    T.evaluate("ChronoGlobe.setState({ weltbild: { id: 'ebstorf', projektion: true } })")
+    check('Weltbild der Lehrkraft erscheint bei Schüler:innen', warte(S, ST + ".weltbild.id === 'ebstorf'", 8000))
+    T.evaluate("ChronoGlobe.setState({ fenster: { weltkarte: { id: 'ebstorf' } } })")
+    check('Schriftrolle mit der Karte öffnet sich bei allen', warte(S, ST + ".fenster.weltkarte && " + ST + ".fenster.weltkarte.id === 'ebstorf'", 6000))
+    T.keyboard.press('Escape')
+    check('… und schließt sich wieder', warte(S, ST + '.fenster.weltkarte === null', 6000))
+    T.evaluate("ChronoGlobe.setState({ weltbild: { id: null } })"); warte(S, ST + '.weltbild.id === null', 6000)
+
     # --- Leuchtstift der Lehrkraft ---
     Z = ST + '.zeichnung'
     check('Stift: Leiste nur bei der Lehrkraft', T.is_visible('.stift-leiste .stift-an') and not S.is_visible('.stift-leiste'))

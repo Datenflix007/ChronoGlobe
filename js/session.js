@@ -420,7 +420,7 @@
     function anwenden(st, alt, alles) {
       if (!st || !st.v) return;
       var t = {};
-      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau', 'zeichnung'].forEach(function (k) { if (k in st) t[k] = st[k]; });
+      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau', 'zeichnung', 'weltbild'].forEach(function (k) { if (k in st) t[k] = st[k]; });
       if (alles || R.zeit !== 'selbst' || !abw.zeit) t.jahr = st.jahr;
       if (alles || R.globus !== 'selbst' || !abw.globus) {
         // gleicher Bildausschnitt auf anderem Format: Abstand im Verhältnis der Standardabstände umrechnen
@@ -429,7 +429,7 @@
       }
       if (st.fenster && (mitsenden || alles)) {
         var jetzt = CGL.getState().fenster, af = (alt && alt.fenster) || {}, f = {};
-        [['rolle', 'reiche'], ['info', 'routen'], ['waren', 'routen'], ['modal', null]].forEach(function (x) {
+        [['rolle', 'reiche'], ['info', 'routen'], ['waren', 'routen'], ['modal', null], ['weltkarte', 'routen']].forEach(function (x) {
           var slot = x[0], recht = x[1], soll = st.fenster[slot] || null;
           if (slot === 'modal' && soll === 'lehrer') soll = null;
           var folgen = alles || (recht && R[recht] !== 'selbst') || !gleich(af[slot], st.fenster[slot]);

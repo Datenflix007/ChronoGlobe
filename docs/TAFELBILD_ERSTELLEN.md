@@ -46,7 +46,11 @@ Ein Tafelbild ist ein Ordner `tafelbilder/<id>/`. Er legt fest, was vom Kern (Gl
 - `handel`; darunter `land`, `see`, `waren`, `gesandt`, `karawanen`, `strassen`, `schiff`
 - `zh` (Zheng He), `bilder` (Abbildungen statt Symbole)
 - `netze` (Menü „Handels- und Verkehrsnetze“); in `aktiv` als Liste von Netz-ids, z. B. `"netze": ["tang"]` (ids in `data/netze/index.json`, siehe `docs/HANDELSNETZE.md`)
-- Nur in `aktiv`: `strassen_ehemals`, `strassen_animieren`
+- `weltbild` (Menü „Weltbilder“): in `aktiv` die id eines Weltbilds aus `data/weltbilder/index.json` (`plinius`, `ebstorf`) oder `null`
+  - Das Weltbild zeigt seine Einträge auf dem Globus; bei Karten gibt es zusätzlich die Schriftrolle mit dem Original.
+  - `weltbild_projektion` (nur in `aktiv`, Standard `true`): Karte bzw. Rand der bekannten Welt auf den Globus legen.
+  - Neue Weltbilder entstehen in `build_weltbilder.py` (Kern), nicht im Tafelbild-Ordner.
+- Nur in `aktiv`: `strassen_ehemals`, `strassen_animieren`, `weltbild_projektion`
 
 **Fokuspunkte**
 - Erscheinen im Menü als Knöpfe.

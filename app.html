@@ -8,7 +8,7 @@
 <title>ChronoGlobe</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/style.css?v=14cc16f70b">
+<link rel="stylesheet" href="css/style.css?v=7c2c25f9b8">
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
@@ -96,6 +96,16 @@
         <span><i style="--c:#7fd8ff" class="punkt"></i>Flussgrenze</span><span><i style="--c:#ffd27a"></i>Grenzstraße</span><span><i style="--c:#ff8f6b"></i>Graben</span>
       </div>
       <button id="tglGeo" class="chip plain hs geo" aria-pressed="false" title="Historische Geographie: Flüsse, Gebirge, Meere und Landschaften mit antiken Namen (Grundkurs „Alte Geschichte“, Kap. 8; Verläufe: Natural Earth)"><span>Historische Geographie</span></button>
+      <div class="wb-sec" id="wbSec" aria-label="Weltbilder">
+        <div class="wb-kopf" title="Die Welt, wie ein antiker Autor oder eine mittelalterliche Karte sie zeigt">Weltbilder</div>
+        <div class="wb-chips" id="wbChips"></div>
+        <div class="wb-opt" id="wbOpt" hidden>
+          <button id="tglWbProj" class="chip plain hs" aria-pressed="false" title="Karte verzerrt auf den Globus legen bzw. abdunkeln, was der Autor nicht kannte"><span>Auf den Globus legen</span></button>
+          <label class="wb-deck">Deckkraft <input type="range" id="wbDeck" min="0.15" max="1" step="0.05" value="0.85"></label>
+          <button id="btnWbRolle" class="small" type="button" hidden>📜 Karte als Schriftrolle</button>
+          <button id="btnWbInfo" class="small" type="button">Über dieses Weltbild</button>
+        </div>
+      </div>
       <button id="tglRot" class="chip plain hs on" aria-pressed="true"><span>Automatisch drehen</span></button>
       <button id="tglStandort" class="chip plain hs" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen"><span>Mein Standort</span></button>
     </div>
@@ -224,6 +234,25 @@
 <div id="toast" class="toast" role="status"></div>
 
 <!-- Kartenrolle -->
+<div id="wbOverlay" class="map-overlay wb-overlay" aria-hidden="true">
+  <div class="scroll wb-scroll" id="wbScroll">
+    <div class="roller left"></div>
+    <div class="paper">
+      <div class="paper-in">
+        <div class="wb-karte" id="wbKarte">
+          <div class="wb-flaeche" id="wbFlaeche"><img id="wbBild" alt="" draggable="false"><div class="wb-kacheln" id="wbKacheln"></div><div class="wb-punkte" id="wbPunkte"></div></div>
+        </div>
+        <div class="cartouche wb-kartusche" id="wbKartusche"></div>
+        <div class="wb-aside" id="wbAside" hidden></div>
+        <div class="wb-zoom"><button id="wbZoomIn" type="button" title="Näher">+</button><button id="wbZoomOut" type="button" title="Weiter weg">−</button><button id="wbZoom0" type="button" title="Ganze Karte">⤢</button></div>
+        <button class="wb-neben-knopf" id="wbNeben" type="button" aria-pressed="false" title="Karte links, Globus rechts: Ein Klick auf einen Punkt zeigt ihn auf der anderen Seite">⇆ <span>Neben dem Globus</span></button>
+        <button class="close" id="wbClose" type="button" title="Zurück zum Globus (Esc)">⟲ <span>Zurück zum Globus</span></button>
+        <div class="credit wb-credit" id="wbCredit"></div>
+      </div>
+    </div>
+    <div class="roller right"></div>
+  </div>
+</div>
 <div id="mapOverlay" class="map-overlay" aria-hidden="true">
   <div class="scroll" id="scroll">
     <div class="roller left"></div>
@@ -320,7 +349,7 @@
   </div>
 </div>
 
-<script src="js/version.js?v=affb93b0db"></script>
+<script src="js/version.js?v=7617134b42"></script>
 <script src="js/offline.js?v=dcd0fc8076"></script>
 <script src="vendor/globe.gl.min.js?v=c245d2f7cd"></script>
 <script src="vendor/d3.min.js?v=7d28c4f53c"></script>
@@ -328,10 +357,10 @@
 <script src="js/vignetten.js?v=b94f94e910"></script>
 <script src="js/strassenzeit.js?v=0284d1c2cb"></script>
 <script src="js/netze.js?v=c805dd8a04"></script>
-<script src="js/session.js?v=3e54a1592e"></script>
+<script src="js/session.js?v=774e3029c8"></script>
 <script src="js/tafelbild.js?v=3dd5247d8f"></script>
 <script src="js/themen.js?v=2b9969dcc6"></script>
 <script src="js/markdown.js?v=83d7c9416c"></script>
-<script src="js/app.js?v=41f45cce9b"></script>
+<script src="js/app.js?v=f53ec7ca1d"></script>
 </body>
 </html>

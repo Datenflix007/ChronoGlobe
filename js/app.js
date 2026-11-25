@@ -20,7 +20,7 @@
   var DATA, LAND, LAND_FLAT = {}, EVENTS = {}, BYID = {}, globe, mapOpen = false, mapReich = null, playTimer = null, lastKey = '', lastStrKey = '';
   var prevVis = null, mapPrev = null, flashTimer = null, VIG = null, rollView = 'vig';
   /* Geöffnete Fenster (Teil des Zustands, siehe getState): Schriftrolle, Infokarte/Schülertext, Warenübersicht, Hilfe */
-  var FENSTER = { rolle: null, info: null, waren: null, modal: null }, INFO_NEU = null;
+  var FENSTER = { rolle: null, info: null, waren: null, modal: null, weltkarte: null }, INFO_NEU = null;
   var KAMERA_GESETZT = 0;   // Zeitpunkt der letzten über applyState gesetzten Kamera
   var ZUSTAND = { hoerer: [], still: 0, fern: 0 };
   var DARF = function () { return true; };   // Schülerrechte in Live-Sessions (js/session.js setzt das)
@@ -1423,7 +1423,348 @@
     });
   }
   function vwDrehenBald() { if (!VW_DREH) VW_DREH = requestAnimationFrame(vwDrehen); }
-  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'geo' ? geoEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'vwstation' ? vwStationEl(d) : d.kind === 'alexstation' ? alexStationEl(d) : d.kind === 'kolschiff' ? kolSchiffEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+  function htmlEl(d) { return d.zeiten ? ortEl(d) : d.kind === 'geo' ? geoEl(d) : d.kind === 'wb' ? wbEl(d) : d.kind === 'vw' ? vwEl(d) : d.kind === 'vwstation' ? vwStationEl(d) : d.kind === 'alexstation' ? alexStationEl(d) : d.kind === 'kolschiff' ? kolSchiffEl(d) : d.kind === 'kastell' ? kastellEl(d) : d.kind === 'zhschiff' ? zhSchiffEl(d) : d.kind === 'europa' ? europaEl(d) : d.kind === 'standort' ? standortEl(d) : d.kind === 'zhflag' ? zhFlagEl(d) : d.kind === 'kontakt' ? kontaktEl(d) : d.kind === 'waren' ? warenEl(d) : battleEl(d); }
+
+  /* ---------- Weltbilder (data/weltbilder/, build_weltbilder.py) ----------
+     Die Welt, wie ein Autor oder eine Karte sie zeigt: Plinius (77 n. Chr.), Ebstorfer Weltkarte (um 1300).
+     - Datenpunkte: jeder Eintrag an seiner wirklichen Lage auf dem Globus, Farbe nach Art, Beschriftung je nach Zoom
+       (Stufe 1 schon von weitem). Ein Klick öffnet eine Infokarte mit Beleg (Plinius: Stelle und Wortlaut der Übersetzung;
+       Ebstorf: Beschriftung der Karte und „Auf der Karte zeigen“). „mitte“ (Ebstorf: Jerusalem) ist hervorgehoben.
+     - Plinius: der Seeweg nach Indien als Linie mit Stationen; abgedunkelt, was jenseits der ihm bekannten Welt lag (Hülle).
+     - Karten: Schriftrolle mit der Originalkarte als Kachelpyramide (scharf beim Heranzoomen) und allen Datenpunkten.
+       „Neben dem Globus“ teilt den Bildschirm: Klick auf der Karte zeigt den Ort auf dem Globus und umgekehrt.
+     - Optional („Auf den Globus legen“): die verzerrte Karte als Hülle über dem Globus; die Einträge sitzen dann dort,
+       wo die Karte sie hinlegt, eine gestrichelte Linie führt zur wirklichen Lage. Die Hülle ist ein Kugelausschnitt
+       (Klon des Globuskörpers mit eigener Geometrie, eigenem Material und eigener Textur; three.js aus globe.gl).
+     Zustand: weltbild { id, projektion, deckkraft }, Fenster: weltkarte { id, neben }. */
+  var WB = { index: null, daten: {}, laden: {}, id: null, proj: null, deck: null, mesh: null, meshId: null };
+  var WB_TYP = { ort: 'Ort', stadt: 'Stadt', kloster: 'Kloster oder Kirche', bibel: 'biblische Stätte', legende: 'Legende', region: 'Land',
+    natur: 'Fluss, Berg, Meer oder Insel', volk: 'Volk', fluss: 'Fluss', berg: 'Gebirge', insel: 'Insel', meer: 'Meer',
+    wunder: 'Fabelwesen oder Wundervolk', irrtum: 'Irrtum', grenze: 'Rand der bekannten Welt', route: 'Station der Indienfahrt' };
+  function wbIndexLaden() {
+    if (!WB.indexP) WB.indexP = load('data/weltbilder/index.json').then(function (d) { WB.index = d.weltbilder || []; wbMenue(); return WB.index; })
+      .catch(function (e) { console.warn(e); WB.index = []; return []; });
+    return WB.indexP;
+  }
+  function wbLaden(id) {
+    if (WB.daten[id]) return Promise.resolve(WB.daten[id]);
+    if (!WB.laden[id]) WB.laden[id] = wbIndexLaden().then(function (ix) {
+      var m = ix.filter(function (x) { return x.id === id; })[0];
+      if (!m) throw new Error('Weltbild ' + id + ' unbekannt');
+      return load(m.datei);
+    }).then(function (d) {
+      d.eintraege.forEach(function (e) { e.wb = d; });
+      if (d.route) d.route.stationen.forEach(function (s, i) { s.wb = d; s.id = 'route-' + i; s.typ = 'route'; s.stufe = 2; s.route = d.route; });
+      WB.daten[id] = d; return d;
+    });
+    return WB.laden[id];
+  }
+  function wbAktuell() { return WB.id ? WB.daten[WB.id] || null : null; }
+  function wbProjAn(d) { return !!d && !!d.projektion && (WB.proj != null ? WB.proj : d.projektion.standard !== false); }
+  function wbKarteAuf(d) { return wbProjAn(d) && d.art === 'karte'; }
+  /* Namen nach Zoom: Stufe 1 immer, Stufe 2 ab mittlerer Nähe, Stufe 3 nur ganz nah (sonst nur die Raute) */
+  function wbStumm(e) { var s = e.stufe || 2; return s > 1 && s + 1 > LBL.stufe; }
+  function wbSchilder() {
+    var d = wbAktuell(); if (!d) return [];
+    var auf = wbKarteAuf(d), out = [];
+    d.eintraege.concat(d.route ? d.route.stationen : []).forEach(function (e) {
+      var p = auf && e.karte ? e.karte : e.lng != null ? [e.lng, e.lat] : null; if (!p) return;
+      var m = e.__mk || (e.__mk = { kind: 'wb', e: e }); m.lng = p[0]; m.lat = p[1]; m.aufKarte = auf && !!e.karte;
+      if (m.__el) { m.__el.classList.toggle('auf-karte', m.aufKarte); m.__el.classList.toggle('stumm', wbStumm(e)); }
+      out.push(m);
+    });
+    return out;
+  }
+  function wbPfade() {
+    var d = wbAktuell(); if (!d) return [];
+    var out = [];
+    if (d.route) {
+      if (!d.route.__ln) { var pts = dense(d.route.weg), km = Math.max(1, lauf(pts).len * 6371); d.route.__ln = { id: 'wb-route-' + d.id, wbRoute: d.route, pts: pts, __dash: [Math.min(1, 160 / km), 90 / km] }; }
+      out.push(d.route.__ln);
+    }
+    if (wbKarteAuf(d)) d.eintraege.forEach(function (e) {
+      if (!e.karte || e.lng == null) return;
+      if (!e.__ln) { var pts = dense([e.karte, [e.lng, e.lat]]), km = Math.max(1, lauf(pts).len * 6371); e.__ln = { id: 'wb-' + d.id + '-' + e.id, wbLinie: e, pts: pts, __dash: [Math.min(1, 70 / km), 45 / km] }; }
+      out.push(e.__ln);
+    });
+    return out;
+  }
+  function wbEl(m) {
+    if (m.__el) return m.__el;
+    var d = m.e, w = d.wb, e = el('button', 'wb-schild wbt-' + (d.typ || 'ort') + (w.mitte === d.id ? ' mitte' : '') + ((d.stufe || 2) === 1 ? ' gross' : '')); e.type = 'button';
+    e.appendChild(el('i')); e.appendChild(el('span', null, d.name));
+    e.title = d.name + (d.inschrift ? ' – auf der Karte: „' + d.inschrift + '“' : '') + (d.heute ? ' – heute ' + d.heute : '') + ' · Klick für Infos';
+    e.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (d.typ === 'route') { openWbRoute(w); return; }
+      openWbEintrag(w, d);
+      if (WBR.offen && WBR.id === w.id && d.bild) wbRolleZeige(d, true);   // Vergleichsansicht: Stelle auf der Karte zeigen
+    });
+    e.classList.toggle('auf-karte', !!m.aufKarte); e.classList.toggle('stumm', wbStumm(d));
+    m.__el = e; return e;
+  }
+  function wbBlinken(e) {
+    var m = e && e.__mk && e.__mk.__el; if (!m) return;
+    m.classList.remove('blink'); void m.offsetWidth; m.classList.add('blink');
+  }
+  function openWbRoute(wb) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'weltbild', id: wb.id, eintrag: 'route' };
+    var r = wb.route;
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk wb', 'Weltbild · ' + wb.titel + ' (' + wb.zeit + ')'));
+      var h = el('h3', null, r.name); h.id = 'tinfoTitle'; b.appendChild(h);
+      row(b, 'Bei Plinius', r.text);
+      var ol = el('ol', 'wb-stationen');
+      r.stationen.forEach(function (s) { var li = el('li'); li.appendChild(el('b', null, s.name)); li.appendChild(document.createTextNode(' – ' + s.text)); ol.appendChild(li); });
+      row(b, 'Etappen', ol);
+      row(b, 'Beleg', r.beleg);
+    });
+  }
+  function openWbEintrag(wb, e) {
+    if (!darfLokal('routen')) return; INFO_NEU = { art: 'weltbild', id: wb.id, eintrag: e ? e.id : null };
+    showInfo(function (b) {
+      b.appendChild(el('div', 'tk wb', 'Weltbild · ' + wb.titel + ' (' + wb.zeit + ')'));
+      var h = el('h3', null, e ? e.name : wb.titel); h.id = 'tinfoTitle'; b.appendChild(h);
+      if (e) {
+        row(b, 'Art', WB_TYP[e.typ] || e.typ);
+        if (e.heute) row(b, 'Heute', e.heute);
+        if (e.inschrift) row(b, 'Auf der Karte', '„' + e.inschrift + '“');
+        if (e.zitat) {
+          var z = el('div'); z.appendChild(el('q', 'wb-zitat', e.zitat)); z.appendChild(el('div', 'wb-beleg', e.zitat_beleg));
+          row(b, 'Bei Plinius', z);
+        }
+        if (e.text) row(b, 'Erläuterung', e.text);
+        row(b, 'Beleg', e.beleg + (e.zitat ? ' (lateinischer Text nach Mayhoff)' : ''));
+        if (e.lng == null) row(b, 'Ort', 'Auf der Erde nicht zu verorten – nur auf der Karte.');
+        else if (wb.art === 'karte' && e.karte) row(b, 'Verzerrung', 'Legt man die Karte auf den Globus, landet dieser Eintrag rund ' + Math.round(d3.geoDistance([e.lng, e.lat], e.karte) * 6371 / 10) * 10 + ' km von seiner wirklichen Lage entfernt.');
+        if (wb.art === 'karte' && e.bild) { var x = el('button', 'small tmore', '📜 Auf der Karte zeigen'); x.type = 'button'; x.addEventListener('click', function () { wbRolleOeffnen(wb.id, e.id); }); b.appendChild(x); }
+        var w = el('button', 'small tmore', 'Über dieses Weltbild'); w.type = 'button'; w.addEventListener('click', function () { openWbEintrag(wb, null); }); b.appendChild(w);
+      } else {
+        row(b, 'Worum es geht', wb.kurz);
+        row(b, 'So zu lesen', wb.umgang).classList.add('twarn');
+        if (wb.erdmass) row(b, 'Größe der Erde', wb.erdmass);
+        if (wb.bild_herkunft) row(b, 'Abbildung', wb.bild_herkunft);
+        if (wb.leuphana) { var lp = el('div', null, wb.leuphana + ' '); var a = el('a', null, 'Leuphana-Ausgabe öffnen ↗'); a.href = wb.leuphana_url; a.target = '_blank'; a.rel = 'noopener'; lp.appendChild(a); row(b, 'Datenpunkte', lp); }
+        if (wb.projektion && wb.art === 'karte') row(b, 'Auf den Globus gelegt', 'Über ' + wb.projektion.passpunkte + ' Passpunkte entzerrt; die Passpunkte weichen im Mittel ' + String(wb.projektion.abweichung_mittel).replace('.', ',') + '°, höchstens ' + String(wb.projektion.abweichung_max).replace('.', ',') + '° ab. Eine „richtige“ Lage gibt es für eine solche Karte nicht.');
+        row(b, 'Literatur', wb.literatur);
+        if (wb.route) b.appendChild(linkBtn('⛵ ' + wb.route.name, function () { openWbRoute(wb); }));
+        var gruppen = {};
+        wb.eintraege.forEach(function (x) { (gruppen[x.typ] = gruppen[x.typ] || []).push(x); });
+        Object.keys(WB_TYP).forEach(function (t) {
+          if (!gruppen[t]) return;
+          b.appendChild(el('h4', 'wb-gruppe wbt-' + t, WB_TYP[t] + ' (' + gruppen[t].length + ')'));
+          var l = el('div', 'wb-liste');
+          gruppen[t].sort(function (p, q) { return p.name.localeCompare(q.name, 'de'); }).forEach(function (x) {
+            l.appendChild(linkBtn(x.name, function () { if (x.lng != null) setState({ kamera: { lat: x.lat, lng: x.lng, alt: 1.2 } }, { dauer: 1200 }); openWbEintrag(wb, x); setTimeout(function () { wbBlinken(x); }, 1300); }));
+          });
+          b.appendChild(l);
+        });
+        if (wb.art === 'karte') { var r = el('button', 'small tmore', '📜 Karte als Schriftrolle öffnen'); r.type = 'button'; r.addEventListener('click', function () { wbRolleOeffnen(wb.id); }); b.appendChild(r); }
+      }
+    });
+  }
+  /* Hülle auf dem Globus: Kugelausschnitt (bbox) als Klon des Globuskörpers mit eigener Textur */
+  function wbGlobusMesh() {
+    var mat = globe.globeMaterial(), m = null;
+    globe.scene().traverse(function (o) { if (!m && o.isMesh && o.material === mat && o.visible) m = o; });
+    return m;
+  }
+  function wbProjektion() {
+    var d = wbAktuell(), soll = wbProjAn(d) ? d.id : null;
+    if (WB.mesh && WB.meshId !== soll) { WB.mesh.parent && WB.mesh.parent.remove(WB.mesh); WB.mesh = null; WB.meshId = null; }
+    if (!soll) return;
+    var deck = WB.deck != null ? WB.deck : d.projektion.deckkraft;
+    if (WB.mesh) { WB.mesh.material.opacity = deck; WB.mesh.visible = deck > 0.01 && !!WB.mesh.material.map; return; }
+    var basis = wbGlobusMesh(), mat = globe.globeMaterial();
+    if (!basis || !mat.map) { clearTimeout(WB.warte); WB.warte = setTimeout(wbProjektion, 300); return; }   // Szene oder Grundtextur noch nicht fertig
+    var p = d.projektion, bb = p.bbox, G = basis.geometry, R = (G.parameters && G.parameters.radius) || globe.getGlobeRadius();
+    var geo = new G.constructor(R * 1.0016, 128, 96, (bb[0] + 180) / 360 * 2 * Math.PI, (bb[2] - bb[0]) / 360 * 2 * Math.PI, (90 - bb[3]) / 180 * Math.PI, (bb[3] - bb[1]) / 180 * Math.PI);
+    var m = basis.clone(); m.geometry = geo; m.scale.setScalar(1); m.visible = false; m.renderOrder = 2;
+    // frisches Material derselben Klasse (clone() scheitert, globe.gl setzt einzelne Farben auf null)
+    var mm = new mat.constructor(); mm.transparent = true; mm.opacity = deck; mm.depthWrite = false;
+    m.material = mm; basis.parent.add(m); WB.mesh = m; WB.meshId = soll;
+    var bild = new Image();
+    bild.onload = function () {
+      if (WB.mesh !== m) return;
+      // eigene Textur (clone() teilte die Bildquelle mit der Grundtextur des Globus)
+      var t = new mat.map.constructor(bild); t.colorSpace = mat.map.colorSpace; t.needsUpdate = true;
+      try { t.anisotropy = globe.renderer().capabilities.getMaxAnisotropy(); } catch (e) {}
+      mm.map = t; mm.needsUpdate = true; m.visible = mm.opacity > 0.01;
+    };
+    bild.src = window.cgUrl ? cgUrl(p.datei) : p.datei;
+  }
+  /* Weltbild umschalten (aus applyState). proj null = Voreinstellung des Weltbilds */
+  function wbSetzen(id, proj, deck) {
+    if ((id || null) !== WB.id && proj === undefined) WB.proj = null;
+    WB.id = id || null; if (proj !== undefined) WB.proj = proj == null ? null : !!proj; if (deck !== undefined) WB.deck = deck;
+    document.querySelectorAll('#wbChips .chip').forEach(function (b) { chipSetzen('#wbChips .chip[data-wb="' + b.dataset.wb + '"]', b.dataset.wb === WB.id); });
+    var o = $('#wbOpt'); if (o) o.hidden = !WB.id;
+    if (!WB.id) { wbProjektion(); lastKey = ''; setYear(state.year); return; }
+    wbLaden(WB.id).then(function (d) {
+      if (WB.id !== d.id) return;
+      chipSetzen('#tglWbProj', wbProjAn(d));
+      var t = $('#tglWbProj span'); if (t) t.textContent = d.art === 'karte' ? 'Karte verzerrt auf den Globus legen' : 'Unbekanntes abdunkeln';
+      var dk = $('#wbDeck'); if (dk) { dk.value = WB.deck != null ? WB.deck : d.projektion.deckkraft; dk.parentNode.hidden = !wbProjAn(d); }
+      var r = $('#btnWbRolle'); if (r) r.hidden = d.art !== 'karte';
+      wbProjektion(); lastKey = ''; setYear(state.year);
+    }).catch(function (e) { console.warn(e); });
+  }
+  function wbMenue() {
+    var box = $('#wbChips'); if (!box || !WB.index) return;
+    box.innerHTML = '';
+    WB.index.forEach(function (w) {
+      var b = el('button', 'chip plain hs wb', ''); b.type = 'button'; b.dataset.wb = w.id; b.setAttribute('aria-pressed', WB.id === w.id);
+      b.appendChild(el('span', null, w.titel + ' (' + w.zeit + ')')); b.classList.toggle('on', WB.id === w.id);
+      b.addEventListener('click', function () {
+        var an = WB.id !== w.id; setState({ weltbild: { id: an ? w.id : null } });
+        if (an) wbLaden(w.id).then(function (d) { toast(d.titel + ': ' + d.eintraege.length + ' Datenpunkte. ' + (d.art === 'karte' ? '„Karte als Schriftrolle“ zeigt das Original, auch neben dem Globus.' : 'Ein Klick zeigt Stelle und Wortlaut bei Plinius.')); });
+      });
+      box.appendChild(b);
+    });
+  }
+  /* ---------- Schriftrolle mit der Originalkarte (Kachelpyramide) ---------- */
+  var WBR = { z: 1, x: 0, y: 0, s: 0, sh: 0, offen: false, id: null, d: null, zieh: null, neben: false, raf: 0, ebene: -1 };
+  function wbRolleOeffnen(id, eintrag, neben) {
+    if (!darfLokal('routen')) return;
+    wbLaden(id).then(function (d) {
+      if (d.art !== 'karte') return;
+      var neu = WBR.id !== id; WBR.id = id; WBR.d = d;
+      if (neben != null) wbNeben(!!neben, true);
+      FENSTER.weltkarte = { id: id, neben: WBR.neben };
+      if (neu) {
+        var B = d.bild, b0 = $('#wbBild'); b0.src = wbKachelUrl(d, 0, 0, 0); b0.alt = d.titel + ' (Originalkarte)';
+        $('#wbKacheln').innerHTML = ''; WBR.ebene = -1;
+        var k = $('#wbKartusche'); k.innerHTML = '';
+        k.appendChild(el('div', 'ct', d.titel)); k.appendChild(el('div', 'cs', d.zeit + ' · Osten oben, Jerusalem in der Mitte'));
+        k.appendChild(el('p', null, d.eintraege.length + ' Datenpunkte. Ziehen verschiebt, Mausrad oder + / − zoomt; beim Heranzoomen erscheinen mehr Namen.'));
+        $('#wbCredit').textContent = d.bild_herkunft + ' ' + (d.leuphana ? 'Lage der Beschriftungen: Leuphana-Ausgabe (H. Kugler).' : '');
+        var P = $('#wbPunkte'); P.innerHTML = '';
+        d.eintraege.forEach(function (e) {
+          var b = el('button', 'wb-punkt wbt-' + e.typ + ' s' + (e.stufe || 2) + (d.mitte === e.id ? ' mitte' : '')); b.type = 'button';
+          b.style.left = e.bild[0] * 100 + '%'; b.style.top = e.bild[1] * 100 + '%';
+          b.title = e.name + (e.inschrift ? ' – „' + e.inschrift + '“' : ''); b.setAttribute('aria-label', e.name); b.dataset.id = e.id;
+          b.appendChild(el('span', null, e.name));
+          b.addEventListener('click', function (ev) { ev.stopPropagation(); wbRolleEintrag(d, e); });
+          P.appendChild(b);
+        });
+        void B;
+      }
+      $('#wbAside').hidden = true;
+      var o = $('#wbOverlay');
+      if (!WBR.offen) { o.classList.add('show'); o.setAttribute('aria-hidden', 'false'); requestAnimationFrame(function () { $('#wbScroll').classList.add('open'); }); WBR.offen = true; globe.controls().autoRotate = false; }
+      requestAnimationFrame(function () {
+        if (neu || !eintrag) wbZoom(1, 0, 0);
+        if (eintrag) { var e = d.eintraege.filter(function (x) { return x.id === eintrag; })[0]; if (e) wbRolleZeige(e, false); }
+      });
+      zustandGemeldet();
+    });
+  }
+  function wbKachelUrl(d, z, x, y) { var u = d.bild.kacheln + z + '/' + x + '_' + y + '.jpg'; return window.cgUrl ? cgUrl(u) : u; }
+  function wbRolleSchliessen() {
+    if (!WBR.offen) return false;
+    WBR.offen = false; FENSTER.weltkarte = null;
+    $('#wbScroll').classList.remove('open');
+    var o = $('#wbOverlay'); o.setAttribute('aria-hidden', 'true');
+    setTimeout(function () { if (!WBR.offen) { o.classList.remove('show'); wbNeben(false, true); } }, 600);
+    globe.controls().autoRotate = drehenAn() && !mapOpen;
+    zustandGemeldet(); return true;
+  }
+  /* Vergleichsansicht: Karte links, Globus rechts */
+  function wbNeben(an, still) {
+    WBR.neben = !!an;
+    document.documentElement.classList.toggle('wb-neben', WBR.neben);
+    chipSetzen('#wbNeben', WBR.neben);
+    if (FENSTER.weltkarte) FENSTER.weltkarte.neben = WBR.neben;
+    setTimeout(function () { if (WBR.offen) wbZoom(WBR.z, WBR.x, WBR.y); window.dispatchEvent(new Event('resize')); }, 60);
+    if (!still) zustandGemeldet();
+  }
+  function wbRolleZeige(e, sanft) {
+    wbRolleEintrag(WBR.d, e, true);
+    var z = Math.max(WBR.z, e.stufe === 3 ? 4 : 3);
+    wbZoomAuf(e, z);
+    if (sanft) { var f = $('#wbFlaeche'); f.classList.add('gleiten'); setTimeout(function () { f.classList.remove('gleiten'); }, 650); }
+  }
+  function wbRolleEintrag(d, e, still) {
+    var a = $('#wbAside'); a.innerHTML = ''; a.hidden = false;
+    a.appendChild(el('h4', null, e.name));
+    if (e.inschrift) a.appendChild(el('p', 'wb-inschrift', '„' + e.inschrift + '“'));
+    a.appendChild(el('p', null, e.text || (WB_TYP[e.typ] || '') + ' auf der Karte.'));
+    a.appendChild(el('p', 'wb-beleg', e.beleg));
+    if (e.lng != null) {
+      var g = el('button', 'small', WBR.neben ? '🌍 Auf dem Globus zeigen' : '🌍 Neben der Karte auf dem Globus zeigen'); g.type = 'button';
+      g.addEventListener('click', function () { wbGlobusZu(d, e); });
+      a.appendChild(g);
+    } else a.appendChild(el('p', 'wb-beleg', 'Auf der Erde nicht zu verorten.'));
+    var x = el('button', 'wb-aside-zu', '×'); x.type = 'button'; x.title = 'Schließen'; x.addEventListener('click', function () { a.hidden = true; }); a.appendChild(x);
+    document.querySelectorAll('.wb-punkt').forEach(function (p) { p.classList.toggle('an', p.dataset.id === e.id); });
+    if (!still && WBR.neben && e.lng != null) wbGlobusZu(d, e);
+  }
+  function wbGlobusZu(d, e) {
+    if (!WBR.neben) wbNeben(true);
+    setState({ weltbild: { id: d.id }, kamera: { lat: e.lat, lng: e.lng, alt: Math.min(globe.pointOfView().altitude, 1.3) } }, { dauer: 1100 });
+    setTimeout(function () { wbBlinken(e); }, 1150);
+  }
+  function wbZoom(z, x, y) {
+    var k = $('#wbKarte'), W = k.clientWidth, H = k.clientHeight, d = WBR.d; if (!W || !d) return;
+    var st = d.bild.stufen, top = st[st.length - 1], asp = top[1] / top[0];
+    var s = Math.min(W, H / asp); WBR.s = s; WBR.sh = s * asp;
+    WBR.z = Math.max(1, Math.min(10, z));
+    var maxX = Math.max(0, (s * WBR.z - W) / 2), maxY = Math.max(0, (WBR.sh * WBR.z - H) / 2);
+    WBR.x = Math.max(-maxX, Math.min(maxX, x)); WBR.y = Math.max(-maxY, Math.min(maxY, y));
+    var f = $('#wbFlaeche'); f.style.width = s + 'px'; f.style.height = WBR.sh + 'px';
+    f.style.transform = 'translate(-50%,-50%) translate(' + WBR.x + 'px,' + WBR.y + 'px) scale(' + WBR.z + ')';
+    f.style.setProperty('--z', WBR.z);
+    f.dataset.zs = WBR.z >= 4.5 ? 3 : WBR.z >= 2 ? 2 : 1;
+    if (!WBR.raf) WBR.raf = requestAnimationFrame(wbKacheln);
+  }
+  /* Kacheln der passenden Stufe für den sichtbaren Ausschnitt */
+  function wbKacheln() {
+    WBR.raf = 0;
+    var d = WBR.d, k = $('#wbKarte'); if (!d || !WBR.offen) return;
+    var st = d.bild.stufen, T = d.bild.kachel, dpr = Math.min(2, window.devicePixelRatio || 1), noetig = WBR.s * WBR.z * dpr, z = 1;
+    while (z < st.length - 1 && st[z][0] < noetig * 0.85) z++;
+    var W = k.clientWidth, H = k.clientHeight, fw = WBR.s * WBR.z, fh = WBR.sh * WBR.z, lx = W / 2 + WBR.x - fw / 2, ly = H / 2 + WBR.y - fh / 2;
+    var u0 = Math.max(0, -lx / fw), u1 = Math.min(1, (W - lx) / fw), v0 = Math.max(0, -ly / fh), v1 = Math.min(1, (H - ly) / fh);
+    var w = st[z][0], h = st[z][1], box = $('#wbKacheln');
+    var ebene = box.querySelector('.wb-ebene[data-z="' + z + '"]');
+    if (!ebene) { ebene = el('div', 'wb-ebene'); ebene.dataset.z = z; box.appendChild(ebene); }
+    for (var x = Math.floor(u0 * w / T); x <= Math.min(Math.ceil(w / T) - 1, Math.floor(u1 * w / T)); x++)
+      for (var y = Math.floor(v0 * h / T); y <= Math.min(Math.ceil(h / T) - 1, Math.floor(v1 * h / T)); y++) {
+        var key = x + '_' + y; if (ebene.querySelector('[data-k="' + key + '"]')) continue;
+        var im = document.createElement('img'); im.dataset.k = key; im.alt = ''; im.draggable = false;
+        im.style.left = x * T / w * 100 + '%'; im.style.top = y * T / h * 100 + '%';
+        im.style.width = Math.min(T, w - x * T) / w * 100 + '%'; im.style.height = Math.min(T, h - y * T) / h * 100 + '%';
+        im.src = wbKachelUrl(d, z, x, y); ebene.appendChild(im);
+      }
+    // höhere Stufen ausblenden, niedrigere bleiben als unscharfer Hintergrund
+    box.querySelectorAll('.wb-ebene').forEach(function (e) { e.hidden = +e.dataset.z > z; });
+    WBR.ebene = z;
+  }
+  function wbZoomAuf(e, z) { wbZoom(z, -(e.bild[0] - 0.5) * WBR.s * z, -(e.bild[1] - 0.5) * WBR.sh * z); }
+  function wbRolleBinden() {
+    var k = $('#wbKarte'); if (!k) return;
+    k.addEventListener('wheel', function (ev) {
+      ev.preventDefault();
+      var r = k.getBoundingClientRect(), mx = ev.clientX - r.left - r.width / 2, my = ev.clientY - r.top - r.height / 2;
+      var z2 = Math.max(1, Math.min(10, WBR.z * (ev.deltaY < 0 ? 1.2 : 1 / 1.2))), q = z2 / WBR.z;
+      wbZoom(z2, mx - (mx - WBR.x) * q, my - (my - WBR.y) * q);
+    }, { passive: false });
+    k.addEventListener('pointerdown', function (ev) { if (ev.target.closest('.wb-punkt')) return; WBR.zieh = { x: ev.clientX, y: ev.clientY, ox: WBR.x, oy: WBR.y }; k.setPointerCapture(ev.pointerId); k.classList.add('zieht'); });
+    k.addEventListener('pointermove', function (ev) { var z = WBR.zieh; if (z) wbZoom(WBR.z, z.ox + ev.clientX - z.x, z.oy + ev.clientY - z.y); });
+    var los = function () { WBR.zieh = null; k.classList.remove('zieht'); };
+    k.addEventListener('pointerup', los); k.addEventListener('pointercancel', los);
+    $('#wbZoomIn').addEventListener('click', function () { wbZoom(WBR.z * 1.5, WBR.x * 1.5, WBR.y * 1.5); });
+    $('#wbZoomOut').addEventListener('click', function () { wbZoom(WBR.z / 1.5, WBR.x / 1.5, WBR.y / 1.5); });
+    $('#wbZoom0').addEventListener('click', function () { wbZoom(1, 0, 0); });
+    $('#wbNeben').addEventListener('click', function () { wbNeben(!WBR.neben); });
+    $('#wbClose').addEventListener('click', wbRolleSchliessen);
+    $('#wbOverlay').addEventListener('click', function (ev) { if (ev.target.id === 'wbOverlay') wbRolleSchliessen(); });
+    window.addEventListener('resize', function () { if (WBR.offen) wbZoom(WBR.z, WBR.x, WBR.y); });
+    $('#tglWbProj').addEventListener('click', function () { setState({ weltbild: { projektion: !wbProjAn(wbAktuell()) } }); });
+    $('#wbDeck').addEventListener('input', function () { setState({ weltbild: { deckkraft: +this.value } }); });
+    $('#btnWbRolle').addEventListener('click', function () { if (WB.id) wbRolleOeffnen(WB.id); });
+    $('#btnWbInfo').addEventListener('click', function () { if (WB.id) wbLaden(WB.id).then(function (d) { openWbEintrag(d, null); }); });
+  }
 
   /* ---------- Leuchtstift der Lehrkraft (Live-Session) ----------
      Die Lehrkraft markiert oder schreibt mit rotem Stift bzw. Marker direkt auf den Globus. Die Striche liegen in
@@ -1774,8 +2115,8 @@
     (GEO.landschaften || []).forEach(function (l) { GEO_SCHILDER.push({ kind: 'geo', geoArt: 'land', g: l, lng: l.lng, lat: l.lat, stufe: l.stufe }); });
   }
   function geoAn() { return !!state.geo && !!GEO; }
-  function geoPaths() { return geoAn() ? GEO_OBJ : []; }
-  function geoSchilder() { if (!geoAn()) return []; var s = Math.max(1, LBL.stufe); return GEO_SCHILDER.filter(function (o) { return o.stufe <= s; }); }
+  function geoPaths() { return (geoAn() ? GEO_OBJ : []).concat(wbPfade()); }   // mit den Verzerrungslinien der Weltbilder
+  function geoSchilder() { var w = wbSchilder(); if (!geoAn()) return w; var s = Math.max(1, LBL.stufe); return GEO_SCHILDER.filter(function (o) { return o.stufe <= s; }).concat(w); }   // mit den Weltbild-Einträgen
   function geoText(d) {
     var g = d.g || d.geo, art = { fluss: 'Fluss', gebirge: 'Gebirge', gipfel: 'Berg', meer: 'Meer', land: 'Landschaft' }[d.geoArt];
     if (d.geoArt === 'land') return g.name + ' (antike Landschaft) · ' + (GEO.landschaften_quelle || '');
@@ -2498,6 +2839,8 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.wbLinie) return 'rgba(255,226,160,0.9)';
+    if (d.wbRoute) return 'rgba(255,196,92,0.95)';
     if (d.geo) return d.geoArt === 'fluss' ? (state.mode === 'schem' ? 'rgba(46,110,170,0.85)' : 'rgba(150,210,255,0.85)')
       : d.geoTeil === 'band' ? (state.mode === 'schem' ? 'rgba(150,110,70,0.16)' : 'rgba(240,220,190,0.16)') : (state.mode === 'schem' ? 'rgba(110,72,36,0.7)' : 'rgba(250,232,205,0.75)');
     if (d.kol) return kolFarbe(d.kol, kolFrisch(d.kol) ? 0.95 : 0.5);
@@ -2532,6 +2875,7 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.wbLinie || d.wbRoute) return d.__dash[i];
     if (d.geo) return d.geoTeil === 'kamm' ? d.__dash[i] : [1, 0][i];
     if (d.kol) return [1, 0][i];
     if (d.ehemals) return ehemDash(d, i);
@@ -2554,6 +2898,8 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.wbLinie) return 1.6;
+    if (d.wbRoute) return 2.6;
     if (d.geo) return d.geoArt === 'fluss' ? (GEO_HAUPTFLUSS[d.geo.id] ? 2.2 : 1.6) : d.geoTeil === 'band' ? 10 : 1.8;
     if (d.kol) return kolFrisch(d.kol) ? 2.2 : 1.1;
     if (d.ehemals) return 1.1;
@@ -2614,6 +2960,8 @@
             : (PHASE_TXT[d.phase] || '') + (d.s === 'H' ? ' · Verlauf vermutet' : '') + ' · Klick für Infos'));
           return t.outerHTML;
         }
+        if (d.wbRoute) { t.appendChild(el('b', null, d.wbRoute.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode(d.wbRoute.beleg + ' · Klick für Infos')); return t.outerHTML; }
+        if (d.wbLinie) { t.appendChild(el('b', null, d.wbLinie.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode('von der Lage auf der Karte zur wirklichen Lage · Klick für Infos')); return t.outerHTML; }
         if (d.geo) { t.appendChild(el('b', null, d.geo.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode((d.geo.heute ? 'heute ' + d.geo.heute + ' · ' : '') + 'Klick für Infos')); return t.outerHTML; }
         if (d.limes) {
           t.appendChild(el('b', null, d.limes.name + ' · ' + LIMES_ART[d.limes.art].name)); t.appendChild(el('br'));
@@ -2644,6 +2992,8 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
+        if (d.wbRoute) { openWbRoute(wbAktuell()); return; }
+        if (d.wbLinie) { openWbEintrag(d.wbLinie.wb, d.wbLinie); return; }
         if (d.geo) { toast(geoText(d)); return; }
         if (d.alexGesamt || d.vw) { toast(d.vw ? d.vw.volk + ': ' + d.vw.text + ' · Weg schematisch' : 'Alexanderzug: ' + ALEXZUG.text + ' · Weg schematisch'); return; }
         if (d.kol) openKolonie(d.kol);
@@ -3729,6 +4079,7 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (STIFT.modus) { stiftModus(false); return; }
+        if (wbRolleSchliessen()) return;
         if (warenSchliessen()) return;
         if (modalSchliessen()) return;
         if (closeInfo()) return;
@@ -3796,6 +4147,7 @@
       kolonien: Object.assign({}, KOL.an),
       niveau: TX_NIV,
       fenster: kopie(FENSTER),
+      weltbild: { id: WB.id, projektion: WB.proj, deckkraft: WB.deck },
       zeichnung: stiftZustand()
     };
   }
@@ -3871,6 +4223,13 @@
       }
       if ('fenster' in t) fensterAnwenden(t.fenster || {});
       if ('zeichnung' in t) stiftAnwenden(t.zeichnung || []);
+      if (t.weltbild) {
+        var wbt = t.weltbild, wid = 'id' in wbt ? wbt.id || null : WB.id;
+        var wproj = 'projektion' in wbt ? (wbt.projektion == null ? null : !!wbt.projektion) : undefined;
+        if (wid !== WB.id || (wproj !== undefined && wproj !== WB.proj) || ('deckkraft' in wbt && wbt.deckkraft !== WB.deck))
+          wbSetzen(wid, wproj, 'deckkraft' in wbt ? wbt.deckkraft : undefined);
+        if (wid !== WB.id || !wid) refreshHtml();
+      }
     } finally {
       ZUSTAND.kameraFolgt = false;
       ZUSTAND.still--;
@@ -3901,6 +4260,7 @@
     else if (d.art === 'strasse') { var sx = finde(STR_OBJ, d.id); if (sx) openStrassenLinie(sx); }
     else if (d.art === 'strassen') openStrassenInfo();
     else if (d.art === 'hanstation') { var hs = HANSEIDE && finde(HANSEIDE.stationen, d.id); if (hs) openHanStation(hs); }
+    else if (d.art === 'weltbild') { wbLaden(d.id).then(function (w) { if (d.eintrag === 'route' && w.route) openWbRoute(w); else openWbEintrag(w, d.eintrag ? w.eintraege.filter(function (x) { return x.id === d.eintrag; })[0] : null); }); }
     else if (d.art === 'limes') { var la = LIMES && finde(LIMES.abschnitte, d.id); if (la) openLimes(la, d.kastell ? LIMES.kastelle.filter(function (k) { return k.name === d.kastell; })[0] : null); }
     else if (d.art === 'hanlinie') { var hl = HANSEIDE && finde(HANSEIDE.linien, d.id); if (hl) openHanLinie(hl); }
     else if (d.art === 'netzquellen') openNetzQuellen();
@@ -3937,6 +4297,7 @@
     if (!gleich(f.info, FENSTER.info)) { if (f.info) infoOeffnen(f.info); else closeInfo(); }
     if ((f.waren || null) !== FENSTER.waren) { if (f.waren) openWaren(f.waren === 'zh' ? ZHD : HANDEL); else warenSchliessen(); }
     if ((f.modal || null) !== FENSTER.modal) { if (f.modal) modalOeffnen(f.modal); else modalSchliessen(); }
+    if ('weltkarte' in f && !gleich(f.weltkarte, FENSTER.weltkarte)) { if (f.weltkarte) wbRolleOeffnen(f.weltkarte.id, null, !!f.weltkarte.neben); else wbRolleSchliessen(); }
   }
 
 
@@ -3997,7 +4358,8 @@
   /* Freies Erkunden (ohne Tafelbild-Zeitraum): Die Lücke 480–1400 wird zum Teil „Mittelalter“ mit eigenem Maßstab,
      damit die mittelalterlichen Netze (Tang, Levante, Mongolenzeit …) erreichbar sind. Tafelbilder behalten ihren Zuschnitt. */
   function mittelalterEinrichten() {
-    var tb = window.CG && CG.tafelbild; if (tb && tb.zeitraum) return;
+    // Tafelbilder mit Zeitraum behalten den Zeitsprung – außer ihr Zeitraum reicht ins Mittelalter (480–1400)
+    var tb = window.CG && CG.tafelbild, z = tb && tb.zeitraum; if (z && !(z.von < 1400 && z.bis > 480)) return;
     MA_DURCHGEHEND = true;
     var S = SEGS[0], T = SEGS[1], ende = 0.64, f = function (x) { return x * ende / S.b; };
     var basis = S.teile || [{ von: S.von, bis: S.bis, a: S.a, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }];
@@ -4023,7 +4385,7 @@
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', geo: '#tglGeo', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
-    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec', alexander: '#tglAlex', kolonisation: '#tglKolon' };
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec', weltbild: '#wbSec', alexander: '#tglAlex', kolonisation: '#tglKolon' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
   function fokusZustand(f) {
@@ -4045,6 +4407,7 @@
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
     t.zh = {}; if ('zh' in a) t.zh.on = !!a.zh; if ('bilder' in a) t.zh.bilder = !!a.bilder;
     if (Array.isArray(a.netze)) { t.netze = {}; a.netze.forEach(function (id) { t.netze[id] = true; }); }
+    if ('weltbild' in a) t.weltbild = { id: a.weltbild || null, projektion: 'weltbild_projektion' in a ? !!a.weltbild_projektion : null };
     return t;
   }
   function tafelbildAnwenden(tb) {
@@ -4106,7 +4469,7 @@
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
     TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); VIG = res[14];
     reicheErgaenzen(res[10]); reicheErgaenzen(res[16]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); mittelalterEinrichten(); abschnitteZuschneiden();
-    initTrade(); initZh(); buildZhChips(); initNetze(res[13]); initThemen(res[15]);
+    initTrade(); initZh(); buildZhChips(); initNetze(res[13]); initThemen(res[15]); wbIndexLaden();
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
@@ -4119,7 +4482,7 @@
     alexVorbereiten();
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
-    initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
+    initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); wbRolleBinden(); lastKey = ''; setYear(state.year);
     tafelbildAnwenden(window.CG ? CG.tafelbild : null);
     // freier Modus mit vielen Reichen: Spuren zunächst eingeklappt, damit der Globus groß bleibt (eigene Wahl geht vor)
     if (!LANES_OFFEN_GEWAEHLT && MA_DURCHGEHEND && DATA.reihen.filter(function (r) { return !M(r).haupt && state.on[r]; }).length > 12) {

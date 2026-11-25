@@ -1,0 +1,82 @@
+{
+  "id": "ebstorfer-weltkarte",
+  "titel": "Die Ebstorfer Weltkarte",
+  "kopf": "Digitales Tafelbild",
+  "untertitel": "Wie sah man um 1300 die Welt?",
+  "beschreibung": "Die größte mittelalterliche Weltkarte als Schriftrolle in hoher Auflösung, mit rund 160 Datenpunkten – und dieselben Orte an ihrer wirklichen Lage auf dem Globus, Karte und Globus auf Wunsch nebeneinander.",
+  "vorschaubild": "vorschau.jpg",
+  "zeitraum": {
+    "von": 1250,
+    "bis": 1350,
+    "epochen": [
+      "mittelalter"
+    ]
+  },
+  "start": {
+    "jahr": 1300,
+    "ansicht": "sat",
+    "kamera": "alte-welt",
+    "drehen": false
+  },
+  "reiche": {
+    "verfuegbar": "alle",
+    "aktiv": []
+  },
+  "ebenen": {
+    "verfuegbar": [
+      "orte",
+      "geo",
+      "weltbild"
+    ],
+    "aktiv": {
+      "orte": false,
+      "geo": false,
+      "weltbild": "ebstorf",
+      "weltbild_projektion": false
+    }
+  },
+  "fokuspunkte": [
+    {
+      "id": "alte-welt",
+      "name": "Die Karte über der Alten Welt",
+      "knopf": "Überblick",
+      "lat": 33,
+      "lng": 35,
+      "alt": "standard"
+    },
+    {
+      "id": "jerusalem",
+      "name": "Jerusalem – Mitte der Welt",
+      "knopf": "→ Jerusalem",
+      "lat": 31.8,
+      "lng": 35.2,
+      "alt": 1.2
+    },
+    {
+      "id": "europa",
+      "name": "Europa und Norddeutschland",
+      "knopf": "→ Europa",
+      "lat": 50,
+      "lng": 10,
+      "alt": 1.3
+    },
+    {
+      "id": "orient",
+      "name": "Babel, Rotes Meer und Ägypten",
+      "knopf": "→ Orient",
+      "lat": 29,
+      "lng": 37,
+      "alt": 1.3
+    }
+  ],
+  "lehrerhinweise": {
+    "ordner": "lehrerhinweise/",
+    "reiter": [
+      {
+        "id": "hinweise",
+        "titel": "Hinweise",
+        "datei": "01_hinweise.md"
+      }
+    ]
+  }
+}
