@@ -12,7 +12,7 @@
     { ep: 'ming', von: 1400, bis: 1453, a: 0.79, b: 1, takt: 450, tick: 10, major: 20, alt: 40, start: 1405,
       name: 'Europäisches Spätmittelalter', sub: 'China: Ming-Dynastie (Zheng He) · Byzanz bis 1453' }
   ];
-  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, limes: false, year: 117, epoche: 'antike' };
+  var state = { mode: 'sat', on: {}, orte: false, rotate: true, schlachten: true, vw: false, alexander: false, kolonisation: false, limes: false, year: 117, epoche: 'antike' };
   var TRADE = { on: false, land: true, see: true, waren: true, gesandt: true, karawanen: false, strassen: false, schiff: false, hanseide: false };
   var STR_OPT = { ehemals: false, animieren: true, unsicherheit: false };   // Römerstraßen: Referenzmodus, Ausbau; unsicherheit bleibt aus (einfarbige Darstellung)
   var ZH = { on: true, fahrt: {} }, ZHD = null;
@@ -45,7 +45,7 @@
   /* ---------- Daten ---------- */
   function M(r) { return DATA.meta[r]; }
   // Reichsdaten gelten nur für den antiken Abschnitt (Rom hat in den Daten bis 1453, gezeichnet ist aber nur bis 480)
-  var MITTEL = {};   // Reiche mit Gebieten im Spätmittelalter (Byzanz, Osmanen); gefüllt beim Laden
+  var MITTEL = {}, MA_DURCHGEHEND = false, LANES_OFFEN_GEWAEHLT = false;   // MA_DURCHGEHEND: freier Modus, Zeitleiste ohne Sprung 480–1400   // Reiche mit Gebieten im Spätmittelalter (Byzanz, Osmanen); gefüllt beim Laden
   function exists(r, y) { return y >= M(r).von && y < M(r).bis && (y <= ANTIKE_ENDE || !!MITTEL[r]); }
   function regionsAt(r, y) {
     return DATA.regionen.filter(function (f) { var p = f.properties; return p.reich === r && p.von <= y && y < p.bis; });
@@ -271,7 +271,7 @@
     globe.polygonsData(polys);
     var tv = CUR_TV || tradeVisible(state.year);
     refreshLabels();
-    pfadeSetzen(limesPaths().concat(tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths()));
+    pfadeSetzen(ehemaligePaths(tv).concat(limesPaths(), tradeGlobePaths(tv), vwPaths(), netzePaths(), themenPaths()));
     globe.pointsData(hanStationen(state.year).concat(netzeOrte(), themenOrte()));
     refreshHtml(); vwDrehenBald();
     karUpdate();
@@ -351,7 +351,8 @@
     try { globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, GERAET.pixel)); } catch (e) {}
     initTradeGlobe();
     globe.pointLat('lat').pointLng('lng').pointAltitude(0.0025).pointResolution(10).pointsTransitionDuration(0)
-      .pointRadius(function (s) { if (s.themaort) return 0.13; if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
+      .pointRadius(function (s) { if (s.themaort) return (s.themaM.punkt || 0.13) * (s.o.groesse ? 0.7 + s.o.groesse * 0.16 : 1);   // Index-Feld „punkt“, Objekt-Feld „groesse“ (1–5)
+         if (s.netzort) return s.gross ? 0.14 : 0.08; return /Hauptstadt|Kommandantur|Poststation|Pass/.test(s.typ) ? 0.16 : 0.09; })
       .pointColor(function (s) { if (s.themaort) return themaFarbe(s.themaM, 0.95); return s.netzort ? netzOrtFarbe(s) : HS_FARBE[s.typ] || '#d8c7a8'; })
       .pointLabel(function (s) { var t = el('div', 'gtip');
         if (s.themaort) { t.appendChild(el('b', null, s.o.name)); t.appendChild(el('br')); t.appendChild(document.createTextNode(s.themaM.name + ' · ' + Themen.zeitText(s.o) + ' · Klick für Infos')); return t.outerHTML; }
@@ -439,7 +440,7 @@
       } else {
         if (r === 'rom' && state.year >= TEILUNG) d.style.setProperty('--c2', OSTROM);
         d.innerHTML = '<div class="k"></div><div class="t"></div><div class="y"></div><p></p><button type="button">Schriftrolle öffnen</button>';
-        d.querySelector('.k').textContent = (r === 'rom' && state.year >= TEILUNG) ? 'Weströmisches und Oströmisches Reich' : m.name;
+        d.querySelector('.k').textContent = (r === 'rom' && state.year > ANTIKE_ENDE) ? 'Byzantinisches Reich (Ostrom)' : (r === 'rom' && state.year >= TEILUNG) ? 'Weströmisches und Oströmisches Reich' : m.name;
         d.querySelector('.t').textContent = e.titel;
         d.querySelector('.y').textContent = 'Stand: ' + e.label;
         d.querySelector('p').textContent = e.note;
@@ -453,7 +454,7 @@
   function buildChips() {
     DATA.reihen.forEach(function (r) {
       var m = M(r); if (m.haupt) return;
-      var box = m.frueh ? $('#fruehChips') : m.kontext ? $('#kxChips') : $('#nbChips');
+      var box = m.mittelalter ? $('#maChips') : m.frueh ? $('#fruehChips') : m.kontext ? $('#kxChips') : $('#nbChips');
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip nb' + (m.kontext ? ' kx' : ''); b.dataset.r = r;
       b.style.setProperty('--c', m.farbe); b.style.setProperty('--cbg', rgba(m.farbe, 0.28));
       b.setAttribute('aria-pressed', 'false');
@@ -562,7 +563,10 @@
       lane.style.setProperty('--c', m.farbe); lane.style.setProperty('--cs', rgba(m.farbe, 0.2));
       lane.style.setProperty('--cb', rgba(m.farbe, 0.6)); lane.style.setProperty('--ct', mix(m.farbe, '#ffffff', 0.55));
       if (MITTEL[r]) lane.classList.add('mittel');
-      [[Math.max(YMIN, m.von), Math.min(ANTIKE_ENDE, m.bis)], MITTEL[r] ? [Math.max(SEGS[1].von, m.von), Math.min(YMAX, m.bis)] : null].forEach(function (ab, k) {
+      var abschnitte = MA_DURCHGEHEND && MITTEL[r]
+        ? (r === 'rom' ? [[Math.max(YMIN, m.von), ANTIKE_ENDE], [ANTIKE_ENDE, Math.min(YMAX, m.bis)]] : [[Math.max(YMIN, m.von), Math.min(YMAX, m.bis)]])
+        : [[Math.max(YMIN, m.von), Math.min(ANTIKE_ENDE, m.bis)], MITTEL[r] ? [Math.max(SEGS[1].von, m.von), Math.min(YMAX, m.bis)] : null];
+      abschnitte.forEach(function (ab, k) {
         if (!ab || ab[1] <= ab[0]) return;
         var era = document.createElement('div'); era.className = 'era' + (k ? ' era-mittel' : '');
         era.style.left = pct(ab[0]) + '%'; era.style.width = (pct(ab[1]) - pct(ab[0])) + '%';
@@ -633,7 +637,7 @@
     var bs = visibleBattles(y).map(function (b) { return b.name; }).join(',');
     var nb = DATA.reihen.map(function (r) { return exists(r, y) ? 1 : 0; }).join('');
     var tv = tradeVisible(y); stateKey.tv = tv;
-    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y);
+    return ids.join(',') + '|' + ev + '|' + bs + '|' + nb + '|' + (y >= TEILUNG) + '|' + state.orte + '|' + state.schlachten + '|' + tv.key + '|' + state.vw + state.alexander + state.kolonisation + '|' + limesSchluessel(y) + '|' + netzeSchluessel(y) + '|' + themenSchluessel(y) + '|' + ehemaligeSchluessel(y, tv);
   }
   function sliderPos(y) { return Math.round(pct(y) * 10); }   // Schieber 0..1000
   function setYear(y, fromSlider) {
@@ -654,8 +658,8 @@
       // nur das Straßennetz hat sich geändert: allein die Linien neu übergeben. Flächen, Beschriftungen und Karten
       // bleiben unberührt – sonst begänne die Aufspann-Animation der Provinzen bei jedem Jahresschritt neu (Flackern).
       lastStrKey = strKey;
-      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : limesPaths().concat(tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths(), themenPaths()));
-      if (state.vw) { refreshHtml(); vwDrehenBald(); }
+      pfadeSetzen((state.epoche === 'ming' ? zhPaths(CUR_ZV || zhVisible(y)) : ehemaligePaths(CUR_TV).concat(limesPaths(), tradeGlobePaths(CUR_TV), vwPaths())).concat(netzePaths(), themenPaths()));
+      if (zuegeAn()) { refreshHtml(); vwDrehenBald(); }
       if (mapOpen) drawMap(mapReich, true);
     }
     else strassenAnteile(y);   // gleicher Stil, aber Netz wächst weiter
@@ -1120,8 +1124,13 @@
     'Burgunder': '#ff4fa3', 'Alamannen': '#ffc233', 'Angeln, Sachsen, Jüten': '#3ee08a' };
   var VW_SPUR = 40, VW_ANKUNFT = 6;   // Jahre: Spur nach dem Ende; Ankunfts-Ring
   function vwFarbe(w) { return VW_FARBE[w.volk] || w.farbe; }
+  /* Gruppen von Zügen mit eigenem Schalter: Völkerwanderung (state.vw), Alexanderzug, Griechische Kolonisation
+     (data/fruehe_reiche.json → wanderungen mit „gruppe“). „spur“: Jahre, die ein Zug nach der Ankunft sichtbar bleibt. */
+  var ZUG_GRUPPEN = { alexander: '#tglAlex', kolonisation: '#tglKolon' };
+  function zugAn(w) { var g = w.gruppe || 'vw'; return g === 'vw' ? state.vw : !!state[g]; }
+  function zuegeAn() { return state.vw || state.alexander || state.kolonisation; }
   function vwAnteil(w, y) { return y < w.von ? -1 : Math.min(1, (y - w.von + 1) / (w.bis - w.von + 1)); }
-  function vwSichtbar(w, y) { return vwAnteil(w, y) > 0 && y <= w.bis + VW_SPUR; }
+  function vwSichtbar(w, y) { return zugAn(w) && vwAnteil(w, y) > 0 && y <= w.bis + (w.spur || VW_SPUR); }
   function vwVorbereiten(w, i) {
     w.__p = { id: 'vw' + i, vw: w, pts: w.pfad };
     w.__band = { id: 'vwb' + i, vw: w, vwArt: 'band', pts: w.pfad };
@@ -1130,7 +1139,7 @@
     w.__tag = { kind: 'vw', w: w };
   }
   function vwPaths() {
-    if (!state.vw || state.epoche !== 'antike') return [];
+    if (!zuegeAn() || state.epoche !== 'antike') return [];
     var y = state.year, out = [];
     (DATA.wanderungen || []).forEach(function (w) {
       if (!vwSichtbar(w, y)) return;
@@ -1144,16 +1153,16 @@
   }
   /* Schlüssel des sichtbaren Zustands: ändert sich, wenn ein Zug wächst, ankommt oder verblasst */
   function vwSchluessel(y) {
-    if (!state.vw || state.epoche !== 'antike') return 'aus';
+    if (!zuegeAn() || state.epoche !== 'antike') return 'aus';
     return (DATA.wanderungen || []).map(function (w) {
       return vwSichtbar(w, y) ? Math.round(vwAnteil(w, y) * 100) + (y <= w.bis ? 'l' : y <= w.bis + VW_ANKUNFT ? 'a' : 's') : '-';
     }).join(',');
   }
   function vwTags() {
-    if (!state.vw || state.epoche !== 'antike') return [];
+    if (!zuegeAn() || state.epoche !== 'antike') return [];
     var y = state.year;
     var je = {};   // je Volk ein Kopf: am jüngsten Zug, solange er läuft und bis zum Ende des Ankunfts-Rings
-    (DATA.wanderungen || []).forEach(function (w) { if (y >= w.von && y <= w.bis + VW_ANKUNFT && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
+    (DATA.wanderungen || []).forEach(function (w) { if (zugAn(w) && y >= w.von && y <= w.bis + VW_ANKUNFT && (!je[w.volk] || w.von > je[w.volk].von)) je[w.volk] = w; });
     return Object.keys(je).map(function (k) {
       var w = je[k], f = vwAnteil(w, y), t = punktBei(w.__lauf, f);
       w.__tag.lng = t[0]; w.__tag.lat = t[1]; w.__tag.f = f; w.__tag.angekommen = y > w.bis;
@@ -1178,7 +1187,7 @@
   var VW_DREH = 0;
   function vwDrehen() {
     VW_DREH = 0;
-    if (!state.vw || state.epoche !== 'antike' || !globe) return;
+    if (!zuegeAn() || state.epoche !== 'antike' || !globe) return;
     vwTags().forEach(function (d) {
       if (!d.__el) return;
       var w = d.w, f = Math.max(0.02, d.f), a = punktBei(w.__lauf, Math.max(0, f - 0.03)), b = punktBei(w.__lauf, f);
@@ -1528,6 +1537,55 @@
       netzZeile(b, m, d);
     });
   }
+  /* ---------- Ehemalige Wege (Schalter „Ehemalige Trassen“, STR_OPT.ehemals) ----------
+     Nicht nur Römerstraßen: Auch Handelsrouten, Gesandtschaftswege, die Han-Seidenstraße, Grenzanlagen, Netze und
+     Linien von Themenebenen bleiben nach dem Ende ihres dargestellten Zeitraums blass und gestrichelt sichtbar –
+     jeweils nur, wenn ihre Ebene eingeschaltet ist. Das heißt nicht, dass der Weg danach genutzt wurde; es zeigt nur,
+     wo er verlief. */
+  var EHEM = {};
+  function ehemObj(key, pts, info) { return EHEM[key] || (EHEM[key] = Object.assign({ id: 'eh-' + key, ehemals: true, pts: pts }, info)); }
+  function ehemaligePaths(tv) {
+    if (!STR_OPT.ehemals || state.epoche !== 'antike' || !HANDEL) return [];
+    var y = state.year, out = [];
+    if (TRADE.on) {
+      HANDEL.verbindungen.forEach(function (v) {
+        if (y <= v.bis || (v.art === 'land' ? !TRADE.land : !TRADE.see)) return;
+        out.push(ehemObj('r-' + v.id, v.pfad, { ehName: v.name, ehArt: 'Handelsroute', ehBis: v.bis, ehZiel: { art: 'route', id: v.id } }));
+      });
+      if (TRADE.gesandt) {
+        var sicht = {}; ((tv && tv.kontakte) || []).forEach(function (k) { sicht[k.id] = 1; });
+        HANDEL.kontakte.forEach(function (k) {
+          if (k.pfad && y > k.jahr && !sicht[k.id]) out.push(ehemObj('k-' + k.id, k.pfad, { ehName: k.name, ehArt: 'Gesandtschaft', ehBis: k.jahr, ehZiel: { art: 'kontakt', id: k.id } }));
+        });
+      }
+      if (TRADE.hanseide && HANSEIDE && y > 220) HANSEIDE_LINIEN.forEach(function (o) {
+        out.push(ehemObj('h-' + o.id, o.pts, { ehName: 'Seidenstraße der Han: ' + o.hanlinie.de, ehArt: 'Seidenstraße der Han', ehBis: 220, ehZiel: { art: 'hanlinie', id: o.hanlinie.id } }));
+      });
+    }
+    if (state.limes && LIMES) LIMES.abschnitte.forEach(function (a) {
+      if (y > a.bis) out.push(ehemObj('l-' + a.id, a.pfad, { ehName: a.name, ehArt: 'Grenzanlage', ehBis: a.bis, ehZiel: { art: 'limes', id: a.id } }));
+    });
+    Object.keys(NETZE.an).forEach(function (id) {
+      var d = NETZE.daten[id], m = netzMeta(id); if (!NETZE.an[id] || !d) return;
+      d.linien.forEach(function (l) {
+        if (l.bis == null || y <= l.bis) return;
+        l.teile.forEach(function (t, i) { out.push(ehemObj('n-' + id + '-' + l.id + '-' + i, t, { ehName: l.name || m.name, ehArt: m.name, ehBis: l.bis, ehZiel: { art: 'netzlinie', netz: id, id: l.id } })); });
+      });
+    });
+    themenAn().forEach(function (id) {
+      THEMEN.daten[id].objekte.forEach(function (o) {
+        if (o.typ === 'punkt' || o.bis == null || y <= o.bis) return;
+        out.push(ehemObj('t-' + id + '-' + o.id, o.typ === 'flaeche' ? Themen.umriss(o) : o.koordinaten, { ehName: o.name, ehArt: themaMeta(id).name, ehBis: o.bis, ehZiel: { art: 'thema', ebene: id, id: o.id } }));
+      });
+    });
+    return out;
+  }
+  function ehemaligeSchluessel(y, tv) { return STR_OPT.ehemals ? 'e' + ehemaligePaths(tv).length + state.mode : ''; }
+  function ehemDash(d, i) {
+    if (!d.__dash) { var km = Math.max(1, lauf(d.pts).len * 6371); d.__dash = [Math.min(0.5, 45 / km), Math.min(0.5, 40 / km)]; }   // Strich ≈ 45 km
+    return d.__dash[i];
+  }
+
   /* ---------- Themenebenen (data/ebenen/, js/themen.js; Format und Editor: docs/EDITOR.md) ----------
      Register data/ebenen/index.json: { ebenen: [{ id, name, farbe, datei, von, bis, kurz }] }. Eine Ebenendatei wird erst
      geladen, wenn die Ebene eingeschaltet wird. ?vorschau=editor zeigt zusätzlich die Ebene, die gerade im Editor
@@ -1893,6 +1951,7 @@
     x.addEventListener('click', function () { openText(id); }); b.appendChild(x);
   }
   function pathColor(d) {
+    if (d.ehemals) return state.mode === 'schem' ? 'rgba(80,55,30,0.42)' : 'rgba(240,228,205,0.42)';
     if (d.themalinie) return themaFarbe(d.themaM, d.themalinie.typ === 'flaeche' ? 0.85 : 0.95);
     if (d.netzlinie) return netzLinienFarbe(d);
     if (d.strasse) return strassenFarbe(d);
@@ -1916,6 +1975,7 @@
   }
   function pathDash(d, i) {
     if (d.__pen != null) return [d.__pen, 3][i];
+    if (d.ehemals) return ehemDash(d, i);
     if (d.themalinie) return d.themalinie.unsicher ? [0.07, 0.06][i] : [1, 0][i];
     if (d.netzlinie) return netzUnsicher(d.netzlinie) ? [0.07, 0.06][i] : [1, 0][i];
     if (d.vw) return d.vwArt === 'fluss' ? [0.02, 0.045][i] : [1, 0][i];   // fließende Partikel auf dem Strom
@@ -1934,8 +1994,10 @@
     return DASH_GLOBE[d.belegt][i];
   }
   function pathStroke(d) {
+    if (d.ehemals) return 1.1;
     if (d.themalinie) return d.themalinie.typ === 'flaeche' ? 1.4 : 2;
     if (d.netzlinie) return netzStrich(d);
+    if (d.vw && d.vw.gruppe === 'kolonisation') return d.vwArt === 'band' ? (d.vw.__laeuft ? 10 : 3) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 4 : 1.6) : d.vwArt === 'fluss' ? 1.8 : (d.vw.__laeuft ? 3 : 1.1);
     if (d.vw) return d.vwArt === 'band' ? (d.vw.__laeuft ? 22 : 9) : d.vwArt === 'schatten' ? (d.vw.__laeuft ? 9 : 4) : d.vwArt === 'fluss' ? 2.6 : (d.vw.__laeuft ? 5.5 : 2.2);
     if (d.eu) return 2;
     if (d.strasse) return null;   // dünne Linie (günstig bei vielen Straßen)
@@ -1960,6 +2022,11 @@
       .pathTransitionDuration(0)   // keine Übergänge: neue Linien würden sonst aus ihrem ersten Punkt heraus „fliegen“; gezeichnet wird mit der Feder
       .pathLabel(function (d) {
         var t = el('div', 'gtip');
+        if (d.ehemals) {
+          t.appendChild(el('b', null, 'Ehemals: ' + d.ehName)); t.appendChild(el('br'));
+          t.appendChild(document.createTextNode(d.ehArt + ' · dargestellt bis ' + fmtYear(d.ehBis) + ' · spätere Nutzung nicht belegt · Klick für Infos'));
+          return t.outerHTML;
+        }
         if (d.themalinie) {
           t.appendChild(el('b', null, d.themalinie.name)); t.appendChild(el('br'));
           t.appendChild(document.createTextNode(d.themaM.name + ' · ' + Themen.zeitText(d.themalinie) + (d.themalinie.unsicher ? ' · unsicher' : '') + ' · Klick für Infos'));
@@ -2006,7 +2073,8 @@
         return t.outerHTML;
       })
       .onPathClick(function (d) {
-        if (d.themalinie) openThemaObjekt(d.themalinie, d.themaM);
+        if (d.ehemals) infoOeffnen(d.ehZiel);
+        else if (d.themalinie) openThemaObjekt(d.themalinie, d.themaM);
         else if (d.netzlinie) openNetzLinie(d.netzlinie, d.netzM);
         else if (d.strasse) openStrassenLinie(d);
         else if (d.orbis) openOrbisInfo(d);
@@ -2945,6 +3013,27 @@
       var o = {}; DATA.reihen.forEach(function (r) { o[r] = v; }); setState({ reiche: o });
     }
     $('#allOn').addEventListener('click', function () { setAll(true); });
+    (function () {
+      var tb = window.CG && CG.tafelbild, ev = tb && tb.ebenen && tb.ebenen.verfuegbar, nach = $('#tglVw');
+      [['alexander', 'tglAlex', 'Alexander&shy;zug', 'Zug Alexanders des Großen 334–323 v. Chr. in acht Etappen (nach Arrian; Weg schematisch)', 'Alexanderzug: 334–323 v. Chr.'],
+       ['kolonisation', 'tglKolon', 'Griechische Kolonisation', 'Gründungen von Kolonien durch griechische Mutterstädte, um 790–323 v. Chr. (Hansen/Nielsen 2004, Anhang 27; Wege schematisch)', 'Griechische Kolonisation: vor allem 750–550 v. Chr.']].forEach(function (z) {
+        if (Array.isArray(ev) && ev.indexOf(z[0]) < 0) return;
+        if (!(DATA.wanderungen || []).some(function (w) { return w.gruppe === z[0]; })) return;
+        var b = el('button', 'chip plain hs'); b.id = z[1]; b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.title = z[3];
+        var sp = el('span'); sp.innerHTML = z[2]; b.appendChild(sp);
+        nach.parentNode.insertBefore(b, nach.nextSibling); nach = b;
+        b.addEventListener('click', function () {
+          var o = {}; o[z[0]] = !state[z[0]]; setState({ globus: o });
+          if (state[z[0]]) toast(z[4] + ' – Zeitleiste abspielen oder Jahr wählen.');
+        });
+      });
+    })();
+    // Freier Modus: alle Reiche und Ebenen auf einmal (über setState, damit es auch in getState/Sessions stimmt)
+    if (window.CG && CG.modus === 'frei') {
+      $('#allesRow').hidden = $('#allesHint').hidden = false;
+      $('#allesAn').addEventListener('click', function () { allesSetzen(true); });
+      $('#allesAus').addEventListener('click', function () { allesSetzen(false); });
+    }
     $('#allOff').addEventListener('click', function () { setAll(false); });
     function setLanes(collapsed) {
       $('#lanes').classList.toggle('collapsed', collapsed);
@@ -2953,7 +3042,10 @@
       try { localStorage.setItem('tafelbild.lanes', collapsed ? '0' : '1'); } catch (e) {}
     }
     $('#lanesToggle').addEventListener('click', function () { setLanes(!$('#lanes').classList.contains('collapsed')); });
-    try { if (localStorage.getItem('tafelbild.lanes') === '0') setLanes(true); } catch (e) {}
+    var lanesWahl = null; try { lanesWahl = localStorage.getItem('tafelbild.lanes'); } catch (e) {}
+    if (lanesWahl === '0') setLanes(true);
+    // freier Modus mit vielen Reichen: Spuren zunächst eingeklappt, damit der Globus groß bleibt (eigene Wahl geht vor)
+    LANES_OFFEN_GEWAEHLT = lanesWahl !== null;
     // Zeitleiste verkleinern: der Globus wächst in den frei werdenden Platz (über --tlh) und bleibt mittig
     function setTlMini(mini, nosave) {
       $('#timeline').classList.toggle('mini', mini);
@@ -3081,12 +3173,25 @@
     if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); }
     if (k === 'on') {
       $('#handelSub').classList.toggle('off', !v);
-      document.querySelectorAll('#handelSub button').forEach(function (x) { x.disabled = !v; });
+      document.querySelectorAll('#handelSub button').forEach(function (x) { if (x.id !== 'tglStrEhem') x.disabled = !v; });
       if (v && !ZH.on) document.querySelectorAll('#zhChips .chip').forEach(function (x) { x.disabled = true; });
       if (!v) closeInfo();
     }
     if (k === 'strassen') $('#strOpt').classList.toggle('off', !v);
     if (v && NACHLADEN[k]) ebeneLaden(k);
+  }
+  /* Alle Anzeige-Schalter auf einmal: Reiche, Globus-Ebenen, Handel und Straßen, Zheng He, Netze, Themenebenen.
+     Was im eingestellten Jahr keine Daten hat, bleibt trotzdem unsichtbar (jede Ebene filtert selbst nach Zeit). */
+  function allesSetzen(v) {
+    var t = { reiche: {}, globus: { orte: v, schlachten: v, vw: v, alexander: v, kolonisation: v, limes: v },
+      handel: { on: v, land: v, see: v, waren: v, gesandt: v, karawanen: v, strassen: v, schiff: v, hanseide: v },
+      zh: { on: v, fahrten: {} }, netze: {}, themen: {} };
+    DATA.reihen.forEach(function (r) { t.reiche[r] = v; });
+    (ZHD ? ZHD.verbindungen : []).forEach(function (z) { t.zh.fahrten[z.nr] = v; });
+    netzeVerfuegbar().forEach(function (n) { t.netze[n.id] = v; });
+    (THEMEN.index || []).forEach(function (n) { t.themen[n.id] = v; });
+    setState(t);
+    toast(v ? 'Alles eingeblendet – sichtbar ist, was zu ' + fmtYear(state.year) + ' passt.' : 'Alle Reiche und Ebenen ausgeblendet.');
   }
   function chipSetzen(sel, v) { var b = $(sel); if (b) { b.classList.toggle('on', v); b.setAttribute('aria-pressed', v); } }
   function kopie(o) { return o == null ? o : JSON.parse(JSON.stringify(o)); }
@@ -3102,7 +3207,7 @@
       kamera: { lat: Math.round(pov.lat * 1000) / 1000, lng: Math.round(pov.lng * 1000) / 1000, alt: Math.round(pov.altitude * 1000) / 1000 },
       drehen: state.rotate,
       reiche: reiche,
-      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw, limes: state.limes },
+      globus: { orte: state.orte, schlachten: state.schlachten, vw: state.vw, alexander: state.alexander, kolonisation: state.kolonisation, limes: state.limes },
       handel: { on: TRADE.on, land: TRADE.land, see: TRADE.see, waren: TRADE.waren, gesandt: TRADE.gesandt, karawanen: TRADE.karawanen, strassen: TRADE.strassen, schiff: TRADE.schiff, hanseide: TRADE.hanseide },
       strassen: { ehemals: STR_OPT.ehemals, animieren: STR_OPT.animieren },
       zh: { on: ZH.on, fahrten: fahrten, bilder: BILDER.an },
@@ -3129,6 +3234,7 @@
       if (t.globus) {
         if ('orte' in t.globus && !!t.globus.orte !== state.orte) { state.orte = !!t.globus.orte; chipSetzen('#tglOrte', state.orte); neu = true; }
         if ('vw' in t.globus && !!t.globus.vw !== state.vw) { state.vw = !!t.globus.vw; chipSetzen('#tglVw', state.vw); neu = true; }
+        Object.keys(ZUG_GRUPPEN).forEach(function (g) { if (g in t.globus && !!t.globus[g] !== state[g]) { state[g] = !!t.globus[g]; chipSetzen(ZUG_GRUPPEN[g], state[g]); neu = true; } });
         if ('limes' in t.globus && !!t.globus.limes !== state.limes) { state.limes = !!t.globus.limes; chipSetzen('#tglLimes', state.limes); neu = true; }
         if ('schlachten' in t.globus && !!t.globus.schlachten !== state.schlachten) {
           state.schlachten = !!t.globus.schlachten; chipSetzen('#tglSchl', state.schlachten); $('#lanes').classList.toggle('noschl', !state.schlachten); neu = true;
@@ -3247,9 +3353,9 @@
      deren Lebenszeit in seinen Zeitraum fällt („relevanter Ausschnitt“); der freie Modus zeigt alles. */
   function reicheErgaenzen(f) {
     if (!f || !f.meta) return;
-    Object.keys(f.meta).forEach(function (r) { DATA.meta[r] = Object.assign({ frueh: true }, f.meta[r]); });
+    Object.keys(f.meta).forEach(function (r) { DATA.meta[r] = Object.assign({ frueh: true }, f.abschnitt === 'mittelalter' ? { mittelalter: true } : {}, f.meta[r]); });
     DATA.reihen = DATA.reihen.concat(f.reihen || Object.keys(f.meta));
-    ['regionen', 'ereignisse', 'schlachten', 'orte'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
+    ['regionen', 'ereignisse', 'schlachten', 'orte', 'wanderungen'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
   }
   function reicheFiltern(tb) {
     var z = tb && tb.zeitraum; if (!z) return;
@@ -3273,7 +3379,8 @@
     var frueh = Math.min.apply(null, DATA.reihen.map(function (r) { return DATA.meta[r].von; }));
     var tb = window.CG && CG.tafelbild;
     if (tb && tb.zeitraum) frueh = Math.max(frueh, tb.zeitraum.von);
-    $('#fruehSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].frueh; });
+    $('#fruehSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].frueh && !DATA.meta[r].mittelalter; });
+    $('#maSec').hidden = !DATA.reihen.some(function (r) { return DATA.meta[r].mittelalter; });
     if (frueh >= SEGS[0].von) return;
     var von = Math.floor(frueh / 500) * 500, S = SEGS[0];
     S.teile = [
@@ -3287,6 +3394,7 @@
      damit die mittelalterlichen Netze (Tang, Levante, Mongolenzeit …) erreichbar sind. Tafelbilder behalten ihren Zuschnitt. */
   function mittelalterEinrichten() {
     var tb = window.CG && CG.tafelbild; if (tb && tb.zeitraum) return;
+    MA_DURCHGEHEND = true;
     var S = SEGS[0], T = SEGS[1], ende = 0.64, f = function (x) { return x * ende / S.b; };
     var basis = S.teile || [{ von: S.von, bis: S.bis, a: S.a, b: S.b, takt: S.takt, tick: S.tick, major: S.major, alt: S.alt, start: S.start, name: S.name, sub: S.sub }];
     basis.forEach(function (t) { t.a = f(t.a); t.b = f(t.b); });
@@ -3311,7 +3419,7 @@
   /* ---------- Tafelbild anwenden (js/tafelbild.js → window.CG.tafelbild) ----------
      Titel, verfügbare Reiche/Ebenen, Fokuspunkte, Lehrerhinweise, Zeitraum und Startzustand. */
   var EBENEN_SEL = { orte: '#tglOrte', schlachten: '#tglSchl', vw: '#tglVw', limes: '#tglLimes', handel: '#tglHandel', land: '#tglLand', see: '#tglSee', waren: '#tglWaren',
-    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec' };
+    gesandt: '#tglGes', karawanen: '#tglKar', strassen: '#tglStr', schiff: '#tglSchiff', hanseide: '#tglHanSeide', zh: '#tglZh', bilder: '#tglBilder', netze: '#netzSec', themen: '#themenSec', alexander: '#tglAlex', kolonisation: '#tglKolon' };
   function fokusKamera(f) { return { lat: f.lat, lng: f.lng, alt: f.alt === 'standard' || f.alt == null ? homeAlt() : f.alt }; }
   /* Teilzustand eines Fokuspunkts: Kamera, optional Jahr und Filter (Teilzustand wie getState) */
   function fokusZustand(f) {
@@ -3327,7 +3435,7 @@
     var k = st.kamera, fp = (tb.fokuspunkte || []).filter(function (f) { return f.id === k; })[0];
     if (fp) t.kamera = fokusKamera(fp); else if (k && typeof k === 'object') t.kamera = fokusKamera(k);
     if (tb.reiche && tb.reiche.aktiv) { t.reiche = {}; DATA.reihen.forEach(function (r) { t.reiche[r] = tb.reiche.aktiv.indexOf(r) >= 0; }); }
-    t.globus = {}; ['orte', 'schlachten', 'vw', 'limes'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
+    t.globus = {}; ['orte', 'schlachten', 'vw', 'alexander', 'kolonisation', 'limes'].forEach(function (x) { if (x in a) t.globus[x] = !!a[x]; });
     t.handel = {}; ['land', 'see', 'waren', 'gesandt', 'karawanen', 'strassen', 'schiff', 'hanseide'].forEach(function (x) { if (x in a) t.handel[x] = !!a[x]; });
     if ('handel' in a) t.handel.on = !!a.handel;
     t.strassen = {}; if ('strassen_ehemals' in a) t.strassen.ehemals = !!a.strassen_ehemals; if ('strassen_animieren' in a) t.strassen.animieren = !!a.strassen_animieren;
@@ -3389,22 +3497,28 @@
     daten('netze', 'data/netze/index.json').catch(function (e) { console.warn(e); return null; }),
     // Vignetten: fehlt die Datei, bleibt die Rolle mit leeren Platzhaltern nutzbar. ?vignetten=demo zeigt alle Bausteine.
     daten('vignetten', /[?&]vignetten=demo\b/.test(location.search) ? 'data/vignetten_demo.json' : 'data/vignetten.json').catch(function (e) { console.warn(e); return {}; }),
-    daten('themen', 'data/ebenen/index.json').catch(function (e) { console.warn(e); return null; })]); }).then(function (res) {
+    daten('themen', 'data/ebenen/index.json').catch(function (e) { console.warn(e); return null; }),
+    daten('mittelalter_reiche', 'data/mittelalter_reiche.json').catch(function (e) { console.warn(e); return null; })]); }).then(function (res) {
     DATA = res[0]; LAND = res[1]; LAND_FLAT.rom = res[2]; LAND_FLAT.han = res[3]; HANDEL = res[4]; ZHD = res[5];
     TEXTE = res[6]; res[7].titel.forEach(function (t) { LIT[t.id] = t; }); VIG = res[14];
-    reicheErgaenzen(res[10]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); mittelalterEinrichten(); abschnitteZuschneiden();
+    reicheErgaenzen(res[10]); reicheErgaenzen(res[16]); reicheFiltern(window.CG && CG.tafelbild); zeitleisteEinrichten(); mittelalterEinrichten(); abschnitteZuschneiden();
     initTrade(); initZh(); buildZhChips(); initNetze(res[13]); initThemen(res[15]);
     Vignetten.beiWechsel(function (r, wo) { if (FENSTER.rolle && FENSTER.rolle.reich === r && FENSTER.rolle.vignette !== wo) { FENSTER.rolle.vignette = wo; zustandGemeldet(); } });
     document.querySelectorAll('.camel-ico').forEach(function (x) { x.innerHTML = CAMEL; });
     DATA.reihen.forEach(function (r) { state.on[r] = !!M(r).haupt; EVENTS[r] = []; });
     DATA.ereignisse.forEach(function (e) { EVENTS[e.reich].push(e); });
     DATA.reihen.forEach(function (r) { EVENTS[r].sort(function (a, b) { return a.jahr - b.jahr; }); });
-    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.von >= SEGS[1].von) MITTEL[f.properties.reich] = 1; });
+    // MITTEL: Reich hat Gebiete nach 480. Ohne durchgehendes Mittelalter (Tafelbilder) zählen nur Gebiete ab 1400.
+    DATA.regionen.forEach(function (f) { BYID[f.properties.id] = f; if (f.properties.von >= SEGS[1].von || (MA_DURCHGEHEND && f.properties.bis > ANTIKE_ENDE + 1)) MITTEL[f.properties.reich] = 1; });
     (DATA.wanderungen || []).forEach(function (w, i) { w.__lauf = lauf(w.pfad); vwVorbereiten(w, i); });
     var tl = $('#timeline'), setTlh = function () { document.documentElement.style.setProperty('--tlh', tl.offsetHeight + 'px'); };
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); lastKey = ''; setYear(state.year);
     tafelbildAnwenden(window.CG ? CG.tafelbild : null);
+    // freier Modus mit vielen Reichen: Spuren zunächst eingeklappt, damit der Globus groß bleibt (eigene Wahl geht vor)
+    if (!LANES_OFFEN_GEWAEHLT && MA_DURCHGEHEND && DATA.reihen.filter(function (r) { return !M(r).haupt && state.on[r]; }).length > 12) {
+      $('#lanes').classList.add('collapsed'); $('#lanesToggle').setAttribute('aria-expanded', false); $('#lanesToggle').classList.add('closed');
+    }
     if (location.hash === '#hilfe') modalOeffnen('hilfe');
     setTimeout(startIntro, 600);
     if (GERAET.vorladen) ebenenVorladen();

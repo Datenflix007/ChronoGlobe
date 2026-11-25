@@ -41,10 +41,12 @@ META = {
                   kurz='Athen nach den Reformen des Kleisthenes, Vormacht des Delisch-Attischen Seebunds (478/7–404 v. Chr.) und des Zweiten Seebunds (378/7 v. Chr.).'),
     'sparta': dict(name='Sparta und der Peloponnesische Bund', von=-700, bis=-338, farbe='#9b2335', zentrum=[22.4, 37.2],
                    kurz='Militärstaat auf der Peloponnes; führt seit dem 6. Jh. v. Chr. den Peloponnesischen Bund, besiegt Athen 404 v. Chr., verliert 371 v. Chr. bei Leuktra.'),
+    'makedonien': dict(name='Makedonien und das Reich Alexanders', von=-359, bis=-168, farbe='#d4a017', zentrum=[40.0, 35.0],
+                       kurz='Philipp II. macht Makedonien zur Vormacht Griechenlands; sein Sohn Alexander erobert das Perserreich bis zum Indus. Nach 323 v. Chr. teilen die Diadochen das Reich.'),
     'perser': dict(name='Perserreich (Achämeniden)', von=-550, bis=-330, farbe='#b5477a', zentrum=[53.0, 32.0],
                    kurz='Von Kyros II. gegründetes Großreich vom Mittelmeer bis zum Indus; endet mit Alexander dem Großen.'),
 }
-REIHEN = ['mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'shang', 'perser']
+REIHEN = ['mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'makedonien', 'shang', 'perser']
 
 NIL = [[29.6, 31.6], [32.3, 31.3], [31.5, 30.0], [31.3, 27.5], [33.0, 26.0], [33.0, 24.0], [32.6, 24.0], [32.2, 26.0], [30.6, 27.8], [30.4, 29.5], [29.6, 30.8]]
 
@@ -67,6 +69,14 @@ LAKONIEN_MESSENIEN = [[21.6, 37.4], [22.6, 37.4], [23.2, 36.8], [22.9, 36.4], [2
 SEEBUND_1 = AEGAEIS.union(ATTIKA).difference(MITTELGRIECHENLAND).difference(PELOPONNES)
 SEEBUND_2 = SEEBUND_1.difference(KLEINASIEN)   # Königsfrieden 387/6 v. Chr.: Ionien persisch
 PERSIEN = Polygon([[26.0, 41.0], [30.0, 42.0], [40.0, 42.0], [48.0, 42.0], [54.0, 40.0], [60.0, 40.0], [67.0, 38.0], [71.0, 37.0], [72.0, 33.0], [70.0, 26.0], [63.0, 25.0], [57.0, 25.5], [52.0, 28.0], [48.5, 30.0], [44.0, 31.0], [38.0, 30.0], [34.2, 31.3], [32.5, 31.0], [26.0, 36.5]])
+MAKEDONIEN = Polygon([[20.5, 41.8], [24.5, 41.9], [26.6, 41.2], [26.0, 40.6], [23.5, 39.9], [22.5, 39.0], [21.5, 39.3], [20.5, 40.5]])
+GRIECHENLAND = MAKEDONIEN.union(PELOPONNES).union(MITTELGRIECHENLAND).union(ATTIKA).union(Polygon([[21.0, 39.6], [23.3, 39.9], [23.0, 38.7], [21.2, 38.6]]))
+INDUS = Polygon([[66.0, 36.5], [72.0, 35.5], [75.5, 32.5], [74.5, 30.0], [70.0, 25.5], [67.0, 24.2], [64.5, 26.0]])
+NILTAL = Polygon(NIL)
+ALEX_1 = GRIECHENLAND.union(PERSIEN.intersection(box(20, 30, 33, 43)))                                   # 334: Kleinasien
+ALEX_2 = GRIECHENLAND.union(PERSIEN.intersection(box(20, 28, 39, 43))).union(NILTAL)                    # 333–331: Levante, Ägypten
+ALEX_3 = GRIECHENLAND.union(PERSIEN.intersection(box(20, 24, 55, 43))).union(NILTAL)                    # 331–329: Mesopotamien, Persis
+ALEX_4 = GRIECHENLAND.union(PERSIEN).union(NILTAL).union(INDUS)                                         # 329–323: bis zum Indus
 SUMER = [[44.0, 32.6], [46.2, 32.2], [47.8, 30.6], [48.0, 29.9], [46.6, 30.0], [45.0, 31.0], [44.0, 32.0]]
 # (reich, name, von, bis, umriss [lng, lat] oder shapely-Fläche)
 # Ägypten und Mesopotamien nach Epochen; Jahreszahlen gerundet nach der konventionellen Chronologie
@@ -125,6 +135,15 @@ REGIONEN = [
     ('sparta', 'Sparta (Lakonien und Messenien)', -700, -550, LAKONIEN_MESSENIEN),
     ('sparta', 'Peloponnesischer Bund', -550, -371, PELOPONNES.difference(ARGOLIS)),
     ('sparta', 'Sparta nach Leuktra (ohne Messenien)', -371, -338, [[22.2, 37.4], [22.6, 37.4], [23.2, 36.8], [22.9, 36.4], [22.4, 36.4], [22.2, 36.8]]),
+    # --- Makedonien und Alexander (Arrian, Anabasis; Gebiete angedeutet) ---
+    ('makedonien', 'Makedonien unter Philipp II.', -359, -338, MAKEDONIEN),
+    ('makedonien', 'Makedonische Vorherrschaft (Korinthischer Bund)', -338, -334, GRIECHENLAND),
+    ('makedonien', 'Reich Alexanders: Kleinasien erobert', -334, -333, ALEX_1),
+    ('makedonien', 'Reich Alexanders: bis Syrien und Ägypten', -333, -331, ALEX_2),
+    ('makedonien', 'Reich Alexanders: Mesopotamien und Persis', -331, -329, ALEX_3),
+    ('makedonien', 'Reich Alexanders: bis zum Indus', -329, -323, ALEX_4),
+    ('makedonien', 'Alexanderreich unter den Diadochen (Nachfolgekämpfe)', -323, -301, ALEX_4),
+    ('makedonien', 'Makedonien der Antigoniden', -301, -168, MAKEDONIEN.union(Polygon([[21.0, 39.6], [23.3, 39.9], [23.0, 38.7], [21.2, 38.6]]))),
     # --- weitere frühe Reiche ---
     ('indus', 'Kerngebiet der Indus-Kultur', -2600, -1900, [[66.5, 30.5], [70.0, 32.5], [74.5, 32.5], [76.5, 30.0], [74.0, 27.0], [72.0, 24.0], [70.5, 22.0], [68.5, 23.2], [67.0, 25.0], [66.5, 28.0]]),
     ('hethiter', 'Hethiterreich (Anatolien)', -1650, -1180, [[27.5, 40.5], [36.0, 41.5], [40.5, 40.3], [40.0, 37.5], [36.5, 36.0], [34.0, 36.5], [30.0, 37.0], [27.5, 38.0]]),
@@ -135,7 +154,10 @@ REGIONEN = [
     # Ionien und die Inseln gehören 478/7–387/6 v. Chr. zum Seebund bzw. sind umkämpft (Kalliasfrieden 449, Königsfrieden 387/6)
     ('perser', 'Perserreich (Achämeniden)', -550, -478, PERSIEN),
     ('perser', 'Perserreich (ohne Ionien und die Inseln)', -478, -387, PERSIEN.difference(SEEBUND_1.buffer(0.15))),
-    ('perser', 'Perserreich (Achämeniden)', -387, -330, PERSIEN),
+    ('perser', 'Perserreich (Achämeniden)', -387, -334, PERSIEN),
+    ('perser', 'Perserreich (ohne Kleinasien)', -334, -333, PERSIEN.difference(box(20, 30, 33, 43))),
+    ('perser', 'Perserreich (ohne Kleinasien, Levante, Ägypten)', -333, -331, PERSIEN.difference(box(20, 28, 39, 43))),
+    ('perser', 'Perserreich (Rest im Osten)', -331, -330, PERSIEN.difference(box(20, 24, 55, 43))),
     ('perser', 'Ägypten (erste persische Herrschaft)', -525, -404, NIL),
     ('perser', 'Ägypten (zweite persische Herrschaft)', -343, -332, NIL),
 ]
@@ -231,6 +253,21 @@ EREIGNISSE = [
     ('sparta', -405, '405 v. Chr.', 'Sieg bei Aigospotamoi', 'Lysander vernichtet die athenische Flotte am Hellespont; Sparta wird Vormacht Griechenlands.', 'Xenophon, Hellenika II 1'),
     ('sparta', -387, '387/6 v. Chr.', 'Königsfrieden', 'Persien und Sparta setzen einen Frieden durch: Ionien wird persisch, Spartas Vormacht in Griechenland bestätigt.', 'Xenophon, Hellenika V'),
     ('sparta', -371, '371 v. Chr.', 'Niederlage bei Leuktra', 'Theben unter Epameinondas besiegt Sparta; bald darauf wird Messenien frei. Spartas Vormacht ist zu Ende.', 'Xenophon, Hellenika VI'),
+    # --- Makedonien und Alexander ---
+    ('makedonien', -359, '359 v. Chr.', 'Philipp II. wird König', 'Philipp II. baut ein schlagkräftiges Heer mit der langen Lanze (Sarissa) auf und macht Makedonien zur Großmacht.'),
+    ('makedonien', -338, '338/7 v. Chr.', 'Chaironeia und Korinthischer Bund', 'Philipp besiegt Athen und Theben bei Chaironeia und vereint die griechischen Staaten (ohne Sparta) unter seiner Führung.'),
+    ('makedonien', -336, '336 v. Chr.', 'Alexander wird König', 'Philipp wird ermordet; sein zwanzigjähriger Sohn Alexander folgt ihm.'),
+    ('makedonien', -334, '334 v. Chr.', 'Aufbruch nach Asien, Sieg am Granikos', 'Alexander setzt über den Hellespont und schlägt die Perser am Fluss Granikos.', 'Arrian, Anabasis I'),
+    ('makedonien', -333, '333 v. Chr.', 'Issos', 'Alexander besiegt den Perserkönig Dareios III. bei Issos; Dareios flieht.', 'Arrian, Anabasis II'),
+    ('makedonien', -332, '332/1 v. Chr.', 'Tyros, Ägypten, Alexandria', 'Nach monatelanger Belagerung fällt Tyros; Ägypten ergibt sich. Alexander gründet Alexandria und besucht das Orakel des Amun in Siwa.', 'Arrian, Anabasis II–III'),
+    ('makedonien', -331, '331 v. Chr.', 'Gaugamela', 'Entscheidender Sieg über Dareios III.; Babylon und Susa öffnen Alexander die Tore.', 'Arrian, Anabasis III'),
+    ('makedonien', -330, '330 v. Chr.', 'Persepolis brennt, Ende der Achämeniden', 'Der Palast von Persepolis geht in Flammen auf; Dareios III. wird von eigenen Leuten getötet.', 'Arrian, Anabasis III'),
+    ('makedonien', -327, '329–327 v. Chr.', 'Kämpfe in Baktrien und Sogdien', 'Jahre harter Kämpfe in Zentralasien; Alexander heiratet die baktrische Fürstentochter Roxane.', 'Arrian, Anabasis IV'),
+    ('makedonien', -326, '326 v. Chr.', 'Hydaspes und Umkehr', 'Sieg über König Poros am Hydaspes. Am Hyphasis weigern sich die Soldaten weiterzuziehen.', 'Arrian, Anabasis V'),
+    ('makedonien', -325, '325 v. Chr.', 'Marsch durch die Gedrosische Wüste', 'Auf dem Rückweg durch die Wüste sterben viele Soldaten; die Flotte unter Nearchos fährt an der Küste entlang.', 'Arrian, Anabasis VI'),
+    ('makedonien', -323, '323 v. Chr.', 'Tod Alexanders in Babylon', 'Alexander stirbt mit 32 Jahren; seine Generäle (Diadochen) kämpfen um das Erbe.', 'Arrian, Anabasis VII'),
+    ('makedonien', -301, '301 v. Chr.', 'Ipsos: Das Reich zerfällt endgültig', 'Nach der Schlacht bei Ipsos entstehen die großen hellenistischen Reiche: Ptolemäer in Ägypten, Seleukiden in Asien, Antigoniden in Makedonien.'),
+    ('makedonien', -168, '168 v. Chr.', 'Pydna: Ende Makedoniens', 'Rom besiegt König Perseus; 148/146 v. Chr. wird Makedonien römische Provinz.'),
     # --- weitere frühe Reiche ---
     ('indus', -2600, 'um 2600 v. Chr.', 'Städte am Indus', 'Harappa und Mohenjo-Daro wachsen zu großen, planmäßig angelegten Städten.'),
     ('indus', -1900, 'um 1900 v. Chr.', 'Niedergang', 'Die großen Städte werden nach und nach aufgegeben; die Gründe sind umstritten.'),
@@ -246,6 +283,12 @@ EREIGNISSE = [
 ]
 SCHLACHTEN = [
     dict(name='Megiddo', jahr=-1457, lng=35.18, lat=32.59, reiche=['aegypten'], note='Thutmosis III. besiegt eine Koalition kanaanäischer Fürsten (Jahr 23 seiner Regierung; nach anderer Chronologie 1482 v. Chr.). Die Annalen von Karnak beschreiben den Ablauf ausführlich (Nelson 1913).'),
+    dict(name='Granikos', jahr=-334, lng=27.25, lat=40.20, reiche=['makedonien', 'perser'], note='Erster Sieg Alexanders über ein persisches Heer (Arrian, Anabasis I).'),
+    dict(name='Issos', jahr=-333, lng=36.20, lat=36.84, reiche=['makedonien', 'perser'], note='Alexander besiegt Dareios III. (Arrian, Anabasis II).'),
+    dict(name='Gaugamela', jahr=-331, lng=43.50, lat=36.57, reiche=['makedonien', 'perser'], note='Entscheidungsschlacht gegen Dareios III. (Arrian, Anabasis III).'),
+    dict(name='Hydaspes', jahr=-326, lng=73.60, lat=32.95, reiche=['makedonien'], note='Sieg über den indischen König Poros mit Kriegselefanten (Arrian, Anabasis V).'),
+    dict(name='Ipsos', jahr=-301, lng=31.05, lat=38.62, reiche=['makedonien'], note='Diadochen gegen Antigonos Monophthalmos; danach zerfällt das Alexanderreich endgültig.'),
+    dict(name='Pydna', jahr=-168, lng=22.58, lat=40.37, reiche=['makedonien'], note='Rom besiegt Perseus von Makedonien.'),
     dict(name='Lade', jahr=-494, lng=27.27, lat=37.52, reiche=['perser'], note='Die persische Flotte besiegt die Ionier vor Milet; der Ionische Aufstand bricht zusammen (Kagan, Yale CLCV 205).'),
     dict(name='Marathon', jahr=-490, lng=23.97, lat=38.12, reiche=['athen', 'perser'], note='Athener und Plataier unter Miltiades besiegen das persische Landungsheer.'),
     dict(name='Thermopylen', jahr=-480, lng=22.54, lat=38.80, reiche=['sparta', 'perser'], note='Leonidas und seine Truppen werden nach drei Tagen umgangen und fallen.'),
@@ -260,6 +303,22 @@ SCHLACHTEN = [
     dict(name='Chaironeia', jahr=-338, lng=22.84, lat=38.50, reiche=['athen'], note='Philipp II. von Makedonien besiegt Athen und Theben; die Unabhängigkeit der Poleis endet.'),
     dict(name='Kadesch', jahr=-1274, lng=36.51, lat=34.56, reiche=['aegypten', 'hethiter'], note='Ramses II. gegen die Hethiter unter Muwattalli II.; keiner siegt eindeutig.'),
 ]
+# Züge (wie die Völkerwanderung in data/reiche.json; gruppe = eigener Schalter im Menü). Wege schematisch.
+ALEX = '#ffcc33'
+ALEXANDERZUG = [
+    (-334, -333, 'Pella – Hellespont – Granikos – Sardes – Gordion – Issos', [[22.52, 40.76], [23.85, 40.82], [26.40, 40.23], [27.25, 40.20], [28.04, 38.49], [27.28, 37.53], [27.42, 37.04], [30.5, 37.3], [31.99, 39.65], [33.5, 38.5], [34.90, 36.92], [36.20, 36.84]]),
+    (-332, -331, 'Issos – Tyros – Gaza – Memphis – Alexandria – Siwa', [[36.20, 36.84], [35.80, 34.9], [35.20, 33.27], [34.45, 31.50], [32.57, 31.04], [31.25, 29.85], [29.92, 31.20], [27.25, 31.35], [25.54, 29.20]]),
+    (-331, -330, 'Ägypten – Tyros – Gaugamela – Babylon – Susa – Persepolis', [[25.54, 29.20], [31.25, 29.85], [35.20, 33.27], [37.2, 35.5], [38.40, 35.95], [41.5, 36.6], [43.50, 36.57], [44.01, 36.19], [44.42, 32.54], [48.25, 32.19], [52.89, 29.93]]),
+    (-330, -329, 'Persepolis – Ekbatana – Hekatompylos – Areia – Arachosien – Hindukusch', [[52.89, 29.93], [48.52, 34.80], [51.43, 35.59], [54.40, 36.10], [62.20, 34.35], [62.10, 32.37], [65.70, 31.60], [69.15, 35.00]]),
+    (-329, -327, 'Baktra – Marakanda – Alexandria Eschate – Baktra', [[69.15, 35.00], [66.90, 36.76], [66.97, 39.65], [69.60, 40.28], [66.97, 39.65], [66.90, 36.76]]),
+    (-327, -325, 'Baktra – Taxila – Hydaspes – Hyphasis – Indus abwärts bis Patala', [[66.90, 36.76], [69.15, 35.00], [72.83, 33.75], [73.60, 32.95], [75.00, 31.50], [73.60, 32.95], [71.47, 30.20], [68.40, 25.40]]),
+    (-325, -324, 'Gedrosische Wüste – Karmanien – Persepolis – Susa', [[68.40, 25.40], [64.0, 25.6], [61.00, 27.20], [57.10, 29.10], [52.89, 29.93], [48.25, 32.19]]),
+    (-324, -323, 'Susa – Opis – Ekbatana – Babylon (Tod im Juni 323)', [[48.25, 32.19], [44.50, 33.30], [48.52, 34.80], [44.42, 32.54]]),
+]
+WANDERUNGEN = [dict(volk='Alexander der Große', gruppe='alexander', farbe=ALEX, von=v, bis=b, pfad=pf, text='%s–%s v. Chr.: %s' % (-v, -b, t)) for v, b, t, pf in ALEXANDERZUG]
+_kol = os.path.join(HERE, 'data', 'kolonisation.json')   # erzeugt von build_poleis.py
+if os.path.exists(_kol): WANDERUNGEN += json.load(open(_kol, encoding='utf-8'))['zuege']
+
 ORTE = [
     # --- Mesopotamien ---
     ('mesopotamien', 'Uruk', 45.64, 31.32, 1, [[-3500, -539]]),
@@ -314,6 +373,9 @@ ORTE = [
     ('mykener', 'Theben (Böotien)', 23.32, 38.32, 2, [[-1400, -1200]]),
     # --- Athen und Sparta ---
     ('athen', 'Athen', 23.73, 37.97, 1, [[-508, -338]]),
+    ('makedonien', 'Pella', 22.52, 40.76, 1, [[-400, -168]]),
+    ('makedonien', 'Alexandria (Ägypten)', 29.92, 31.20, 2, [[-331, -301]]),
+    ('makedonien', 'Babylon (Residenz Alexanders)', 44.42, 32.54, 2, [[-331, -311]]),
     ('athen', 'Piräus', 23.64, 37.94, 3, [[-493, -338]]),
     ('athen', 'Delos (Bundeskasse)', 25.27, 37.40, 2, [[-478, -454]]),
     ('sparta', 'Sparta', 22.43, 37.08, 1, [[-700, -338]]),
@@ -359,6 +421,7 @@ def main():
         'ereignisse': [dict(reich=e[0], jahr=e[1], label=e[2], titel=e[3], note=e[4], **({'quelle': e[5]} if len(e) > 5 else {})) for e in EREIGNISSE],
         'schlachten': SCHLACHTEN,
         'orte': [dict(reich=r, name=n, lng=x, lat=y, stufe=s, zeiten=z) for r, n, x, y, s, z in ORTE],
+        'wanderungen': WANDERUNGEN,
     }
     with io.open(ZIEL, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(daten, f, ensure_ascii=False, separators=(',', ':'))

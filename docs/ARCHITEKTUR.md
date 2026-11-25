@@ -201,3 +201,11 @@ Erstes Skript im `<head>` jeder Seite. Es setzt die Richtlinie als Meta-Element 
 - `style`-Attribute bleiben erlaubt.
 
 `tests/test_csp.py` prüft jede Seite. Die übrigen Browsertests laufen mit `bypass_csp=True`, weil Playwrights `wait_for_function` intern `eval` nutzt.
+
+## Mittelalter, Züge und ehemalige Wege
+
+- **Durchgehendes Mittelalter:** Im freien Modus hat die Zeitleiste keinen Sprung 480–1400 (`MA_DURCHGEHEND`). Dann gilt ein Reich, solange es Gebiete hat (`MITTEL[r]`, wenn ein Gebiet nach 481 endet). Tafelbilder mit eigenem Zeitraum behalten die alte Regel (nur Gebiete ab 1400). Byzanz ist das Reich „rom“ mit `seite: 'o'` nach 480; Karte und Zeitleiste heißen dann „Byzantinisches Reich“.
+- **Zusätzliche Reichsdateien:** `data/fruehe_reiche.json` und `data/mittelalter_reiche.json` werden mit `reicheErgaenzen` zusammengeführt (meta, reihen, regionen, ereignisse, schlachten, orte, wanderungen). Ihre Reiche gelten als `frueh` (Tafelbilder blenden sie aus, außer `reiche.verfuegbar` nennt sie); `abschnitt: 'mittelalter'` legt sie im Menü unter „Mittelalter“ ab.
+- **Züge:** `DATA.wanderungen` mit `gruppe` (`vw` = Völkerwanderung, `alexander`, `kolonisation`) und optional `spur` (Jahre sichtbar nach der Ankunft). Jede Gruppe hat einen Schalter und steht in `getState().globus`. Die Schalter für Alexander und Kolonisation entstehen nur, wo erlaubt (freier Modus oder Tafelbild nennt sie).
+- **Ehemalige Wege:** `STR_OPT.ehemals` („Ehemalige Trassen und Wege“) zeigt neben Römerstraßen auch Handelsrouten, Gesandtschaften, Han-Seidenstraße, Limes, Netze und Themenlinien nach dem Ende ihres Zeitraums gestrichelt (`ehemaligePaths`), jeweils nur für eingeschaltete Ebenen.
+- **Spuren der Zeitleiste:** Im freien Modus mit mehr als zwölf Nachbarreichen zunächst eingeklappt; die eigene Wahl (localStorage `tafelbild.lanes`) geht vor.

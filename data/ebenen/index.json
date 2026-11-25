@@ -2,6 +2,15 @@
   "_hinweis": "Register der Themenebenen (Format: docs/EDITOR.md). Eine Ebene kommt hierher, wenn ein Beitrag aus beitraege/ geprüft und übernommen wurde: Datei nach data/ebenen/<id>.json, Eintrag { id, name, farbe, datei, von, bis, kurz } in diese Liste.",
   "ebenen": [
     {
+      "id": "archaeologische-funde",
+      "name": "Bedeutende archäologische Funde",
+      "farbe": "#ffd166",
+      "datei": "data/ebenen/archaeologische-funde.json",
+      "von": -9500,
+      "bis": null,
+      "kurz": "Von Göbekli Tepe über die ältesten Schrifttafeln aus Uruk und das Gilgamesch-Epos bis Sutton Hoo – mit Fundjahr und heutigem Ort"
+    },
+    {
       "id": "monumente-nil-zweistromland",
       "name": "Monumente am Nil und im Zweistromland",
       "farbe": "#f0c060",
@@ -27,6 +36,26 @@
       "von": -2500,
       "bis": null,
       "kurz": "Gipfelheiligtümer, Orakel, Festspielorte und Tempel von Kreta bis Athen"
+    },
+    {
+      "id": "griechische-poleis",
+      "name": "Griechische Poleis (alle Stadtstaaten)",
+      "farbe": "#7fd1ff",
+      "datei": "data/ebenen/griechische-poleis.json",
+      "von": -1000,
+      "bis": -310,
+      "kurz": "911 Poleis nach Hansen/Nielsen 2004 – Größe, Gründung, Mauern, Münzen, Seebund",
+      "punkt": 0.055
+    },
+    {
+      "id": "delisch-attischer-seebund",
+      "name": "Mitglieder des Delisch-Attischen Seebunds",
+      "farbe": "#1fa2c8",
+      "datei": "data/ebenen/delisch-attischer-seebund.json",
+      "von": -478,
+      "bis": -404,
+      "kurz": "274 Mitgliedsstädte 478/7–404 v. Chr. nach Hansen/Nielsen 2004",
+      "punkt": 0.06
     }
   ]
 }

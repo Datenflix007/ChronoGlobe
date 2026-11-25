@@ -882,6 +882,9 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .fokus-row{flex-wrap:wrap;margin-top:8px}
 .fokus-row:not(:has(button)){display:none}
 .fokus-row .small{flex:1 1 auto;font-size:13px;padding:7px 8px}
+.alles-row{margin-top:8px}
+.alles-row .small{flex:1 1 0;font-size:13px;padding:7px 8px}
+.alles-hint{margin:4px 0 0}
 .reich-paar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
 .reich-paar .chip{margin:0;padding:9px 10px;gap:8px;font-size:14px;line-height:1.2}
 .reich-paar .chip i{width:14px;height:14px}
@@ -922,3 +925,5 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .hsub-grid .chip.hs.kar{grid-column:auto}
 /* Gruppen ohne sichtbare Reiche (z. B. in Tafelbildern) ganz ausblenden */
 .aufklapp:has(.nb-grid):not(:has(.chip.nb:not([hidden]))){display:none}
+/* Ehemalige Trassen und Wege: eigener Schalter unter „Handel & Austausch“, auch ohne Römerstraßen bedienbar */
+.ehem-knopf{width:100%;margin-top:6px}

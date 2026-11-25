@@ -92,10 +92,25 @@ with sync_playwright() as p:
     pg.keyboard.press('Escape')
 
     # Tafelbilder: kein Mittelalter-Teil, Netze ausgeblendet, Zeitsprung wie bisher
+    # 11b. Alles ein- und ausblenden (nur freier Modus)
+    pg.goto(U + 'app.html?modus=frei'); pg.wait_for_function('window.ChronoGlobe'); pg.wait_for_timeout(1500)
+    check('11b. Knöpfe „Alles einblenden/ausblenden“ im freien Modus', pg.is_visible('#allesAn') and pg.is_visible('#allesAus'))
+    pg.click('#allesAn'); pg.wait_for_timeout(2500)
+    st = pg.evaluate(T + '.getState()')
+    alle = lambda d: bool(d) and all(d.values())
+    check('11b. alles an: Reiche, Globus, Handel, Netze, Themen, Zheng He', alle(st['reiche']) and alle(st['globus']) and alle(st['handel']) and alle(st['netze']) and alle(st['themen']) and st['zh']['on'] and alle(st['zh']['fahrten']),
+          str({k: st[k] for k in ('globus', 'handel')}))
+    pg.evaluate(T + ".setYear(-480); 0"); pg.wait_for_timeout(1500)
+    check('11b. 480 v. Chr.: Athen, Sparta und Perser sichtbar', set(pg.evaluate(T + ".globe.polygonsData().map(f => f.properties.reich)")) >= {'athen', 'sparta', 'perser'})
+    pg.click('#allesAus'); pg.wait_for_timeout(1500)
+    st = pg.evaluate(T + '.getState()')
+    check('11b. alles aus: keine Reiche, keine Flächen, keine Pfade', not any(st['reiche'].values()) and not any(st['handel'].values()) and pg.evaluate(T + '.globe.polygonsData().length') == 0 and pg.evaluate(T + '.globe.pathsData().length') == 0)
+
     for tb, ep_erw in (('rom-zentrum-der-welt', ['Europäische Antike']), ('aufbruch-aus-europa', ['Europäisches Spätmittelalter'])):
         pg.goto(U + 'app.html?tafelbild=' + tb); pg.wait_for_function('window.ChronoGlobe'); pg.wait_for_timeout(1200)
         ep = pg.evaluate("[...document.querySelectorAll('#epbar .ep')].map(e => e.querySelector('b').textContent)")
         check('12. Tafelbild %s: Zeitleiste unverändert, Netze ausgeblendet' % tb, ep == ep_erw and pg.evaluate("document.querySelector('#netzSec').hidden"), ', '.join(ep))
+        check('12. Tafelbild %s: kein „Alles einblenden“' % tb, not pg.is_visible('#allesAn'))
     pg.evaluate(T + ".setYear(700); 0")
     check('13. Tafelbild Aufbruch: Jahr bleibt im Zeitraum', pg.evaluate(T + '.state.year') == 1400, str(pg.evaluate(T + '.state.year')))
 

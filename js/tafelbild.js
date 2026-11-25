@@ -25,7 +25,10 @@
     id: null, titel: 'Menschheitsgeschichte', kopf: 'ChronoGlobe', untertitel: 'Menschheitsgeschichte',
     beschreibung: 'Der ganze Globus mit allen Daten, frei durchklickbar.', ordner: '',
     start: { jahr: 117, ansicht: 'sat', kamera: 'eurasien', drehen: true },
-    reiche: { verfuegbar: 'alle', aktiv: ['rom', 'han', 'mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'shang', 'perser'] },
+    reiche: { verfuegbar: 'alle', aktiv: ['rom', 'han', 'mesopotamien', 'aegypten', 'nubien', 'indus', 'minoer', 'mykener', 'hethiter', 'athen', 'sparta', 'makedonien', 'shang', 'perser',
+      // Mittelalter (data/mittelalter_reiche.json) und Reiche, die nach 480 weiterbestehen: keine leere Zeit nach Westrom
+      'sasan', 'franken', 'westgot', 'ostgot', 'angels', 'osman', 'langob', 'kalifat', 'andalus', 'iberien', 'china_ma', 'steppen', 'mongolen',
+      'seldsch', 'aeg_ma', 'hrr', 'frankreich', 'england', 'rus', 'bulgarien', 'ungarn', 'polen', 'indien_ma'] },
     ebenen: { verfuegbar: 'alle' },
     fokuspunkte: [
       { id: 'rom', name: 'Rom', knopf: '→ Rom', lat: 41.5, lng: 14, alt: 1.0 },

@@ -139,3 +139,23 @@ Erzeugt mit `build_fruehe_kulturen.py` → `data/fruehe_reiche.json`. Gebiete si
 | Zweiter Attischer Seebund | Marshall, The Second Athenian Confederacy (1905) | 378/7 Gründung (Aristoteles-Dekret, Synhedrion), Bundesgenossenkrieg 357–355 |
 
 Nicht abrufbar waren am 25.11.2026 (Server lieferte HTML statt PDF): ISAC OIP 8 und SAOC 12, Murnane (Medinet Habu), Brown-Reader, UMass- und Utah-Vorlesungen, OAPEN (Knodell). Sie sind nicht eingeflossen.
+
+## Griechische Poleis und Kolonisation (seit 25.11.2026)
+
+Erzeugt mit `build_poleis.py`; die Rohdaten liegen nur lokal unter `quellen/lokal/poleis/` (per `.gitignore` ausgeschlossen).
+
+| Datei | Quelle | Lizenz |
+|---|---|---|
+| `data/ebenen/griechische-poleis.json` (911 Poleis), `data/ebenen/delisch-attischer-seebund.json` (274 Mitglieder) | POLIS, Stanford University (digitale Fassung von Hansen/Nielsen, *An Inventory of Archaic and Classical Poleis*, 2004): `polis.stanford.edu/data/master_data_11_19_2013.csv` | **keine Lizenz angegeben** („frei zugänglich für akademische Nutzung“). **Vor einer Veröffentlichung klären** (Anfrage an das Stanford Classics Department) oder auf Pleiades-Koordinaten (CC BY) umstellen. |
+| `data/kolonisation.json` (157 Züge Mutterstadt → Kolonie) | Anhang 27 von Hansen/Nielsen 2004, digitalisiert von D. Krasne (v1.0, 2026) | CC BY 4.0 |
+
+Darstellungsregeln: Poleis erscheinen ab ihrem Gründungsdatum (nur für Kolonien bekannt, sonst ab 650 v. Chr.) bis 323 v. Chr. Gründungsdaten in der Notation des Inventars („C6m“ = Mitte 6. Jh.) werden auf ein Jahr umgerechnet und als unsicher markiert. Kolonisationswege sind schematisch (Luftlinie über einen Mittelpunkt).
+
+## Mittelalter 480–1453 (seit 25.11.2026)
+
+`build_mittelalter.py` → `data/mittelalter_reiche.json`: Byzanz (als Fortsetzung des Reichs „rom“), Langobarden, Kalifate, al-Andalus, christliche Reiche Iberiens, chinesische Dynastien, Liao und Jin, Mongolen, Seldschuken, Fatimiden/Ayyubiden/Mamluken, frühe Osmanen, Ostfranken/HRR, Frankreich, England, Rus, Bulgarien, Ungarn, Polen, Nordindien. Nur angedeutet: grobe, von Hand gesetzte Umrisse und gerundete Handbuchdaten; keine Belegstellen je Ereignis. Für den Unterricht als Orientierung gedacht, nicht als Grenzkarte.
+
+## Archäologische Funde, Alexanderzug
+
+- `data/ebenen/archaeologische-funde.json`: 33 Funde mit Entstehungszeit, Fundjahr und Aufbewahrungsort (Renfrew/Bahn 2016, Van De Mieroop 2016, George 2003 zum Gilgamesch-Epos, Shaw 2000).
+- Alexanderzug in `build_fruehe_kulturen.py` (acht Etappen nach Arrian, *Anabasis* I–VII; Wege schematisch).

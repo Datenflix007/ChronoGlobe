@@ -8,7 +8,7 @@
 <title>ChronoGlobe</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/style.css?v=c47adad467">
+<link rel="stylesheet" href="css/style.css?v=7a06100812">
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
@@ -48,6 +48,11 @@
     <div class="row fokus-row">
       <span id="fokusBtns" class="fokus-btns"></span>
     </div>
+    <div class="row alles-row" id="allesRow" hidden>
+      <button id="allesAn" class="small" type="button" title="Alle Reiche, Orte, Schlachten, Handelswege, Straßen, Netze und Themenebenen einblenden">Alles einblenden</button>
+      <button id="allesAus" class="small" type="button" title="Alle Reiche und Ebenen ausblenden">Alles ausblenden</button>
+    </div>
+    <p class="hint alles-hint" id="allesHint" hidden>Sichtbar ist jeweils, was zum eingestellten Jahr passt.</p>
   </section>
   <section>
     <h2>Reiche</h2>
@@ -62,6 +67,11 @@
         <button id="allOn" class="small" title="Alle Reiche einblenden">Alle einblenden</button>
         <button id="allOff" class="small" title="Alle Reiche ausblenden">Alle ausblenden</button>
       </div>
+    </details>
+    <details class="aufklapp" id="maSec" hidden open>
+      <summary><h3>Mittelalter</h3><small>480–1453</small></summary>
+      <p class="hint kx-hint">Nur angedeutet: grobe Umrisse und gerundete Jahreszahlen. Byzanz steht unter „Römisches Reich“.</p>
+      <div class="nb-grid" id="maChips"></div>
     </details>
     <details class="aufklapp" id="fruehSec" hidden open>
       <summary><h3>Frühe Hochkulturen</h3><small>3500–300 v. Chr.</small></summary>
@@ -103,9 +113,9 @@
         <button id="tglSchiff" class="chip plain hs" aria-pressed="false" disabled title="Küsten-, Hochsee-, Fähr- und Flussstrecken im Römischen Reich nach dem ORBIS-Modell (Stanford, um 200 n. Chr.)"><span>Schiffs&shy;verkehr (ORBIS)</span></button>
         <button id="tglStr" class="chip plain hs kar" aria-pressed="false" disabled title="Hauptstraßen des Römischen Reiches (Daten: Itiner-e, CC BY 4.0), zeitlich modelliert"><span>Römerstraßen</span></button>
       </div>
+      <button id="tglStrEhem" class="chip plain hs ehem-knopf" aria-pressed="false" title="Wege nach dem Ende ihres Zeitraums blass und gestrichelt zeigen: Römerstraßen, Handelsrouten, Gesandtschaften, Seidenstraße der Han, Grenzanlagen, Netze und Linien der Themenebenen. Spätere Nutzung ist damit nicht belegt."><span>Ehemalige Trassen und Wege</span></button>
       <div class="str-opt off" id="strOpt" aria-label="Optionen Römerstraßen">
         <div class="hsub-grid">
-          <button id="tglStrEhem" class="chip plain hs" aria-pressed="false" disabled title="Nach dem Ende der modellierten römischen Nutzung blass und gestrichelt: ehemalige römische Trassen, mittelalterliche Nutzung nicht allgemein belegt"><span>Ehemalige Trassen</span></button>
           <button id="tglStrAnim" class="chip plain hs on" aria-pressed="true" disabled title="Straßen in der modellierten Ausbauphase schrittweise zeichnen (didaktische Animation, kein belegter Baufortschritt)"><span>Ausbau animieren</span></button>
         </div>
         <p class="hint str-hint">Ausbau und Ende sind <b>regional modelliert</b>; belegt sind Verlauf und, für einen Teil der Linien, Itiner-e-Daten. Klick auf eine Straße zeigt die Quellenlage.</p>
@@ -309,7 +319,7 @@
   </div>
 </div>
 
-<script src="js/version.js?v=3f1675c709"></script>
+<script src="js/version.js?v=408df97425"></script>
 <script src="js/offline.js?v=dcd0fc8076"></script>
 <script src="vendor/globe.gl.min.js?v=c245d2f7cd"></script>
 <script src="vendor/d3.min.js?v=7d28c4f53c"></script>
@@ -318,9 +328,9 @@
 <script src="js/strassenzeit.js?v=0284d1c2cb"></script>
 <script src="js/netze.js?v=c805dd8a04"></script>
 <script src="js/session.js?v=afecd86100"></script>
-<script src="js/tafelbild.js?v=c99264fc2c"></script>
+<script src="js/tafelbild.js?v=e23c44eba1"></script>
 <script src="js/themen.js?v=2b9969dcc6"></script>
 <script src="js/markdown.js?v=83d7c9416c"></script>
-<script src="js/app.js?v=f79409eec4"></script>
+<script src="js/app.js?v=acdf5e809e"></script>
 </body>
 </html>
