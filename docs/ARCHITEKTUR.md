@@ -11,6 +11,7 @@
 | `app.html?session=<CODE>&rolle=lehrer` | Live-Session, Lehreransicht mit Lehrermenü |
 | `app.html?session=<CODE>&rolle=schueler` | Live-Session, Schüleransicht ohne Menü |
 | `…&sync=lokal` | Session über den lokalen Übertragungsweg (BroadcastChannel); nur für Tests |
+| `app.html?tafelbild=<id>\|modus=frei&praesentation=<kanal>` | Präsentationsfenster für einen zweiten Bildschirm; folgt dem Steuerfenster im selben Browser (siehe „Präsentationsfenster“) |
 | `…&vignetten=demo` | Vorschau aller Vignetten-Bausteine (`data/vignetten_demo.json`) |
 
 Ladereihenfolge in `app.html`:
@@ -150,6 +151,17 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 - Die Striche liegen in Längen- und Breitengraden (2 Nachkommastellen) und drehen mit dem Globus; die Rückseite wird ausgeblendet. `a` ist der Kameraabstand beim Zeichnen; die Strichbreite wächst beim Heranzoomen mit.
 - Die Zeichnung gehört zum Zustand (`zeichnung`) und gilt wie die Filter immer für alle, auch bei „selbst bedienen“. Höchstens 3000 Punkte, damit der Zustand unter der Grenze von 64 KB in `teacher_update_state` bleibt.
 - Gezeichnet wird auf einer eigenen Fläche über dem Globus (`.stift-flaeche`, `STIFT` in `js/app.js`); solange der Stift an ist, nehmen Beschriftungen keine Klicks an.
+
+### Präsentationsfenster (`js/praesentation.js`)
+
+- **Zweck:** Die Lehrkraft zeigt auf dem Fernseher oder Smartboard (Bildschirm erweitern) ein Fenster ohne Menü; das Steuerfenster mit Menü bleibt auf dem Laptop. Funktioniert im freien Modus, im Tafelbild und in der Lehreransicht einer Session.
+- **Öffnen:** Knopf „Präsentation“ oben rechts (nicht bei Schüler:innen). Er öffnet `app.html?tafelbild=<id>` bzw. `?modus=frei` mit `&praesentation=<kanal>`. Der Kanal steht im `sessionStorage` des Steuer-Tabs; nach einem Neuladen des Steuerfensters findet ein offenes Präsentationsfenster wieder Anschluss.
+- **Übertragung:** nur lokal über `BroadcastChannel('cg.praes.<kanal>')` im selben Browser. Das Steuerfenster sendet seinen Zustand bei jeder Änderung und vergleicht zusätzlich zehnmal je Sekunde (Kamerabewegungen melden sich nicht von selbst). Supabase ist nicht beteiligt: Das Präsentationsfenster hat keine Session, lädt kein Supabase und zählt nicht als Gerät.
+- **Leuchtstift am Smartboard:** Das Präsentationsfenster meldet nur die Zeichnung zurück (`zeichnung`). Das Steuerfenster übernimmt sie mit `setState` wie eine eigene Änderung; in einer Session erreicht sie so die Klasse. Während eines Strichs und kurz danach übernimmt das Präsentationsfenster keine fremde Zeichnung, damit der Strich nicht abbricht.
+- **Sonst keine eigene Bedienung:** `setzeRechte` sperrt Zeitleiste, Schriftrollen und Infokarten; der Globus ist nicht drehbar. Alles kommt vom Steuerfenster.
+- **Lehrerhinweise erscheinen nie:** Das Steuerfenster sendet `fenster.modal = 'lehrer'` nicht mit, das Präsentationsfenster verwirft es zusätzlich, und `#btnLehrer`/`#lmodal` sind dort ausgeblendet (`.cg-praes`).
+- **Darstellung:** große Schrift, Vollbild-Knopf (Fullscreen API), Leuchtstift-Leiste senkrecht links mit großen Knöpfen. Reißt die Verbindung ab (Steuerfenster geschlossen), erscheint „Warte auf das Steuerfenster …“.
+- **Test:** `python tests/test_praesentation.py` (zwei bzw. drei Fenster: freier Modus, Tafelbild, Session).
 
 ### Suche (`js/suche.js`, `sucheEinrichten` in `js/app.js`)
 

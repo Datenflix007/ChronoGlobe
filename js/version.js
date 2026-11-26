@@ -2,12 +2,12 @@
    Inhalts-Hashes der per fetch geladenen Dateien: cgUrl(u) hängt ?v=<hash> an, damit nach einem Deploy
    keine veralteten Dateien aus dem Browser-Cache kommen. sw.js nutzt dieselbe Liste. */
 self.CG_VERSION = {
-  stand: "a2bd7b044d",
+  stand: "d838f0df6a",
   dateien: {
     "css/editor.css": "8c5f4caa33",
     "css/landing.css": "34f17dc06c",
     "css/quellen.css": "c09d90a377",
-    "css/style.css": "7411d63ffa",
+    "css/style.css": "711ae9500e",
     "data/ebenen/archaeologische-funde.json": "a30fbf8217",
     "data/ebenen/delisch-attischer-seebund.json": "3058a747fc",
     "data/ebenen/goetter-aegyptens.json": "72c807ef54",
@@ -43,7 +43,7 @@ self.CG_VERSION = {
     "data/weltbilder/index.json": "0d98506165",
     "data/weltbilder/plinius.json": "007a101c16",
     "data/zhenghe.json": "a9eea009ab",
-    "docs/ARCHITEKTUR.md": "9ab03a85a9",
+    "docs/ARCHITEKTUR.md": "7ab0584fda",
     "docs/DATENQUELLEN.md": "5451c32906",
     "docs/EDITOR.md": "788ecdc442",
     "docs/GRUNDREGELN.md": "e05fde474d",
@@ -77,6 +77,7 @@ self.CG_VERSION = {
     "js/markdown.js": "83d7c9416c",
     "js/netze.js": "c805dd8a04",
     "js/offline.js": "dcd0fc8076",
+    "js/praesentation.js": "3394bc637d",
     "js/quellen.js": "79aaa93267",
     "js/session.js": "c71202181c",
     "js/strassenzeit.js": "0284d1c2cb",
