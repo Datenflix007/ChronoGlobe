@@ -40,9 +40,10 @@ def sichtbar(pg, sel):
     return pg.evaluate("(() => { const e = document.querySelector('%s'); return !!e && e.getClientRects().length > 0 && getComputedStyle(e).display !== 'none'; })()" % sel)
 
 
-def strich(pg):
-    """Einen Strich mit dem Leuchtstift in der Mitte des Globus ziehen."""
-    pg.evaluate("ChronoGlobe.setState({ kamera: { lat: 40, lng: 20, alt: 1.8 } })"); pg.wait_for_timeout(500)
+def strich(pg, steuer):
+    """Das Steuerfenster stellt die Kamera ein; im Präsentationsfenster einen Strich mit dem Leuchtstift ziehen."""
+    steuer.evaluate("ChronoGlobe.setState({ kamera: { lat: 40, lng: 20, alt: 1.8 }, drehen: false })")
+    warte(pg, 'Math.abs(%s.kamera.lng - 20) < 0.5' % ST, 4000); pg.wait_for_timeout(400)
     m = pg.evaluate("(() => { const r = document.querySelector('#globe').getBoundingClientRect(), q = ChronoGlobe.globe.getScreenCoords(40, 20, 0); return [r.left + q.x, r.top + q.y]; })()")
     pg.mouse.move(m[0] - 80, m[1]); pg.mouse.down(); pg.mouse.move(m[0] + 80, m[1] + 20, steps=14); pg.mouse.up(); pg.wait_for_timeout(300)
 
@@ -82,7 +83,7 @@ with sync_playwright() as p:
     F.click('#cards .card button');
     check('Schriftrolle folgt', warte(PR, '%s.fenster.rolle !== null' % ST, 4000))
     F.click('#mapClose'); warte(PR, '%s.fenster.rolle === null' % ST, 4000); F.wait_for_timeout(1500)
-    PR.click('.stift-an'); strich(PR)
+    PR.click('.stift-an'); strich(PR, F)
     check('Leuchtstift im Präsentationsfenster kommt im Steuerfenster an', warte(F, '%s.zeichnung.length === 1' % ST, 4000), F.evaluate(ST + '.zeichnung.length'))
     PR.click('.stift-fest'); check('„Stehen lassen“ kommt an', warte(F, '%s.zeichnung.length === 1 && %s.zeichnung[0].fest' % (ST, ST), 4000))
     F.evaluate("ChronoGlobe.setState({ jahr: 100 })"); PR.wait_for_timeout(600)
@@ -101,7 +102,28 @@ with sync_playwright() as p:
     check('Tafelbild: Präsentationsfenster lädt dasselbe Tafelbild', 'tafelbild=rom-zentrum-der-welt' in PR.url and PR.evaluate('CG.tafelbild.id') == 'rom-zentrum-der-welt')
     T.click('#btnLehrer'); T.wait_for_timeout(800)
     check('Tafelbild: Lehrerhinweise erscheinen nicht', PR.evaluate(ST + '.fenster.modal') is None and not sichtbar(PR, '#lmodal') and not sichtbar(PR, '#btnLehrer'))
-    T.keyboard.press('Escape'); c.close()
+    T.keyboard.press('Escape')
+    # Drehen ohne Wackeln: unregelmäßig eintreffende Kamerastände (60–140 ms) einer gleichmäßigen Drehung
+    # müssen im Präsentationsfenster eine gleichmäßige Bewegung ergeben (vorher: ein Kameraflug je Stand → Ruckeln)
+    T.close(); PR.wait_for_timeout(300)
+    kanal = PR.url.split('praesentation=')[1].split('&')[0]
+    r = PR.evaluate('''k => new Promise(ok => {
+      const bc = new BroadcastChannel('cg.praes.' + k), basis = ChronoGlobe.getState(), t0 = Date.now(), w = [];
+      basis.kamera = { lat: 30, lng: 0, alt: 2, ref: ChronoGlobe.homeAlt() };
+      (function senden() {
+        const t = Date.now(), st = JSON.parse(JSON.stringify(basis)); st.kamera.lng = 10 * (t - t0) / 1000;   // 10° je Sekunde
+        bc.postMessage({ ev: 'zustand', st: st, t: t });
+        if (t - t0 < 3500 && !w.fertig) setTimeout(senden, 60 + Math.random() * 80);
+      })();
+      setTimeout(() => { const p0 = performance.now();
+        (function f() { w.push([performance.now(), ChronoGlobe.globe.pointOfView().lng]); if (performance.now() - p0 < 2500) requestAnimationFrame(f); else { w.fertig = true; setTimeout(() => bc.close(), 200); ok(w.slice()); } })(); }, 600);
+    })''', kanal)
+    v = [(b2 - a) / (t2 - t1) * 1000 for (t1, a), (t2, b2) in zip(r[2:], r[3:]) if t2 - t1 > 20]   # ohne Anlauf und ohne Proben im selben Bild
+    mv = sum(v) / len(v) if v else 0
+    cv = (sum((x - mv) ** 2 for x in v) / len(v)) ** 0.5 / abs(mv) if mv else 99
+    check('Drehung gleichmäßig trotz unregelmäßiger Stände (keine Umkehr, ~10°/s, Variationskoeffizient < 0,35)',
+          v and not any(x < 0 for x in v) and 7 < mv < 13 and cv < 0.35, '%.1f°/s, VK %.2f bei %d Bildern' % (mv, cv, len(r)))
+    c.close()
 
     # --- Session: Präsentationsfenster belastet weder Supabase noch die Gerätezahl ---
     c = kontext(); L = c.new_page(); L.goto(URL + 'index.html?sync=lokal'); L.wait_for_timeout(800)
@@ -112,11 +134,11 @@ with sync_playwright() as p:
     check('Session: Schüler:innen haben keinen Knopf „Präsentation“', not sichtbar(S, '#btnPraes'))
     PR = oeffnen(c, LK)
     check('Session: Präsentationsfenster ohne Session und ohne Supabase', 'session=' not in PR.url and PR.evaluate("!document.querySelector('script[src*=\"supabase\"]') && !document.documentElement.classList.contains('cg-session')"))
-    LK.wait_for_timeout(2500)
+    warte(LK, "/^1 /.test(document.querySelector('#cgAnzahl').textContent)", 8000); LK.wait_for_timeout(3000)
     check('Session: Präsentationsfenster zählt nicht als Gerät', LK.inner_text('#cgAnzahl').startswith('1 '), LK.inner_text('#cgAnzahl'))
     LK.evaluate("ChronoGlobe.setState({ jahr: 150 })")
     check('Session: Präsentationsfenster folgt der Lehrkraft', warte(PR, '%s.jahr === 150' % ST, 4000) and warte(S, '%s.jahr === 150' % ST, 6000))
-    PR.click('.stift-an'); strich(PR); PR.click('.stift-fest')
+    PR.click('.stift-an'); strich(PR, LK); PR.click('.stift-fest')
     check('Session: Leuchtstift am Smartboard erreicht die Klasse', warte(S, '%s.zeichnung.length === 1 && %s.zeichnung[0].fest' % (ST, ST), 8000), S.evaluate(ST + '.zeichnung.length'))
     check('Session: … und das Steuerfenster', LK.evaluate(ST + '.zeichnung.length') == 1)
     c.close()

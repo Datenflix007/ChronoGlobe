@@ -44,7 +44,7 @@
     function senden(alles) {
       var st = zustand(), j = JSON.stringify(st);
       if (!alles && j === letzt) return;
-      letzt = j; bc.postMessage({ ev: 'zustand', st: st, alles: !!alles });
+      letzt = j; bc.postMessage({ ev: 'zustand', st: st, alles: !!alles, t: Date.now() });   // t: Zeitstempel für die Kamera
     }
     function verbunden() { return Date.now() - zuletztDa < 5000; }
     function anzeigen() { var v = verbunden(); P.verbunden = v; b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); }
@@ -59,8 +59,8 @@
       } else if (m.ev === 'tschuess') { zuletztDa = 0; anzeigen(); }
     };
     CGL.abonnieren(function () { if (verbunden()) senden(false); });
-    // Kamerabewegungen melden sich nicht von selbst: lokal und billig, deshalb zehnmal je Sekunde vergleichen
-    timer = setInterval(function () { if (verbunden()) senden(false); anzeigen(); }, 100);
+    // Kamerabewegungen melden sich nicht von selbst: lokal und billig, deshalb zwanzigmal je Sekunde vergleichen
+    timer = setInterval(function () { if (verbunden()) senden(false); anzeigen(); }, 50);
     setInterval(function () { bc.postMessage({ ev: 'da' }); }, 1500);
     b.addEventListener('click', function () {
       var tb = window.CG && CG.tafelbild && CG.tafelbild.id;
@@ -107,21 +107,68 @@
       gemeldet = j; eigeneZeichnung = Date.now();
       bc.postMessage({ ev: 'zeichnung', z: z });
     });
-    function anwenden(st, alles) {
+    /* Kamera: Die Stände des Steuerfensters kommen bis zu zwanzigmal je Sekunde, aber unregelmäßig. Ein eigener
+       Kameraflug je Stand ließe den Globus ruckeln (jeder Flug bricht den vorigen ab). Deshalb werden die Stände mit
+       Zeitstempel gepuffert und mit kleiner Verzögerung Bild für Bild gleichmäßig interpoliert. Die Verzögerung passt
+       sich an: größter Abstand der letzten Stände + größte Übertragungszeit + Reserve, damit der Puffer nie leer läuft
+       (sonst stünde die Kamera kurz still und spränge dann). Auf einem üblichen Laptop etwa 100 ms. */
+    var VERZUG = 150, ZIEL_VERZUG = 150, letztesBild = 0, puffer = [], raf = 0, gezeigt = '', abstaende = [], laufzeiten = [];
+    function verzugAnpassen(abstand, laufzeit) {
+      if (abstand > 0 && abstand < 400) { abstaende.push(abstand); if (abstaende.length > 12) abstaende.shift(); }
+      laufzeiten.push(Math.max(0, laufzeit)); if (laufzeiten.length > 12) laufzeiten.shift();
+      var a = Math.max.apply(null, abstaende.concat([50])), l = Math.max.apply(null, laufzeiten);
+      ZIEL_VERZUG = Math.max(100, Math.min(400, a + l + 30));
+    }
+    function kameraRein(k, t, sofort) {
+      var p = { t: t, lat: k.lat, lng: k.lng, alt: k.alt }, v = puffer[puffer.length - 1];
+      verzugAnpassen(v ? t - v.t : 0, Date.now() - t);
+      if (sofort || !v) { puffer = [p]; setzeKamera(p); return; }
+      while (p.lng - v.lng > 180) p.lng -= 360;   // kürzester Weg über die Datumsgrenze
+      while (p.lng - v.lng < -180) p.lng += 360;
+      if (p.t <= v.t) p.t = v.t + 1;
+      // nach einer Pause: Bewegung erst kurz vor dem neuen Stand beginnen, nicht langsam über die ganze Pause
+      if (p.t - v.t > 400) puffer.push({ t: p.t - 100, lat: v.lat, lng: v.lng, alt: v.alt });
+      puffer.push(p);
+      if (puffer.length > 40) puffer.splice(0, puffer.length - 40);
+      if (!raf) raf = requestAnimationFrame(schritt);
+    }
+    function setzeKamera(p) {
+      var lng = ((p.lng + 540) % 360) - 180, key = p.lat.toFixed(4) + ',' + lng.toFixed(4) + ',' + p.alt.toFixed(4);
+      if (key === gezeigt) return;
+      gezeigt = key; CGL.globe.pointOfView({ lat: p.lat, lng: lng, altitude: p.alt }, 0);
+    }
+    function schritt() {
+      raf = 0;
+      // Verzögerung nur langsam nachführen (höchstens 15 % der Bildzeit je Bild): die Anzeigezeit läuft nie rückwärts
+      var jetzt = Date.now(), dt = letztesBild ? Math.min(100, jetzt - letztesBild) : 16; letztesBild = jetzt;
+      VERZUG += Math.max(-0.15 * dt, Math.min(0.15 * dt, ZIEL_VERZUG - VERZUG));
+      var rt = jetzt - VERZUG, n = puffer.length; if (!n) return;
+      var p = puffer[n - 1];
+      if (rt < puffer[0].t) p = puffer[0];
+      else for (var i = 0; i < n - 1; i++) {
+        var a = puffer[i], b = puffer[i + 1];
+        if (rt >= a.t && rt <= b.t) { var f = (rt - a.t) / (b.t - a.t); p = { lat: a.lat + (b.lat - a.lat) * f, lng: a.lng + (b.lng - a.lng) * f, alt: a.alt + (b.alt - a.alt) * f }; break; }
+      }
+      setzeKamera(p);
+      if (rt < puffer[n - 1].t + 50) raf = requestAnimationFrame(schritt);   // weiter, bis der letzte Stand erreicht ist
+      else letztesBild = 0;
+    }
+    function anwenden(st, alles, zeit) {
       if (!st || !st.v) return;
       var t = Object.assign({}, st), k = st.kamera || {}, f = k.ref ? CGL.homeAlt() / k.ref : 1;
-      delete t.tafelbild; delete t.v;
+      delete t.tafelbild; delete t.v; delete t.kamera;
       if (t.fenster && t.fenster.modal === 'lehrer') t.fenster.modal = null;
-      t.kamera = { lat: k.lat, lng: k.lng, alt: Math.max(0.15, Math.min(6, (k.alt || CGL.homeAlt()) * f)) }; t.drehen = false;
+      t.drehen = false;
       if (!alles && (zeichnet || Date.now() - eigeneZeichnung < 800)) delete t.zeichnung;
+      if (isFinite(k.lat) && isFinite(k.lng)) kameraRein({ lat: k.lat, lng: k.lng, alt: Math.max(0.15, Math.min(6, (k.alt || CGL.homeAlt()) * f)) }, zeit || Date.now(), alles);
       wendet++;
-      try { CGL.applyState(t, { quelle: 'lehrer', dauer: alles ? 0 : 160 }); } finally { wendet--; }
+      try { CGL.applyState(t, { quelle: 'lehrer', dauer: 0 }); } finally { wendet--; }
       if ('zeichnung' in t) gemeldet = JSON.stringify(CGL.getState().zeichnung);
       CGL.globe.controls().enabled = false;
     }
     bc.onmessage = function (e) {
       var m = e.data || {};
-      if (m.ev === 'zustand') { zuletzt = Date.now(); verbindung(); anwenden(m.st, m.alles); }
+      if (m.ev === 'zustand') { zuletzt = Date.now(); verbindung(); anwenden(m.st, m.alles, m.t); }
       else if (m.ev === 'da') { var neu = Date.now() - zuletzt > 5000; zuletzt = Date.now(); verbindung(); if (neu) bc.postMessage({ ev: 'hallo' }); }
       else if (m.ev === 'weg') { zuletzt = 0; verbindung(); }
     };
