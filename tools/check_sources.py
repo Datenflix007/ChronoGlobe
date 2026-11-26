@@ -175,6 +175,17 @@ def main() -> int:
             if source_id not in known_ids:
                 errors.append(f"{location}: nicht registrierte source_id '{source_id}'.")
 
+    # Tafelbilder bringen eigene Daten-Overlays mit (z. B. vignetten.json mit source_ids je Vignette).
+    for path in sorted((ROOT / "tafelbilder").glob("*/*.json")):
+        try:
+            content = read_json(path)
+        except (OSError, json.JSONDecodeError) as exc:
+            errors.append(f"{path.relative_to(ROOT).as_posix()}: ungültiges JSON: {exc}")
+            continue
+        for location, source_id in walk_source_references(content, path.relative_to(ROOT).as_posix()):
+            if source_id not in known_ids:
+                errors.append(f"{location}: nicht registrierte source_id '{source_id}'.")
+
     literature = all_data.get("literatur.json", {})
     if isinstance(literature, dict) and isinstance(literature.get("titel"), list):
         for entry in literature["titel"]:
