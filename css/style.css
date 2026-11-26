@@ -1106,3 +1106,27 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .cg-schueler .suche{flex:0 0 auto;width:clamp(110px,calc(50vw - 330px),300px);transition:width .15s}
 .cg-session .suche:focus-within{width:min(300px,60vw)}
 @media (max-width:1180px){.cg-session .such-kbd{display:none}.cg-session .suche input{padding-right:10px}}
+
+/* Präsentationsfenster (js/praesentation.js): ohne Menü und Lehrerhinweise, große Schrift, touchfreundlich */
+.cg-praes #panel,.cg-praes #btnInfo,.cg-praes #btnLehrer,.cg-praes #lmodal,.cg-praes #suche,.cg-praes #btnPraes,
+.cg-praes .card button,.cg-praes #play,.cg-praes #yMinus,.cg-praes #yPlus,.cg-praes #lanesToggle,.cg-praes .credit,.cg-praes #sideToggle{display:none!important}
+.cg-praes #year,.cg-praes .lanes{pointer-events:none}
+.cg-praes .top h1{font-size:30px}
+.cg-praes #h1sub{font-size:22px}
+.cg-praes .year{font-size:46px}
+.cg-praes .card .k{font-size:15px}
+.cg-praes .card .t{font-size:26px}
+.cg-praes .card .y{font-size:17px}
+.cg-praes .card p{font-size:19px}
+.cg-praes .toast{font-size:20px}
+.cg-praes .praes-vollbild{font-size:17px;padding:12px 18px;min-height:48px}
+.cg-praes .stift-leiste{padding:7px;gap:8px}
+.cg-praes .stift-leiste button{padding:12px 18px;font-size:17px;min-height:48px}
+.praes-hinweis{position:fixed;left:50%;bottom:calc(var(--tlh,140px) + 24px);transform:translateX(-50%);z-index:60;padding:10px 18px;border-radius:999px;background:rgba(120,40,30,.9);color:#fff;font:600 16px var(--ui)}
+.praes-hinweis[hidden]{display:none}
+#btnPraes.on{border-color:#e0b04a;color:#ffd98a}
+/* Präsentation: Menü fehlt, deshalb steht die Leuchtstift-Leiste senkrecht links (große Knöpfe, frei für Titel und Vollbild) */
+.cg-praes .stift-leiste{top:84px;left:18px;transform:none;flex-direction:column;align-items:stretch;border-radius:18px;max-height:calc(100vh - var(--tlh,140px) - 110px);overflow:auto}
+.cg-praes .stift-leiste .stift-werkzeuge{flex-direction:column;gap:8px}
+.cg-praes .stift-leiste{flex-wrap:nowrap}
+.cg-praes .top-btns{margin-left:auto}
