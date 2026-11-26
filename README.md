@@ -33,6 +33,7 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 - `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
+- `node tests/suche.test.js`, `python tests/test_suche_browser.py`: Suche (Schreibvarianten, Tafelbild-Zeitraum, Live-Session).
 - `node tests/netze.test.js`, `python tests/test_netze_browser.py`: Handels- und Verkehrsnetze.
 - `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise, Literatur- und Fußnoten-IDs sowie Vollständigkeit (jede Datei unter `data/` und `img/` im Register).
 
@@ -52,6 +53,7 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
 
   - **Erste Schritte**: Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen.
   - **Lehrerhinweise**: Reiter aus `tafelbild.json` → `lehrerhinweise`. Die Markdown-Dateien liegen im Tafelbild, z. B. `tafelbilder/rom-zentrum-der-welt/lehrerhinweise/` (derzeit Platzhalter). Im freien Modus gibt es keine Lehrerhinweise.
+- **Suche** oben rechts (Kürzel `/` oder Strg+K): Reiche, Orte, Ereignisse, Schlachten, Flüsse, Gebirge, Meere und Landschaften mit antikem und heutigem Namen. Schreibvarianten werden erkannt (Chang'an/Changan, Ktesiphon/Ctesiphon). ↑/↓ und Enter wählen; ein Treffer fliegt hin, stellt bei Bedarf das Jahr und öffnet die passende Infokarte, Umschalt+Enter bei Reichen die Schriftrolle. In Tafelbildern sind Treffer außerhalb des Zeitraums ausgegraut. In der Live-Session hat nur die Lehrkraft die Suche; die Klasse folgt ihr über den normalen Zustand.
 - Der Titel oben links führt zurück zur Startseite.
 - Die Knöpfe „→ Rom“, „→ China“, „Eurasien“ kommen aus den Fokuspunkten des Tafelbilds.
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.

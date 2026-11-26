@@ -150,6 +150,16 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 - Die Zeichnung gehört zum Zustand (`zeichnung`) und gilt wie die Filter immer für alle, auch bei „selbst bedienen“. Höchstens 3000 Punkte, damit der Zustand unter der Grenze von 64 KB in `teacher_update_state` bleibt.
 - Gezeichnet wird auf einer eigenen Fläche über dem Globus (`.stift-flaeche`, `STIFT` in `js/app.js`); solange der Stift an ist, nehmen Beschriftungen keine Klicks an.
 
+### Suche (`js/suche.js`, `sucheEinrichten` in `js/app.js`)
+
+- Suchfeld in der Kopfzeile im freien Modus, in Tafelbildern und in der Lehreransicht. Schüler:innen haben keins (`.cg-schueler #suche`).
+- Bedienung: `/` oder Strg+K setzt den Fokus, ↑/↓ wählen, Enter führt aus, Umschalt+Enter öffnet bei Reichen die Schriftrolle, Esc leert das Feld.
+- Durchsucht werden Reiche, Orte (Reichsorte und Handelsorte; gleiche Orte mehrerer Reiche als ein Treffer), Ereignisse (Titel), Schlachten und die Historische Geographie mit antikem und heutigem Namen (`data/geographie.json`, wird beim ersten Fokus nachgeladen).
+- Toleranz: Beide Seiten werden gefaltet (`Suche.falten`): ohne Akzente und Apostrophe, `c`→`k`, `ph`→`f`, `th`→`t`, `sch`→`sh`, `ae`→`a`, `ei`/`y`→`i`, Doppelbuchstaben einfach. So gilt Chang'an = Changan, Ktesiphon = Ctesiphon, Kuschan = Kushan. Mehrere Wörter passen auch gebeugt („Gelbe Turbane“); ab fünf Zeichen wird ein Tippfehler toleriert.
+- Ein Treffer wirkt nur über `setState`: Kamera, Jahr (Ereignis/Schlacht immer, Reich/Ort nur, wenn das aktuelle Jahr nicht passt), betroffene Reiche und Ebenen, Fenster (Infokarte „Handelsort“, Schriftrolle). In der Live-Session sieht die Klasse das deshalb wie jede andere Bedienung der Lehrkraft; einen eigenen Sync-Weg gibt es nicht. Hinweise (Toast) und das Hervorheben der Infokarte bleiben lokal.
+- Tafelbilder: Treffer außerhalb des Zeitraums erscheinen ausgegraut am Ende der Liste und lassen sich nicht ausführen. Dafür merkt sich `reicheFiltern` die herausgefilterten Reiche, Ereignisse, Orte und Schlachten (`DATA_AUSSEN`). Ebenen, die das Tafelbild nicht anbietet (`ebenen.verfuegbar`), schaltet die Suche nicht ein; sie fliegt dann nur hin.
+- Tests: `node tests/suche.test.js`, `python tests/test_suche_browser.py`.
+
 ### Schülerrechte
 
 | Recht | „Lehreransicht“ | „selbst bedienen“ |

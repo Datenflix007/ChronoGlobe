@@ -8,7 +8,7 @@
 <title>ChronoGlobe</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/style.css?v=7c2c25f9b8">
+<link rel="stylesheet" href="css/style.css?v=c8c2b5bf13">
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
@@ -25,6 +25,14 @@
     <a href="index.html" id="h1kopf" class="h1home" title="Zur Startseite von ChronoGlobe">ChronoGlobe</a>
     <span id="h1sub"></span>
 </h1>
+  <div class="suche" id="suche" role="search" hidden>
+    <input id="sucheFeld" type="search" placeholder="Suchen …" autocomplete="off" spellcheck="false"
+      role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sucheListe"
+      aria-label="Suche nach Reichen, Orten, Ereignissen, Schlachten und Geographie (Tastenkürzel: Schrägstrich oder Strg+K)"
+      title="Reiche, Orte, Ereignisse, Schlachten, Flüsse, Gebirge, Meere (antike und heutige Namen) · Kürzel: / oder Strg+K">
+    <kbd class="such-kbd" aria-hidden="true">/</kbd>
+    <ul id="sucheListe" class="such-liste" role="listbox" aria-label="Suchtreffer" hidden></ul>
+  </div>
   <div class="top-btns">
     <button id="btnInfo" class="ghost" title="Bedienung, Hinweise zu Daten und Lizenzen">Erste Schritte</button>
     <button id="btnLehrer" class="ghost" title="Unterrichtsreihe, Ziele, Sachanalyse, Didaktik und Verlaufsplan">Lehrerhinweise</button>
@@ -308,6 +316,7 @@
       <li><b>Schriftrolle öffnen:</b> Klick auf ein Reich auf dem Globus oder „Schriftrolle öffnen“ in der Infokarte. Dort stehen Vignetten (bei Rom: Wiederholung mit Aufgaben) und die Karte des Reichs.</li>
       <li><b>Handel &amp; Austausch:</b> „Handelsverbindungen anzeigen“ blendet Land- und Seewege, Waren und Gesandtschaften ein. Klick auf eine Route öffnet eine Infokarte und einen Schülertext in drei Niveaus. Darunter: Römerstraßen und die Fahrten des Zheng He.</li>
       <li><b>Spätmittelalter:</b> Rechts auf der Zeitleiste liegt der Abschnitt 1400–1453 mit den Fahrten des Zheng He und den portugiesischen Fahrten.</li>
+      <li><b>Suchen:</b> Feld oben rechts oder Taste / bzw. Strg+K. Reiche, Orte, Ereignisse, Schlachten, Flüsse, Gebirge und Meere, auch mit heutigem Namen. ↑/↓ wählen, Enter fliegt hin; bei Reichen öffnet Umschalt+Enter die Schriftrolle.</li>
       <li><b>Schließen:</b> Esc oder Klick neben ein Fenster.</li>
     </ol>
     <h3 class="mh">Hinweise zu Daten und Darstellung</h3>
@@ -349,7 +358,7 @@
   </div>
 </div>
 
-<script src="js/version.js?v=7617134b42"></script>
+<script src="js/version.js?v=536bd1dc4e"></script>
 <script src="js/offline.js?v=dcd0fc8076"></script>
 <script src="vendor/globe.gl.min.js?v=c245d2f7cd"></script>
 <script src="vendor/d3.min.js?v=7d28c4f53c"></script>
@@ -357,10 +366,11 @@
 <script src="js/vignetten.js?v=b94f94e910"></script>
 <script src="js/strassenzeit.js?v=0284d1c2cb"></script>
 <script src="js/netze.js?v=c805dd8a04"></script>
-<script src="js/session.js?v=774e3029c8"></script>
+<script src="js/session.js?v=f59077f31d"></script>
 <script src="js/tafelbild.js?v=3dd5247d8f"></script>
 <script src="js/themen.js?v=2b9969dcc6"></script>
+<script src="js/suche.js?v=6a8d482b44"></script>
 <script src="js/markdown.js?v=83d7c9416c"></script>
-<script src="js/app.js?v=f53ec7ca1d"></script>
+<script src="js/app.js?v=f8300ce1f1"></script>
 </body>
 </html>
