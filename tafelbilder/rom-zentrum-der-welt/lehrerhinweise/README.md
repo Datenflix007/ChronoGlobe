@@ -10,6 +10,7 @@ Die Dateien in diesem Ordner erscheinen im Tafelbild im Fenster **Lehrerhinweise
 | Sachanalyse | `04_sachanalyse.md` |
 | Methodisch-didaktische Analyse | `05_methodisch_didaktische_analyse.md` |
 | Verlaufsplan | `06_verlaufsplan.md` |
+| Freigabe-Drehbuch | `07_freigabe_drehbuch.md` |
 
 Reiter und Dateien sind in `../tafelbild.json` unter `lehrerhinweise` festgelegt (`ordner`, `reiter`: `id`, `titel`, `datei`).
 
