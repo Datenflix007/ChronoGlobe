@@ -4555,8 +4555,17 @@
     if (e.lat != null && e.lng != null) { tz.kamera = { lat: e.lat, lng: e.lng, alt: alt }; tz.drehen = false; }
     if (jahr != null) tz.jahr = jahr;
     if (!tz.fenster && FENSTER.rolle) tz.fenster = Object.assign(kopie(FENSTER), { rolle: null });   // Globus wieder sichtbar machen
+    // Schüler:innen (Suche über „Schüleransicht anpassen“ freigeschaltet): nur, was ihre Rechte erlauben; alles bleibt lokal.
+    // Lehrkraft und freier Modus dürfen alles (DARF ist dort immer wahr).
+    if (!darfLokal('globus')) { delete tz.kamera; delete tz.drehen; }
+    if (!darfLokal('zeit')) delete tz.jahr;
+    if (!darfLokal('ui:reiche')) delete tz.reiche;
+    if (!darfLokal('ui:ebenen')) delete tz.globus;
+    if (tz.fenster && ((tz.fenster.rolle && !darfLokal('reiche')) || (tz.fenster.info && !darfLokal('routen')))) delete tz.fenster;
+    if (!tz.kamera && !tz.jahr && !tz.fenster) { sucheSchliessen(true); toast(e.name + ': Die Lehrkraft hat Globus und Zeitleiste gerade nicht freigegeben.'); return; }
     sucheSchliessen(true); $('#sucheFeld').blur();
     setState(tz, { dauer: 1400 });
+    if (tz.kamera) document.dispatchEvent(new CustomEvent('chronoglobe:eigeneKamera'));
     // Nachricht nur auf diesem Gerät; die Klasse sieht Kamera, Jahr und Fenster
     if (e.art === 'schlacht') toast('⚔ ' + e.name + ', ' + fmtYear(e.jahr) + (e.note ? ': ' + e.note : ''));
     else if (e.art === 'geo') toast(e.name + (e.heute ? ' (heute: ' + e.heute + ')' : '') + (e.hinweis ? ' – ' + e.hinweis : '') + (ebeneErlaubt('geo') ? '' : ' · Die Ebene „Historische Geographie“ gehört nicht zu diesem Tafelbild.'));
@@ -4586,7 +4595,8 @@
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (feld.value) { sucheSchliessen(true); } else feld.blur(); }
     });
     document.addEventListener('keydown', function (e) {
-      if (document.documentElement.classList.contains('cg-schueler')) return;
+      var hc = document.documentElement.classList;
+      if (hc.contains('cg-schueler') && !hc.contains('cg-ui-suche')) return;   // Suche nur, wenn die Lehrkraft sie freigibt
       var tippt = e.target && (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable);
       if ((e.key === '/' && !tippt && !e.ctrlKey && !e.metaKey && !e.altKey) || ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K'))) {
         e.preventDefault(); feld.focus(); feld.select();

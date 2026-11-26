@@ -12,6 +12,7 @@ Freies Nutzen und Tafelbilder brauchen nichts davon. Supabase ist nur für Live-
 
 1. Im Dashboard **SQL Editor** öffnen.
 2. Den gesamten Inhalt von `sql/schema.sql` einfügen und **Run** ausführen. Das Skript darf mehrfach laufen.
+   - **Nach einem Update von ChronoGlobe** das Skript erneut ausführen. Es ergänzt fehlende Spalten und Funktionen, z. B. `schueler_ui` für „Schüleransicht anpassen“. Bestehende Sessions bleiben erhalten.
    - Es legt die Tabelle `cg_sessions` an.
    - Es legt die RPCs an: `create_session`, `get_session_public`, `teacher_snapshot`, `teacher_update_state`, `teacher_update_rechte`, `set_session_open`, `delete_session`, `cleanup_old_sessions`.
    - Es legt die Realtime-Richtlinien an.

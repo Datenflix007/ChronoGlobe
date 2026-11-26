@@ -38,6 +38,7 @@ Ein Tafelbild ist ein Ordner `tafelbilder/<id>/`. Er legt fest, was vom Kern (Gl
 | `ebenen` | ja | `{ verfuegbar: "alle" \| [ebenen], aktiv: { ebene: true/false } }`, siehe unten |
 | `fokuspunkte` | ja | Liste `{ id, name, knopf, lat, lng, alt, jahr?, filter? }` |
 | `lehrerhinweise` | nein | `{ ordner, reiter: [{ id, titel, datei }] }`; fehlt das Feld, gibt es keinen Knopf „Lehrerhinweise“ |
+| `schueler_ui` | nein | Voreinstellung „Schüleransicht anpassen“ für Live-Sessions, z. B. `{ "ebenen": true, "infokarten": false }`. Schlüssel: `reiche`, `ebenen`, `suche` (Standard `false`), `spuren`, `infokarten` (Standard `true`); siehe `docs/ARCHITEKTUR.md` |
 | `daten` | nein | Daten-Overlays, siehe unten |
 
 **Ebenen**

@@ -170,7 +170,7 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `reiche` (Schriftrolle) | nur die Schriftrolle der Lehrkraft | eigene Schriftrollen, nur lokal |
 | `routen` (Routen, Orte, Gesandtschaften, Texte, Warenübersicht) | nur Fenster der Lehrkraft | eigene Fenster, nur lokal |
 
-- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Weltbild, Leuchtstift-Zeichnung.
+- Filter der Lehrkraft wirken für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Weltbild, Leuchtstift-Zeichnung. Ausnahme: Filter, die die Lehrkraft unter „Schüleransicht anpassen“ freigeschaltet hat (siehe unten).
 - Öffnet oder schließt die Lehrkraft ein Fenster und ist „Fenster mitsenden“ an, passiert das bei allen, auch bei „selbst bedienen“.
 - Die Lehrerhinweise werden nie mitgesendet.
 - Sobald Schüler:innen abweichen, erscheint „Zur Lehreransicht zurück“.
@@ -178,6 +178,26 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 **Umsetzung der Sperren:**
 - `DARF(recht)` in `js/app.js` sperrt eigene Eingaben in `setYear`, `togglePlay`, `openMap`, allen Infokarten und der Warenübersicht.
 - Zustände, die von der Lehrkraft kommen (`quelle: 'lehrer'`), sind davon ausgenommen.
+- `DARF('ui:<teil>')` fragt die Schüleransicht ab (z. B. ob die Suche auf dem Schülergerät Reiche einblenden darf).
+
+### Schüleransicht anpassen (`schueler_ui`)
+
+Im Lehrermenü legt die Lehrkraft fest, welche Bedienelemente die Schüler:innen sehen. Damit lässt sich die Schüleransicht auf den Unterrichtsbedarf zuschneiden.
+
+| Teil | Standard | Wirkung, wenn eingeschaltet |
+|---|---|---|
+| `reiche` (Reiche-Liste) | aus | Menü mit der Reiche-Liste; eigene Auswahl wirkt nur lokal |
+| `ebenen` (Ebenen-Schalter) | aus | Menü mit Globus-Ebenen, Handel & Austausch, Netzen und Themenebenen; wirkt nur lokal |
+| `suche` | aus | Suchfeld; wirkt nur lokal und nur im Rahmen der Schülerrechte (Kamera nur mit „Globus“, Jahr nur mit „Zeitriegel“ auf „selbst bedienen“) |
+| `spuren` (Spuren der Zeitleiste) | an | ausgeschaltet: Ereignisspuren und „Nachbarreiche“ ausgeblendet |
+| `infokarten` (Infoband) | an | ausgeschaltet: Infoband rechts ausgeblendet |
+
+- **Standard = bisheriges Verhalten:** kein Menü, keine Suche. „Standard (kein Menü)“ im Lehrermenü stellt das wieder her. Ansicht, Fokus-Knöpfe, „Automatisch drehen“ und „Mein Standort“ bleiben für Schüler:innen immer ausgeblendet.
+- **Lokale Filter:** Ein Schülergerät mit freigeschalteter Reiche-Liste bzw. freigeschalteten Ebenen behält seine eigene Einstellung je Schalter, solange die Lehrkraft diesen Wert nicht neu setzt. Stellt die Lehrkraft denselben Schalter um, gilt ihr Wert wieder für alle (gleiches Muster wie bei den Fenstern). „Alle zurück zu meiner Ansicht“ und „Zur Lehreransicht zurück“ setzen alle lokalen Filter zurück. Wird ein Teil wieder abgeschaltet, folgen die Geräte sofort der Lehrkraft.
+- **Speicherung und Übertragung:** Spalte `schueler_ui` (jsonb) neben `rechte`. `teacher_update_rechte` nimmt sie als fünften, optionalen Parameter (`null` = unverändert) und sendet sie mit dem Ereignis `rechte`. `get_session_public` und `teacher_snapshot` liefern sie mit; Nachzügler und Reload bekommen so sofort die aktuelle Ansicht. `cg_schueler_ui_ok` lässt nur die fünf Schlüssel mit `true`/`false` zu.
+- **Voreinstellung pro Tafelbild:** `schueler_ui` in `tafelbild.json` (siehe `docs/TAFELBILD_ERSTELLEN.md`). Sie gilt, solange die Lehrkraft in dieser Session noch nichts verstellt hat.
+- **Datenschutz unverändert:** Schülergeräte schreiben nichts in die Datenbank; ihre lokalen Filter verlassen das Gerät nicht.
+- Umsetzung: `js/session.js` (Lehrermenü, `anwenden` mit `FILTER`), Klassen `cg-ui-*` auf `<html>` und die Regeln in `css/style.css`; Abschnitte des Menüs sind mit `ps-ansicht`, `ps-reiche` und `ps-ebenen` markiert.
 
 ### Sicherheitsmodell
 

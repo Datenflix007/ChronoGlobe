@@ -8,7 +8,7 @@
 <title>ChronoGlobe</title>
 <meta name="description" content="Interaktiver Globus mit Zeitleiste: Römisches Reich und Han-Reich im Vergleich (Entwurf).">
 <link rel="icon" href="img/icons/favicon.png" type="image/png">
-<link rel="stylesheet" href="css/style.css?v=c8c2b5bf13">
+<link rel="stylesheet" href="css/style.css?v=7411d63ffa">
 </head>
 <body>
 <div id="globe" aria-label="Drehbarer Globus"></div>
@@ -47,7 +47,7 @@
     </button>
   </div>
   <div class="panel-body" id="panelBody">
-  <section>
+  <section class="ps-ansicht">
     <h2>Ansicht</h2>
     <div class="seg">
       <button id="modeSat" class="on" aria-pressed="true">Satellit</button>
@@ -62,7 +62,7 @@
     </div>
     <p class="hint alles-hint" id="allesHint" hidden>Sichtbar ist jeweils, was zum eingestellten Jahr passt.</p>
   </section>
-  <section>
+  <section class="ps-reiche">
     <h2>Reiche</h2>
     <div class="reich-paar">
       <button id="tglRom" class="chip rom on" aria-pressed="true"><i></i>Römisches Reich</button>
@@ -92,7 +92,7 @@
       <div class="nb-grid" id="kxChips"></div>
     </details>
   </section>
-  <section>
+  <section class="ps-ebenen">
     <h2>Globus</h2>
     <div class="ebenen-grid">
       <button id="tglOrte" class="chip plain hs" aria-pressed="false"><span>Orte</span></button>
@@ -118,7 +118,7 @@
       <button id="tglStandort" class="chip plain hs" aria-pressed="false" title="Eigenen Standort als Pin auf dem Globus zeigen"><span>Mein Standort</span></button>
     </div>
   </section>
-  <section id="handelSec">
+  <section id="handelSec" class="ps-ebenen">
     <h2>Handel &amp; Austausch</h2>
     <button id="tglHandel" class="chip plain" aria-pressed="false">Handelsverbindungen anzeigen</button>
     <div class="hsub off" id="handelSub">
@@ -181,7 +181,7 @@
       </div>
     </div>
   </section>
-  <section id="netzSec">
+  <section id="netzSec" class="ps-ebenen">
     <details class="netz-box aufklapp" id="netzBox">
       <summary><h2>Handels- und Verkehrs&shy;netze</h2><small>Forschungsdaten</small></summary>
       <div id="netzGruppen"></div>
@@ -198,7 +198,7 @@
       <p class="hint">Linien zeigen <b>belegte Wege</b>, nicht die Menge des Handels darauf. Das Mittelalter (480–1400) hat im freien Erkunden einen eigenen Teil der Zeitleiste.</p>
     </details>
   </section>
-  <section id="themenSec" hidden>
+  <section id="themenSec" class="ps-ebenen" hidden>
     <details class="netz-box aufklapp" id="themenBox">
       <summary><h2>Themen&shy;ebenen</h2><small>aus Beiträgen</small></summary>
       <div id="themenChips"></div>
@@ -358,7 +358,7 @@
   </div>
 </div>
 
-<script src="js/version.js?v=8e9bdb2b60"></script>
+<script src="js/version.js?v=da5d397b78"></script>
 <script src="js/offline.js?v=dcd0fc8076"></script>
 <script src="vendor/globe.gl.min.js?v=c245d2f7cd"></script>
 <script src="vendor/d3.min.js?v=7d28c4f53c"></script>
@@ -367,11 +367,11 @@
 <script src="js/strassenzeit.js?v=0284d1c2cb"></script>
 <script src="js/netze.js?v=c805dd8a04"></script>
 <script src="js/synctakt.js?v=3f7ae8c1e0"></script>
-<script src="js/session.js?v=51bbfce20a"></script>
+<script src="js/session.js?v=c71202181c"></script>
 <script src="js/tafelbild.js?v=3dd5247d8f"></script>
 <script src="js/themen.js?v=2b9969dcc6"></script>
 <script src="js/suche.js?v=6a8d482b44"></script>
 <script src="js/markdown.js?v=83d7c9416c"></script>
-<script src="js/app.js?v=f8300ce1f1"></script>
+<script src="js/app.js?v=23c15db16e"></script>
 </body>
 </html>

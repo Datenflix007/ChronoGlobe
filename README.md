@@ -18,6 +18,8 @@ Die Startseite (`index.html`) bietet vier Wege:
     - bei gesperrtem Zeitriegel ohne Abspiel- und ±10-Knöpfe.
 - **Tafelbilder ansehen**: Galerie aus `tafelbilder/index.json`, jedes Tafelbild einzeln (`app.html?tafelbild=<id>`).
 
+In der Live-Session legt die Lehrkraft im Lehrermenü unter **„Schüleransicht anpassen“** fest, welche Bedienelemente die Schüler:innen sehen: Reiche-Liste, Ebenen-Schalter, Suche, Spuren der Zeitleiste und Infokarten. Freigeschaltete Filter wirken nur auf dem eigenen Gerät, die Filter der Lehrkraft gelten weiter für alle. Standard ist wie bisher: kein Menü.
+
 Live-Sessions brauchen ein eigenes Supabase-Projekt (`docs/SETUP.md`). Ohne Einrichtung funktionieren freier Modus und Tafelbilder weiter; die Session-Kacheln zeigen dann „Supabase nicht eingerichtet“.
 
 Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafelbild: `docs/TAFELBILD_ERSTELLEN.md`. Regeln für Änderungen (Kern oder einzelnes Tafelbild): `CLAUDE.md`.

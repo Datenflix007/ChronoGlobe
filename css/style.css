@@ -801,7 +801,13 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 
 /* ---------- Live-Sessions (js/session.js) ---------- */
 /* Schüler:innen: kein Menü, keine Lehrerhinweise; nur Globus, Zeitleiste, Infoband und Fenster */
-.cg-schueler #panel,.cg-schueler #btnLehrer,.cg-schueler #lmodal{display:none!important}
+.cg-schueler #btnLehrer,.cg-schueler #lmodal{display:none!important}
+/* Schüleransicht (schueler_ui): Menü nur mit freigeschalteter Reiche-Liste bzw. Ebenen-Schaltern, und nur diese Teile */
+.cg-schueler:not(.cg-ui-reiche):not(.cg-ui-ebenen) #panel{display:none!important}
+.cg-schueler .ps-ansicht,.cg-schueler #tglRot,.cg-schueler #tglStandort{display:none!important}
+.cg-schueler:not(.cg-ui-reiche) .ps-reiche,.cg-schueler:not(.cg-ui-ebenen) .ps-ebenen{display:none!important}
+.cg-schueler.cg-ui-ohne-spuren .lanes,.cg-schueler.cg-ui-ohne-spuren .lanes-toggle{display:none!important}
+.cg-schueler.cg-ui-ohne-infokarten #side{display:none!important}
 .cg-zeit-aus #year,.cg-zeit-aus #play,.cg-zeit-aus #yMinus,.cg-zeit-aus #yPlus,.cg-zeit-aus #lanes button,.cg-zeit-aus .epoch{pointer-events:none;opacity:.55}
 .cg-globus-aus #globe{cursor:default}
 .cg-badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font:600 13px var(--ui);box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:calc(100vw - 24px)}
@@ -1084,6 +1090,19 @@ code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px}
 .card.such-hl{animation:suchHl 1.6s ease-out}
 @keyframes suchHl{0%,40%{box-shadow:0 0 0 3px #e0b04a}100%{box-shadow:0 0 0 0 rgba(224,176,74,0)}}
 @media (prefers-reduced-motion:reduce){.card.such-hl{animation:none;box-shadow:0 0 0 3px #e0b04a}}
-.cg-schueler #suche{display:none!important}
+.cg-schueler:not(.cg-ui-suche) #suche{display:none!important}
 @media (max-width:700px){.suche{flex-basis:160px}.such-kbd{display:none}}
 .top:focus-within{z-index:85}
+
+/* Lehrermenü: Schüleransicht anpassen */
+.cg-ui{margin-top:10px}
+.cg-ui summary{cursor:pointer;list-style:revert}
+.cg-ui .hint{margin:6px 0}
+.cg-ui .cg-check{display:block;margin:4px 0}
+.cg-ui .small{margin-top:6px}
+/* Sessions: oben in der Mitte stehen Statusanzeige und Leuchtstift-Leiste. Das Suchfeld bleibt rechts davon schmal
+   und wird nur beim Tippen breiter (liegt dann über der Leiste, .top:focus-within hebt die Kopfzeile an). */
+.cg-lehrkraft .suche{flex:0 0 auto;width:clamp(110px,calc(50vw - 470px),300px);transition:width .15s}
+.cg-schueler .suche{flex:0 0 auto;width:clamp(110px,calc(50vw - 330px),300px);transition:width .15s}
+.cg-session .suche:focus-within{width:min(300px,60vw)}
+@media (max-width:1180px){.cg-session .such-kbd{display:none}.cg-session .suche input{padding-right:10px}}
