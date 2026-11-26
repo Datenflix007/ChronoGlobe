@@ -35,7 +35,8 @@ Erst dann gelten die Richtlinien aus `sql/schema.sql`:
    window.APP_CONFIG = {
      SUPABASE_URL: "https://xxxx.supabase.co",
      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_…",
-     SYNC_RATE: 3
+     SYNC_RATE: 3,
+     REALTIME_GRENZE: 100
    };
    ```
 
@@ -70,8 +71,10 @@ Die automatischen Tests (`tests/test_session.py`) laufen über den lokalen Über
 ## 6. Grenzen des kostenlosen Plans
 
 - **Realtime:** 100 Nachrichten pro Sekunde (jede Zustellung zählt einzeln) und 200 gleichzeitige Verbindungen.
-  - Mit der Standardrate von 3 Updates/s reicht das für etwa 30 Geräte.
-  - Mit dem Pro-Plan kann `SYNC_RATE` erhöht werden.
+  - Der Sendetakt passt sich der Zahl der Geräte an (`docs/ARCHITEKTUR.md`, Abschnitt „Mengen“). Eine Klasse mit 28 Tablets bleibt so bei etwa 60 Nachrichten/s.
+  - Ab etwa 60 Geräten reicht der Free-Plan nicht mehr sicher.
+  - Mit dem Pro-Plan (500 Nachrichten/s) `REALTIME_GRENZE: 500` und bei Bedarf eine höhere `SYNC_RATE` eintragen.
+- **Monatskontingent:** 2 Mio. Realtime-Nachrichten. Eine Doppelstunde mit 28 Geräten braucht grob 30 000–50 000.
 - **Pausieren:** Projekte ohne Nutzung werden nach einiger Zeit pausiert. Vor dem Unterricht kurz im Dashboard prüfen.
 
 ## 7. Datenschutz

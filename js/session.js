@@ -35,7 +35,8 @@
   function basisUrl() { return location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, ''); }
   S.schuelerLink = function (code) { return basisUrl() + 'index.html?code=' + encodeURIComponent(code) + (LOKAL ? '&sync=lokal' : ''); };
   S.lehrerLink = function (code) { return basisUrl() + 'app.html?session=' + encodeURIComponent(code) + '&rolle=lehrer' + (LOKAL ? '&sync=lokal' : ''); };
-  function rate() { var r = +((window.APP_CONFIG || {}).SYNC_RATE); return r > 0 && r <= 20 ? r : 3; }
+  function rate() { var r = +((window.APP_CONFIG || {}).SYNC_RATE); return r > 0 && r <= 20 ? r : 3; }   // Obergrenze
+  var TAKT = window.SyncTakt;   // js/synctakt.js (nur in app.html geladen; die Startseite sendet nichts)
 
   /* ---------- gemerkte Sessions der Lehrkraft (nur in diesem Browser) ---------- */
   S.gespeicherte = function () { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } };
@@ -292,7 +293,10 @@
     if (o.state && o.state.v) CGL.applyState(o.state, { quelle: 'tafelbild' });
     lehrerMenu(L);
     if (CGL.stift) CGL.stift();   // Leuchtstift: nur in der Lehreransicht
-    var letzt = 0, timer = null, gesendet = '', laufend = Promise.resolve();
+    // Sendetakt nach Geräteanzahl (js/synctakt.js): Zustandswechsel voll, reine Kamerabewegungen halb,
+    // bei „Globus: selbst bedienen“ gar nicht. „Fokus“ und „Alle zurück“ (senden mit modus) gehen immer sofort raus.
+    if ((window.APP_CONFIG || {}).REALTIME_GRENZE) TAKT.grenzeSetzen(window.APP_CONFIG.REALTIME_GRENZE);   // js/config.js ist jetzt geladen
+    var letzt = 0, timer = null, faellig = 0, gesendet = '', gesendetOhneKamera = '', laufend = Promise.resolve();
     function zustand() {
       var st = CGL.getState();
       if (st.fenster && st.fenster.modal === 'lehrer') st.fenster.modal = null;   // Lehrerhinweise nie mitsenden
@@ -300,23 +304,38 @@
       st.kamera.ref = CGL.homeAlt();   // Bezug für Geräte mit anderem Bildformat (Handy, Tablet)
       return st;
     }
-    function senden(modus) {
-      var st = zustand(), j = JSON.stringify(st);
+    function senden(modus, st) {
+      st = st || zustand();
+      var j = JSON.stringify(st);
       if (!modus && j === gesendet) return;
-      gesendet = j; letzt = Date.now();
+      gesendet = j; gesendetOhneKamera = TAKT.ohneKamera(st); letzt = Date.now();
       laufend = laufend.then(function () { return WEG.senden(SITZ.code, SITZ.token, st, modus || 'state'); })
         .catch(function (e) { console.error(e); statusSetzen('abfrage', 'Senden fehlgeschlagen: ' + (e.message || e)); });
     }
     function planen() {
-      var abstand = 1000 / rate(), j = Date.now();
-      if (j - letzt >= abstand) senden();
-      else if (!timer) timer = setTimeout(function () { timer = null; senden(); }, abstand - (j - letzt));
+      var st = zustand(), a = TAKT.art(JSON.stringify(st), TAKT.ohneKamera(st), gesendet, gesendetOhneKamera, L.rechte.globus === 'selbst');
+      if (a === 'nichts' || a === 'ruhe') return;
+      var abstand = TAKT.abstand(a, rate(), S.anzahl), j = Date.now();
+      if (j - letzt >= abstand) { if (timer) { clearTimeout(timer); timer = null; } senden(null, st); return; }
+      // Zustandswechsel warten nicht auf einen längeren Kamera-Timer
+      if (!timer || letzt + abstand < faellig) {
+        if (timer) clearTimeout(timer);
+        faellig = letzt + abstand;
+        timer = setTimeout(function () { timer = null; planen(); }, faellig - j);
+      }
     }
     S.senden = senden;
+    S.takt = function () { var r = TAKT.rate(rate(), S.anzahl); return { rate: r, kamera: TAKT.kameraRate(r), last: TAKT.last(r, S.anzahl) }; };
     CGL.abonnieren(function (q) { if (q !== 'tafelbild') planen(); });
-    setInterval(planen, 1000 / rate());   // Kamerabewegungen (Ziehen, Zoomen, Flüge) melden sich nicht von selbst
+    setInterval(planen, 250);   // Kamerabewegungen (Ziehen, Zoomen, Flüge) melden sich nicht von selbst; planen() drosselt
     senden('zurueck');                   // Nachzügler und Reload: aktueller Stand sofort
-    verbinden({ nachricht: function () {}, anzahl: function (n) { var a = document.querySelector('#cgAnzahl'); if (a) a.textContent = n === 1 ? '1 Gerät verbunden' : n + ' Geräte verbunden'; } }, false);
+    verbinden({ nachricht: function () {}, anzahl: function (n) {
+      var a = document.querySelector('#cgAnzahl'); if (!a) return;
+      var t = S.takt();
+      a.textContent = n === 1 ? '1 Gerät verbunden' : n + ' Geräte verbunden';
+      a.title = 'Sendetakt: ' + t.rate.toFixed(1).replace('.', ',') + ' Updates/s, Kamera ' + t.kamera.toFixed(1).replace('.', ',') +
+        '/s (höchstens ' + Math.round(t.last) + ' von ' + TAKT.grenze() + ' Nachrichten/s)';
+    } }, false);
   }
 
   function lehrerMenu(L) {
@@ -400,6 +419,7 @@
     var CGL = window.ChronoGlobe, o = SITZ.oeff, g = CGL.globe;
     var R = Object.assign({}, RECHTE_STANDARD, o.rechte || {}), mitsenden = o.fenster_mitsenden !== false;
     var T = null, abw = { zeit: false, globus: false, fenster: false }, wendet = 0;
+    var takt = 1000 / rate(), zuletzt = 0;   // gemessener Abstand der Updates → Gleitdauer der Kamera
     S.schueler = { rechte: function () { return R; }, abweichung: function () { return abw; } };
     var badge = statusBadge(), zur = el('button', 'cg-zurueck', 'Zur Lehreransicht zurück'); zur.type = 'button'; zur.hidden = true;
     badge.appendChild(zur);
@@ -438,12 +458,13 @@
         t.fenster = f;
       }
       wendet++;
-      try { CGL.applyState(t, { quelle: 'lehrer', dauer: alles ? 900 : Math.round(1150 / rate()) }); } finally { wendet--; }
+      try { CGL.applyState(t, { quelle: 'lehrer', dauer: alles ? 900 : TAKT.gleitdauer(takt) }); } finally { wendet--; }
     }
     function nachricht(ev, p) {
       if (ev === 'state' || ev === 'fokus' || ev === 'zurueck') {
         if (!p.state) return;
-        var alt = T; T = p.state;
+        var alt = T, j = Date.now(); T = p.state;
+        if (ev === 'state') { if (zuletzt) takt = TAKT.glaetten(takt, j - zuletzt); zuletzt = j; }
         if (ev === 'zurueck') { abw = { zeit: false, globus: false, fenster: false }; hinweis(); anwenden(T, alt, true); }
         else if (ev === 'fokus') { abw.globus = false; hinweis(); anwenden(T, alt, false); }
         else anwenden(T, alt, false);

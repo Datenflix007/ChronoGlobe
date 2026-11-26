@@ -106,6 +106,17 @@ with sync_playwright() as p:
     check('2b eigene Kamera bleibt nach Abweichung', abs(S.evaluate(ST + '.kamera.lng') + 60) < 3, S.evaluate(ST + '.kamera'))
     T.click('.cg-lehrer >> text=Aktuelle Ansicht für alle')
     check('2b „Aktuelle Ansicht für alle“ setzt den Fokus trotzdem', warte(S, 'Math.abs(' + ST + '.kamera.lng - 10) < 3', 5000))
+    # Sendetakt (js/synctakt.js): bei „Globus selbst bedienen“ keine Nachricht für reine Kamerabewegungen
+    S.evaluate("window.__n = 0; window.__bc = new BroadcastChannel('cg.lokal." + code + "'); __bc.onmessage = e => { if (e.data.ev === 'state') __n++; }; 0")
+    T.wait_for_timeout(600); S.evaluate('window.__n = 0')
+    for i in range(4): T.evaluate("ChronoGlobe.setState({ kamera: { lat: 30, lng: %d, alt: 1.4 } })" % (20 + 5 * i)); T.wait_for_timeout(250)
+    T.wait_for_timeout(1200)
+    check('Takt: Globus frei → reine Kamerabewegung sendet nichts', S.evaluate('window.__n') == 0, S.evaluate('window.__n'))
+    T.evaluate("ChronoGlobe.setState({ jahr: 120 })")
+    check('Takt: Jahreswechsel wird trotzdem gesendet', warte(S, 'window.__n >= 1', 3000))
+    check('Takt: Anzeige im Lehrermenü', 'Updates/s' in (T.get_attribute('#cgAnzahl', 'title') or ''), T.get_attribute('#cgAnzahl', 'title'))
+    T.evaluate("ChronoGlobe.setState({ jahr: 100 })"); T.wait_for_timeout(800)   # Ausgangsjahr für die folgenden Schritte
+    S.evaluate('__bc.close(); 0')
     S.click('#cards .card button')
     check('3b eigene Schriftrolle möglich', warte(S, ST + '.fenster.rolle !== null', 3000))
     T.wait_for_timeout(600); check('3b bleibt lokal (Lehrkraft unverändert)', T.evaluate(ST + '.fenster.rolle') is None)

@@ -31,6 +31,7 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 
 - `python tests/test_regression.py "app.html?tafelbild=rom-zentrum-der-welt"`: Klickfolge gegen den gespeicherten Ausgangszustand. Ebenso `app.html?modus=frei`, dort ohne Lehrerhinweise.
 - `python tests/test_session.py`: Live-Session mit zwei bzw. drei Fenstern über `?sync=lokal`, ohne Supabase.
+- `node tests/synctakt.test.js`: Sendetakt der Live-Session (Geräteanzahl, Realtime-Grenze).
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
 - `node tests/suche.test.js`, `python tests/test_suche_browser.py`: Suche (Schreibvarianten, Tafelbild-Zeitraum, Live-Session).
