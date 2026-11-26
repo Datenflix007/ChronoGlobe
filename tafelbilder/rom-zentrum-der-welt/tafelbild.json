@@ -39,7 +39,8 @@
       "karawanen",
       "strassen",
       "schiff",
-      "hanseide"
+      "hanseide",
+      "weltbild"
     ],
     "aktiv": {
       "orte": false,
@@ -115,6 +116,11 @@
         "id": "verlauf",
         "titel": "Verlaufsplan",
         "datei": "06_verlaufsplan.md"
+      },
+      {
+        "id": "drehbuch",
+        "titel": "Freigabe-Drehbuch",
+        "datei": "07_freigabe_drehbuch.md"
       }
     ]
   },

@@ -113,6 +113,13 @@ for tid in ids:
         elif x == 'weltbild':
             if w is not None and w not in WELTBILD_IDS: F(tid, 'ebenen.aktiv.weltbild: id aus data/weltbilder/index.json (%s) oder null' % ', '.join(sorted(WELTBILD_IDS)))
         elif not isinstance(w, bool): F(tid, 'ebenen.aktiv.%s muss true/false sein' % x)
+    su = t.get('schueler_ui')   # Voreinstellung „Schüleransicht anpassen“ für Live-Sessions (js/session.js)
+    if su is not None:
+        if not isinstance(su, dict): F(tid, 'schueler_ui muss ein Objekt sein')
+        else:
+            for x, w in su.items():
+                if x not in ('reiche', 'ebenen', 'suche', 'spuren', 'infokarten'): F(tid, 'schueler_ui: unbekannter Schlüssel „%s“ (reiche, ebenen, suche, spuren, infokarten)' % x)
+                elif not isinstance(w, bool): F(tid, 'schueler_ui.%s muss true/false sein' % x)
     lh = t.get('lehrerhinweise')
     if lh is not None:
         if not isinstance(lh, dict) or not isinstance(lh.get('reiter'), list): F(tid, 'lehrerhinweise: {ordner, reiter: [...]}')

@@ -7,32 +7,188 @@
       "schriftrolle": true,
       "modus": "wiederholung",
       "titel": "",
-      "einleitung": "",
+      "einleitung": "Was weißt du noch aus unserer Reihe? Zu jeder Stunde gibt es eine kurze Frage. Du bekommst sofort eine Rückmeldung.",
       "vignetten": [
         {
           "id": "rom-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Stunde 1+2: Vom Stadtstaat zum Weltreich",
+          "bloecke": [
+            {
+              "typ": "reihenfolge",
+              "frage": "Wie wurde Rom groß? Bringe die Schritte in die richtige Reihenfolge.",
+              "elemente": [
+                "Rom wird die stärkste Macht in Italien (bis 272 v. Chr.).",
+                "Rom führt Kriege gegen Karthago und gewinnt (264–146 v. Chr.).",
+                "Augustus wird der erste Kaiser (27 v. Chr.).",
+                "Unter Kaiser Trajan ist das Reich am größten (117 n. Chr.)."
+              ],
+              "tipp": "Bei „v. Chr.“ gilt: Je größer die Zahl, desto früher war es.",
+              "feedback": {
+                "richtig": "Genau so ist Rom gewachsen!",
+                "falsch": "Achte auf v. Chr. und n. Chr."
+              },
+              "erklaerung": "Rom wuchs vom Stadtstaat zur Vormacht in Italien. Nach den Kriegen gegen Karthago beherrschte es den Mittelmeerraum. 117 n. Chr. war das Reich am größten."
+            }
+          ],
+          "quellen": [
+            "Vgl. Christ, Kaiserzeit."
+          ],
+          "source_ids": [
+            "christ2009"
+          ]
         },
         {
           "id": "rom-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Stunde 3: Sklaverei und Alltag",
+          "bloecke": [
+            {
+              "typ": "wahrfalsch",
+              "frage": "Stimmt das oder stimmt das nicht?",
+              "aussagen": [
+                {
+                  "text": "Alle Menschen im Römischen Reich hatten die gleichen Rechte.",
+                  "richtig": false,
+                  "feedback": "Die Gesellschaft war wie eine Treppe gestuft. Nicht alle hatten die gleichen Rechte."
+                },
+                {
+                  "text": "Senatoren und Ritter standen oben in der Gesellschaft.",
+                  "richtig": true
+                },
+                {
+                  "text": "Bis 212 n. Chr. hatten viele Menschen in den Provinzen kein römisches Bürgerrecht.",
+                  "richtig": true
+                },
+                {
+                  "text": "In Italien waren Versklavte ein großer Teil der Bevölkerung.",
+                  "richtig": true,
+                  "feedback": "Doch: In Italien lebten sehr viele Versklavte."
+                }
+              ],
+              "feedback": {
+                "richtig": "Alles richtig!",
+                "falsch": "Denk an die Stufen der römischen Gesellschaft."
+              },
+              "erklaerung": "Oben standen Senatoren und Ritter, dann die römischen Bürger. Darunter kamen die Menschen in den Provinzen ohne Bürgerrecht (bis 212 n. Chr.). Ganz unten standen die Versklavten. Sie hatten keine Freiheit."
+            }
+          ],
+          "quellen": [
+            "Vgl. Woolf, Rome."
+          ],
+          "source_ids": [
+            "woolf2012"
+          ]
         },
         {
           "id": "rom-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Stunde 4: Römer und Germanen",
+          "bloecke": [
+            {
+              "typ": "mehrfach",
+              "frage": "Wie war das Verhältnis zwischen Römern und Germanen? Wähle alle richtigen Antworten.",
+              "antworten": [
+                {
+                  "text": "Sie führten Krieg gegeneinander.",
+                  "richtig": true
+                },
+                {
+                  "text": "Sie handelten miteinander.",
+                  "richtig": true
+                },
+                {
+                  "text": "Sie übernahmen Dinge und Ideen voneinander (Kulturaustausch).",
+                  "richtig": true
+                },
+                {
+                  "text": "Sie hatten gar keinen Kontakt, der Limes trennte sie vollständig.",
+                  "feedback": "Der Limes war eine Grenze. Über diese Grenze wurde aber auch gehandelt."
+                }
+              ],
+              "tipp": "Es sind mehrere Antworten richtig.",
+              "feedback": {
+                "richtig": "Richtig: Krieg, Handel und Kulturaustausch gab es nebeneinander.",
+                "falsch": "Denk an die Stunde zum Limes."
+              },
+              "erklaerung": "Römer und Germanen kämpften gegeneinander. Sie handelten aber auch und lernten voneinander. Der Limes war eine Grenze, aber kein Ende aller Kontakte."
+            }
+          ],
+          "quellen": [
+            "Thema der 4. Stunde (Lehrplan Geschichte Gymnasium Thüringen, Lernbereich V, Erwartung 3)."
+          ]
         },
         {
           "id": "rom-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Stunde 5: Der Zerfall des Weströmischen Reiches",
+          "bloecke": [
+            {
+              "typ": "einfach",
+              "frage": "In welchem Jahr endete das weströmische Kaisertum?",
+              "antworten": [
+                {
+                  "text": "476 n. Chr.",
+                  "richtig": true
+                },
+                {
+                  "text": "395 n. Chr.",
+                  "feedback": "395 wurde das Reich in Westrom und Ostrom geteilt. Das Ende Westroms kam später."
+                },
+                {
+                  "text": "117 n. Chr.",
+                  "feedback": "117 n. Chr. war das Reich am größten, nicht am Ende."
+                },
+                {
+                  "text": "313 n. Chr.",
+                  "feedback": "313 ist ein Datum zum Christentum (Stunde 6)."
+                }
+              ],
+              "tipp": "Erst wurde das Reich geteilt, dann endete der Westen.",
+              "feedback": {
+                "richtig": "Richtig!",
+                "falsch": "Noch nicht."
+              },
+              "erklaerung": "Innere Krisen und die Völkerwanderung schwächten das Reich. 395 wurde es geteilt. 476 n. Chr. endete das weströmische Kaisertum. Ostrom bestand weiter."
+            }
+          ],
+          "quellen": [
+            "Vgl. Demandt, Spätantike."
+          ],
+          "source_ids": [
+            "demandt2007"
+          ]
         },
         {
           "id": "rom-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Stunde 6: Christentum und Erbe",
+          "bloecke": [
+            {
+              "typ": "zuordnen",
+              "frage": "Was geschah in welchem Jahr? Ordne zu.",
+              "paare": [
+                {
+                  "links": "313 n. Chr.",
+                  "rechts": "Christen dürfen ihren Glauben offen leben (Mailänder Vereinbarung)."
+                },
+                {
+                  "links": "380 n. Chr.",
+                  "rechts": "Das Christentum wird Staatsreligion (Edikt Cunctos populos)."
+                },
+                {
+                  "links": "395 n. Chr.",
+                  "rechts": "Das Reich wird in Westrom und Ostrom geteilt."
+                }
+              ],
+              "feedback": {
+                "richtig": "Alles richtig zugeordnet!",
+                "falsch": "Schau dir die Jahreszahlen noch einmal an."
+              },
+              "erklaerung": "Im 4. Jahrhundert wurde das Christentum erst erlaubt und dann zur Religion des Staates. Das Christentum und viele römische Spuren sind bis heute eine Grundlage der europäischen Kultur."
+            }
+          ],
+          "quellen": [
+            "Vgl. Demandt, Spätantike."
+          ],
+          "source_ids": [
+            "demandt2007"
+          ]
         }
       ]
     },
@@ -45,28 +201,132 @@
       "vignetten": [
         {
           "id": "han-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Vor den Han hatte die **Dynastie** (Herrscherfamilie) der Qin China zum ersten Mal geeint (221–206 v. Chr.). Ihr Reich zerbrach aber schnell. Im Bürgerkrieg setzte sich Liu Bang durch. Als Kaiser Gaozu gründete er 206 v. Chr. die Han-Dynastie.\n\nKaiser Wu (141–87 v. Chr.) machte das Reich viel größer: im Süden bis ins heutige Vietnam (111 v. Chr.), im Nordosten bis nach Korea (108 v. Chr.). Im Nordwesten reichte es bis ins **Tarimbecken**, ein großes Wüstengebiet in Zentralasien.\n\nVon 9 bis 23 n. Chr. herrschte Wang Mang, der nicht zur Familie der Han gehörte. Danach kamen die Han zurück. Ihre Hauptstadt war zuerst Chang'an, ab 25 n. Chr. Luoyang."
+            },
+            {
+              "typ": "merke",
+              "text": "Im Jahr 2 n. Chr. wurden im Han-Reich knapp 58 Millionen Menschen gezählt. Für das Römische Reich schätzen Forscher etwa 60 Millionen. Beide Reiche waren also ungefähr gleich groß.",
+              "titel": "Ungefähr so groß wie Rom"
+            }
+          ],
+          "quellen": [
+            "Vgl. Lewis, Early Chinese Empires.",
+            "Vgl. Scheidel, Rome and China."
+          ],
+          "source_ids": [
+            "lewis2007",
+            "scheidel2009"
+          ]
         },
         {
           "id": "han-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "An der Spitze stand der Kaiser. Er galt als „Sohn des Himmels“. Man glaubte: Der Himmel gibt einem guten Herrscher den Auftrag zu regieren, das „Mandat des Himmels“. Regierte ein Kaiser schlecht, durfte eine andere Familie die Macht übernehmen.\n\nDas Reich war in Bezirke eingeteilt. Dort arbeiteten **Beamte**, die vom Staat bezahlt wurden. Ab 124 v. Chr. lernten viele von ihnen an einer kaiserlichen Schule die Schriften des Konfuzius, eines chinesischen Lehrers.\n\nDie meisten Menschen waren Bauernfamilien. Sie zahlten Steuern. Sie mussten für den Staat arbeiten und als Soldaten dienen. Händler waren offiziell wenig angesehen, manche wurden aber sehr reich. Es gab auch Unfreie. Für die Wirtschaft waren sie aber viel weniger wichtig als die Versklavten im römischen Italien."
+            }
+          ],
+          "quellen": [
+            "Vgl. Loewe, Government.",
+            "Vgl. Scheidel, Rome and China."
+          ],
+          "source_ids": [
+            "loewe2006",
+            "scheidel2009"
+          ]
         },
         {
           "id": "han-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Der wichtigste Nachbar waren die Xiongnu, ein Bund von Reitervölkern aus der Steppe im Norden (siehe ihre Schriftrolle). Gegen sie suchte das Han-Reich Verbündete. Deshalb reiste der **Gesandte** (Bote des Kaisers) Zhang Qian ab 138 v. Chr. weit nach Westen, bis nach Baktrien. Seine Berichte machten den Westen in China bekannt. Später entstanden dort die Handelswege, die wir heute „Seidenstraßen“ nennen.\n\n**Ein Bote nach Rom?** Ein chinesisches Geschichtsbuch, das *Hou Hanshu*, berichtet: 97 n. Chr. schickte General Ban Chao einen Mann namens Gan Ying nach „Daqin“. So nannte man in China den römischen Osten. Gan Ying kam an ein großes Meer, vermutlich den Persischen Golf. Man warnte ihn vor der gefährlichen Überfahrt, und er kehrte um. Für 166 n. Chr. berichtet das Buch von Gesandten aus Daqin. Vermutlich waren es aber Händler.\n\nSeide aus China kam bis nach Rom. Sie wanderte aber von Hand zu Hand, über **Zwischenhändler** bei den Parthern, den Kuschan und in Indien."
+            },
+            {
+              "typ": "einfach",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatte das Han-Reich direkten oder indirekten Kontakt zu Rom?",
+              "antworten": [
+                {
+                  "text": "Direkt: Es gab Kriege, Verträge oder Gesandte zwischen beiden Reichen.",
+                  "feedback": "Gan Ying kam nie in Rom an. Ein direkter Kontakt ist nicht sicher belegt."
+                },
+                {
+                  "text": "Indirekt: Waren und Nachrichten kamen über andere Völker und Händler.",
+                  "richtig": true
+                },
+                {
+                  "text": "Gar keine Verbindung.",
+                  "feedback": "Doch, es gab eine Verbindung: Chinesische Seide kam bis nach Rom."
+                }
+              ],
+              "mischen": false,
+              "tipp": "Lies die Vignette noch einmal: Trafen sich Menschen aus beiden Reichen, oder kamen nur Waren an?",
+              "feedback": {
+                "richtig": "Richtig! Trage das in deine Vignette 3 ein.",
+                "falsch": "Noch nicht. Schau dir die Handelswege und Gesandtschaften auf dem Globus an."
+              },
+              "erklaerung": "Es gab keine dauerhaften direkten Beziehungen zwischen dem Han-Reich und Rom. Gan Ying kehrte um, und die „Gesandten“ von 166 waren vermutlich Händler. Seide kam über Zwischenhändler nach Westen. Die Han kannten Rom nur vom Hörensagen."
+            }
+          ],
+          "quellen": [
+            "Vgl. Hansen, Silk Road.",
+            "Hou Hanshu, vgl. Hill, Jade Gate.",
+            "Vgl. Leslie/Gardiner, Roman Empire."
+          ],
+          "source_ids": [
+            "hansen2012",
+            "hill2009",
+            "leslie-gardiner1996"
+          ]
         },
         {
           "id": "han-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Im 2. Jahrhundert n. Chr. stritten am Kaiserhof verschiedene Gruppen um die Macht: die Familien der Kaiserinnen, die **Eunuchen** (Diener am Hof, die oft viel Einfluss hatten) und die Beamten. Reiche Großgrundbesitzer wurden mächtiger, viele Bauern wurden arm.\n\n184 n. Chr. begann der Aufstand der „Gelben Turbane“. Das war eine Bewegung mit religiösen Zielen. Um den Aufstand zu besiegen, bekamen Heerführer viel Macht. Danach regierte der Kaiser nur noch dem Namen nach.\n\n220 n. Chr. trat der letzte Han-Kaiser zurück. Es folgte die Zeit der Drei Reiche: China war geteilt."
+            },
+            {
+              "typ": "merke",
+              "text": "Das Han-Reich endete 220 n. Chr., also über 250 Jahre vor dem Ende Westroms (476 n. Chr.).",
+              "titel": "Vergleich mit Rom"
+            }
+          ],
+          "quellen": [
+            "Vgl. Twitchett/Loewe, Cambridge History of China 1."
+          ],
+          "source_ids": [
+            "twitchett-loewe1986"
+          ]
         },
         {
           "id": "han-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "In China gab es verschiedene Glaubensformen nebeneinander: den Kult des Staates, die Verehrung der **Ahnen** (verstorbene Vorfahren), die Lehren des Konfuzius und daoistische Vorstellungen. Im 1. Jahrhundert n. Chr. kam der **Buddhismus** über Zentralasien nach China. Mönche aus dem Kuschanreich halfen dabei.\n\nDas Han-Reich sah sich als Mitte der Welt. Es nannte sich *Zhongguo*, „Reich der Mitte“. Gemeint war die Mitte von allem, was „unter dem Himmel“ liegt. Andere Völker galten aus dieser Sicht als Randvölker, die dem Kaiser **Tribut** (Abgaben) bringen sollten. Das war die Sicht des Han-Hofes. Die Nachbarn sahen sich selbst anders.\n\nBis heute nennt sich die größte Bevölkerungsgruppe Chinas „Han“. Die chinesischen Schriftzeichen heißen *hanzi*."
+            },
+            {
+              "typ": "merke",
+              "text": "Vor allem chinesische Geschichtsschreiber. Sima Qian schrieb um 90 v. Chr. das *Shiji*, ein Grundwerk der chinesischen Geschichtsschreibung. Das *Hou Hanshu* erzählt von der späteren Han-Zeit. Der Römer Plinius kannte China nur als fernes Land der „Serer“, aus dem die Seide kam.",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Plin. nat. 12,84."
+          ],
+          "source_ids": [
+            "plinius"
+          ]
         }
       ]
     },
@@ -181,28 +441,121 @@
       "vignetten": [
         {
           "id": "parth-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Parther waren zuerst ein iranischer Verband von Reitern, die Parner. Unter ihrem Anführer Arsakes I. übernahmen sie die Provinz Parthien südöstlich des Kaspischen Meeres. Die Provinz gehörte vorher zum Seleukidenreich. Nach Arsakes heißt die Herrscherfamilie **Arsakiden**.\n\nUnter König Mithridates I. (ca. 171–132 v. Chr.) eroberten die Parther Medien und Mesopotamien, das Land an Euphrat und Tigris. 141 v. Chr. nahmen sie die Stadt Seleukeia am Tigris ein. Gegenüber entstand Ktesiphon, die spätere Residenz der Könige.\n\nAm größten reichte das Reich vom Euphrat bis an den Rand Baktriens und Indiens. Es lag genau zwischen Rom und dem Han-Reich."
+            },
+            {
+              "typ": "merke",
+              "text": "Wann genau die Parther Parthien übernahmen, wissen wir nicht sicher: um 247 oder um 238 v. Chr.",
+              "titel": "Unsicher"
+            }
+          ],
+          "quellen": [
+            "Vgl. Schippmann, Parthische Geschichte."
+          ],
+          "source_ids": [
+            "schippmann1980"
+          ]
         },
         {
           "id": "parth-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Seit Mithridates II. trug der König den Titel „König der Könige“. Unter ihm herrschten **Unterkönige**, zum Beispiel in der Persis, in Elymais oder Adiabene. Auch mächtige Adelsfamilien wie die Suren und die Karen hatten viel Einfluss. Das Reich wurde deshalb weniger von der Mitte aus regiert als Rom oder das Han-Reich.\n\nDie Stärke der Parther war ihre Reiterei: Reiter in schweren Panzern mit Lanzen und Bogenschützen auf Pferden.\n\nIm Reich lebten sehr verschiedene Menschen: Griechen in ihren Städten, Babylonier in alten Tempelstädten, jüdische Gemeinden und iranischer Adel. Auf ihren Münzen nannten sich die Könige auf Griechisch „Philhellenen“, also „Griechenfreunde“."
+            }
+          ],
+          "quellen": [
+            "Vgl. Wiesehöfer, Persien."
+          ],
+          "source_ids": [
+            "wiesehoefer1993"
+          ]
         },
         {
           "id": "parth-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Für Rom waren die Parther der einzige gleich starke Gegner. 53 v. Chr. besiegte der parthische Feldherr Surena das römische Heer des Crassus bei Carrhae. Die Parther erbeuteten die **Feldzeichen**, die Abzeichen der römischen Truppen. Augustus bekam sie 20 v. Chr. durch Verhandlungen zurück und feierte das wie einen Sieg.\n\nRom und die Parther stritten lange um Armenien. 66 n. Chr. krönte Kaiser Nero in Rom den Parther Tiridates zum König von Armenien. 116 n. Chr. eroberte Kaiser Trajan Ktesiphon. Sein Nachfolger Hadrian gab die Eroberungen aber sofort wieder auf.\n\nDie Parther verdienten auch am Fernhandel als **Zwischenhändler**. Das chinesische *Hou Hanshu* berichtet: „Anxi“ (Parthien) wollte verhindern, dass China und Rom direkt miteinander handeln. So wollte es den Seidenhandel selbst bestimmen."
+            },
+            {
+              "typ": "einfach",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatte das Partherreich direkten oder indirekten Kontakt zu Rom?",
+              "antworten": [
+                {
+                  "text": "Direkt: Es gab Kriege, Verträge oder Gesandte zwischen beiden Reichen.",
+                  "richtig": true
+                },
+                {
+                  "text": "Indirekt: Waren und Nachrichten kamen über andere Völker und Händler.",
+                  "feedback": "Die Parther waren selbst Zwischenhändler. Aber mit Rom hatten sie mehr als Handel: Denk an Carrhae."
+                },
+                {
+                  "text": "Gar keine Verbindung.",
+                  "feedback": "Denk an die Schlacht bei Carrhae."
+                }
+              ],
+              "mischen": false,
+              "tipp": "Lies die Vignette noch einmal: Trafen sich Menschen aus beiden Reichen, oder kamen nur Waren an?",
+              "feedback": {
+                "richtig": "Richtig! Trage das in deine Vignette 3 ein.",
+                "falsch": "Noch nicht. Schau dir die Handelswege und Gesandtschaften auf dem Globus an."
+              },
+              "erklaerung": "Die Parther hatten direkten Kontakt zu Rom: durch Kriege (Carrhae, Trajans Feldzug), Verhandlungen (Feldzeichen) und den Streit um Armenien. Zugleich standen sie als Zwischenhändler zwischen Rom und China."
+            }
+          ],
+          "quellen": [
+            "Vgl. Winter/Dignas, Rom und das Perserreich.",
+            "Hou Hanshu, vgl. Hill, Jade Gate."
+          ],
+          "source_ids": [
+            "winter-dignas2001",
+            "hill2009"
+          ]
         },
         {
           "id": "parth-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Mehrmals zogen römische Heere bis nach Ktesiphon und plünderten die Stadt: 116, 165 und 198 n. Chr. Dazu kamen Kämpfe um den Thron innerhalb der Herrscherfamilie. Und die Unterkönige wurden immer selbstständiger.\n\n224 n. Chr. besiegte Ardaschir, ein Unterkönig aus der Persis, den letzten Partherkönig Artabanos IV. Ardaschir gründete ein neues Reich: das Sasanidenreich (siehe dessen Schriftrolle)."
+            }
+          ],
+          "quellen": [
+            "Vgl. Schippmann, Parthische Geschichte."
+          ],
+          "source_ids": [
+            "schippmann1980"
+          ]
         },
         {
           "id": "parth-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Im Partherreich gab es viele Religionen nebeneinander: iranische Gottheiten und zoroastrische Traditionen, griechische und babylonische Kulte und das Judentum. Die Könige duldeten sie. Die jüdischen Gemeinden in Babylonien blühten in dieser Zeit auf.\n\nOb sich die Parther selbst als Mitte der Welt sahen, wissen wir nicht genau, weil ihre eigenen Texte fehlen. Der Titel „König der Könige“ zeigt aber einen großen Anspruch."
+            },
+            {
+              "typ": "merke",
+              "text": "Von den Parthern selbst ist keine Geschichtsschreibung erhalten. Wir kennen sie vor allem aus griechischen, römischen und chinesischen Texten. Das ist die Sicht von Gegnern und von Menschen, die weit weg lebten. Dazu kommen Münzen. Überlegt: Wessen Stimme fehlt hier?",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Vgl. Wiesehöfer, Persien."
+          ],
+          "source_ids": [
+            "wiesehoefer1993"
+          ]
         }
       ]
     },
@@ -215,28 +568,138 @@
       "vignetten": [
         {
           "id": "sasan-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Ardaschir I. stammte aus der Persis, dem Kernland des alten Perserreiches der Achämeniden. Er besiegte 224 n. Chr. die Parther und gründete das Sasanidenreich.\n\nSein Sohn Schapur I. vergrößerte das Reich: nach Osten bis nach Baktrien, wo er das Gebiet des Kuschanreiches übernahm, und nach Westen auf Kosten Roms.\n\nDas Reich umfasste Mesopotamien, das iranische Hochland und zeitweise Teile Zentralasiens. Die Hauptstadt war Ktesiphon am Tigris."
+            },
+            {
+              "typ": "merke",
+              "text": "Ardaschir regierte von 224 bis 240 oder 242, Schapur I. bis 270 oder 272. Die genauen Jahre sind nicht sicher. Deshalb stehen in Büchern oft zwei Zahlen (z. B. 240/42).",
+              "titel": "Unsicher"
+            }
+          ],
+          "quellen": [
+            "Vgl. Schippmann, Sasanidisches Reich."
+          ],
+          "source_ids": [
+            "schippmann1990"
+          ]
         },
         {
           "id": "sasan-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Der Herrscher nannte sich „König der Könige von Ērān und Anērān“, also der Iraner und der Nicht-Iraner. Die Sasaniden regierten stärker von der Mitte aus als die Parther. Der Großkönig stützte sich auf den hohen Adel, auf Beamte und auf zoroastrische Priester, die selbst in Rängen geordnet waren.\n\nMan stellte sich die Gesellschaft in **Stände** geteilt vor, also in Gruppen mit festem Platz: Priester, Krieger, Schreiber sowie Bauern und Handwerker.\n\nDas Reich hieß „Ērānšahr“ (sprich: Eranschahr), „Reich der Iraner“. Der Name verband Herrschaft, Religion und Land. Sasanidische Silbermünzen wurden entlang der Handelswege bis nach China benutzt."
+            }
+          ],
+          "quellen": [
+            "Vgl. Daryaee, Sasanian Persia."
+          ],
+          "source_ids": [
+            "daryaee2009"
+          ]
         },
         {
           "id": "sasan-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Rom und das Sasanidenreich waren über 400 Jahre lang Nachbarn: mal Feinde, mal Vertragspartner.\n\nSchapur I. ließ seine Siege über drei römische Kaiser in Felsbildern bei Naqsch-e Rostam und in einer Inschrift in drei Sprachen festhalten. Kaiser Gordian III. starb 244. Kaiser Philippus Arabs musste für den Frieden zahlen. 260 geriet Kaiser Valerian in Gefangenschaft. Die Inschrift zeigt die Ereignisse aus der Sicht des Siegers, so wie der Tatenbericht des Augustus aus römischer Sicht.\n\nNeben den Kriegen gab es Verträge, Gesandtschaften und Handel an der Grenze. Kriegsgefangene wurden umgesiedelt. Sie gaben ihr Wissen über Bauen und Handwerk weiter."
+            },
+            {
+              "typ": "quelle",
+              "titel": "Ein persischer Großkönig schreibt an den Kaiser in Konstantinopel (590 n. Chr.)",
+              "text": "Gott hat es so eingerichtet, dass die ganze Welt von zwei Augen erleuchtet wird: vom Reich der Römer und vom Reich der Perser.",
+              "nachweis": "Sinngemäß nach Theophylaktos Simokates, Historien 4,11,2. Der Brief ist viel später geschrieben, zur Zeit Ostroms."
+            },
+            {
+              "typ": "einfach",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatte das Sasanidenreich direkten oder indirekten Kontakt zu Rom?",
+              "antworten": [
+                {
+                  "text": "Direkt: Es gab Kriege, Verträge oder Gesandte zwischen beiden Reichen.",
+                  "richtig": true
+                },
+                {
+                  "text": "Indirekt: Waren und Nachrichten kamen über andere Völker und Händler.",
+                  "feedback": "Es gab viel mehr als Handel über andere: Denk an Kaiser Valerian."
+                },
+                {
+                  "text": "Gar keine Verbindung.",
+                  "feedback": "Denk an die drei römischen Kaiser, die Schapur besiegte."
+                }
+              ],
+              "mischen": false,
+              "tipp": "Lies die Vignette noch einmal: Trafen sich Menschen aus beiden Reichen, oder kamen nur Waren an?",
+              "feedback": {
+                "richtig": "Richtig! Trage das in deine Vignette 3 ein.",
+                "falsch": "Noch nicht. Schau dir die Handelswege und Gesandtschaften auf dem Globus an."
+              },
+              "erklaerung": "Die Sasaniden hatten direkten Kontakt zu Rom: Kriege, Verträge, Gesandtschaften und Handel an der Grenze. Ein Brief spricht sogar von Rom und Persien als „zwei Augen“ der Welt."
+            }
+          ],
+          "quellen": [
+            "Vgl. Huyse, Inschrift Šābuhrs I.",
+            "Vgl. Winter/Dignas, Rom und das Perserreich.",
+            "Theophyl. Sim. 4,11,2, nach Whitby/Whitby, Theophylact Simocatta.",
+            "Vgl. Canepa, Two Eyes."
+          ],
+          "source_ids": [
+            "huyse1999",
+            "winter-dignas2001",
+            "whitby1986",
+            "canepa2009"
+          ]
         },
         {
           "id": "sasan-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Von 602 bis 628 kämpften die Sasaniden in einem langen Krieg gegen Ostrom. Danach waren beide Reiche erschöpft. Es folgten Streit um den Thron und viele schnelle Herrscherwechsel.\n\nDann kamen arabisch-muslimische Heere. Sie besiegten die Sasaniden bei Qadisiyya (636/37) und bei Nihawand (642). Mit dem Tod des letzten Königs Yazdegerd III. endete das Reich 651."
+            },
+            {
+              "typ": "merke",
+              "text": "Das Ende der Sasaniden liegt lange nach dem Ende Westroms (476). Die Zeitleiste dieses Tafelbilds endet schon 480. Die Sasaniden standen vor allem dem späten Rom und Ostrom gegenüber.",
+              "titel": "Auf die Zeit achten"
+            }
+          ],
+          "quellen": [
+            "Vgl. Daryaee, Sasanian Persia."
+          ],
+          "source_ids": [
+            "daryaee2009"
+          ]
         },
         {
           "id": "sasan-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Sasaniden bevorzugten den **Zoroastrismus**, eine alte persische Religion mit **Feuertempeln**. Im Reich lebten auch Christen, Juden, Manichäer und Buddhisten. Sie wurden aber zeitweise verfolgt. Mani, der Gründer der Manichäer, wurde um 276/77 hingerichtet.\n\nSahen sich die Sasaniden als Mitte der Welt? Ein Brief spricht von „zwei Augen“ der Welt, Rom und Persien (siehe Vignette 3). Hier beschreibt eine Quelle selbst eine Welt mit zwei Zentren.\n\nHofkultur und Verwaltung der Sasaniden wirkten später im Reich der Abbasiden-Kalifen weiter. Die Erinnerung an die persischen Könige lebt im *Schahname* („Buch der Könige“, um 1000) fort."
+            },
+            {
+              "typ": "merke",
+              "text": "Die Sasaniden berichten selbst: in Felsbildern und Inschriften, zum Beispiel in Schapurs Inschrift an der „Kaaba des Zarathustra“. Dazu kommen römische und oströmische Geschichtsschreiber wie Theophylaktos Simokates. Viel später sammelte das persische *Schahname* Erzählungen über die Könige.",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Vgl. Daryaee, Sasanian Persia.",
+            "Vgl. Huyse, Inschrift Šābuhrs I."
+          ],
+          "source_ids": [
+            "daryaee2009",
+            "huyse1999"
+          ]
         }
       ]
     },
@@ -283,28 +746,160 @@
       "vignetten": [
         {
           "id": "kusch-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Kuschan stammen von den **Yuezhi** ab. Das war ein Verband von Reitern aus dem Gebiet des heutigen Gansu in China. Im 2. Jahrhundert v. Chr. wurden die Yuezhi von den Xiongnu vertrieben. Um 130 v. Chr. ließen sie sich in Baktrien nieder. Dort traf sie der chinesische Gesandte Zhang Qian.\n\nIm 1. Jahrhundert n. Chr. einte Kujula Kadphises die verschiedenen Gruppen. Seine Nachfolger herrschten über das heutige Afghanistan und Pakistan bis in die Gangesebene in Nordindien. Wichtige Orte waren Begram, Purushapura (heute Peschawar) und Mathura.\n\nDer bekannteste Herrscher ist Kanischka I. Eine Inschrift aus Rabatak nennt Städte bis tief nach Nordindien, die er beherrschte."
+            },
+            {
+              "typ": "merke",
+              "text": "Wann Kanischka zu regieren begann, war lange umstritten. Die meisten Forscher folgen heute dem Vorschlag von Harry Falk: um 127 n. Chr.",
+              "titel": "Unsicher"
+            }
+          ],
+          "quellen": [
+            "Vgl. Mukherjee, Kuṣāṇa Empire.",
+            "Vgl. Sims-Williams/Cribb, Bactrian Inscription.",
+            "Vgl. Falk, Era of the Kuṣāṇas."
+          ],
+          "source_ids": [
+            "mukherjee1988",
+            "simswilliams-cribb1996",
+            "falk2001"
+          ]
         },
         {
           "id": "kusch-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Im Kuschanreich lebten Menschen mit vielen Sprachen, Religionen und Schriften. Kanischka ließ auf Münzen und Inschriften statt Griechisch die Sprache **Baktrisch** verwenden. Geschrieben wurde sie aber weiter mit griechischen Buchstaben.\n\nDie Titel der Herrscher zeigen, wo das Reich lag: zwischen den großen Mächten. Eine Inschrift gibt Kanischka II. gleich vier Titel aus verschiedenen Richtungen.\n\nÜber den Alltag der einfachen Menschen sagen die Texte wenig. Mehr wissen wir aus Ausgrabungen und Kunstwerken."
+            },
+            {
+              "typ": "zuordnen",
+              "titel": "Vier Titel für einen Herrscher",
+              "frage": "Woher stammt welcher Titel? Ordne zu.",
+              "paare": [
+                {
+                  "links": "maharaja („Großkönig“)",
+                  "rechts": "aus Indien"
+                },
+                {
+                  "links": "rajatiraja („König der Könige“)",
+                  "rechts": "nach iranischem Vorbild"
+                },
+                {
+                  "links": "devaputra („Sohn der Götter“)",
+                  "rechts": "ähnlich wie der chinesische „Sohn des Himmels“"
+                },
+                {
+                  "links": "kaisara",
+                  "rechts": "vom lateinischen Wort Caesar (Rom)"
+                }
+              ],
+              "feedback": {
+                "richtig": "Genau! Die Kuschan übernahmen Ideen von Herrschaft aus allen Richtungen.",
+                "falsch": "Schau auf die Wörter: Welches erinnert an Rom?"
+              },
+              "erklaerung": "Die Kuschan griffen Vorstellungen von Herrschaft aus Indien, Iran, China und Rom auf. Der Titel *kaisara* zeigt: Man kannte im Kuschanreich den Namen des römischen Kaisers."
+            }
+          ],
+          "quellen": [
+            "Vgl. Mukherjee, Kuṣāṇa Empire."
+          ],
+          "source_ids": [
+            "mukherjee1988"
+          ]
         },
         {
           "id": "kusch-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Das Kuschanreich lag an wichtigen Knoten der Landwege zwischen China, Iran und Indien. Über Häfen am Indus war es auch mit dem Seehandel verbunden.\n\nIn Begram fanden Archäologen einen großen Schatz: römisches Glas und römische Bronzen, indische Schnitzereien aus Elfenbein und chinesische Lackarbeiten, alles an einem Ort. Der Fund zeigt, wie der Handel die Welt verband. Er beweist aber nicht, dass sich Römer und Chinesen direkt trafen.\n\nDie Goldmünzen der Kuschan wogen etwa so viel wie die römische Goldmünze, der *Aureus*. Römisches Gold kam über den Handel mit Indien ins Land. Diesen Handel beschreibt ein griechisches Handbuch für Seefahrer, der *Periplus Maris Erythraei*.\n\nMit dem Han-Reich gab es auch Streit: Um 90 n. Chr. wehrte der chinesische General Ban Chao ein Heer der „Yuezhi“ im Tarimbecken ab."
+            },
+            {
+              "typ": "einfach",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatte das Kuschanreich direkten oder indirekten Kontakt zu Rom?",
+              "antworten": [
+                {
+                  "text": "Direkt: Es gab Kriege, Verträge oder Gesandte zwischen beiden Reichen.",
+                  "feedback": "Römische Waren kamen ins Land. Aber direkte Treffen, Kriege oder Gesandte sind nicht sicher belegt."
+                },
+                {
+                  "text": "Indirekt: Waren und Nachrichten kamen über andere Völker und Händler.",
+                  "richtig": true
+                },
+                {
+                  "text": "Gar keine Verbindung.",
+                  "feedback": "Denk an den Schatz von Begram mit römischem Glas."
+                }
+              ],
+              "mischen": false,
+              "tipp": "Lies die Vignette noch einmal: Trafen sich Menschen aus beiden Reichen, oder kamen nur Waren an?",
+              "feedback": {
+                "richtig": "Richtig! Trage das in deine Vignette 3 ein.",
+                "falsch": "Noch nicht. Schau dir die Handelswege und Gesandtschaften auf dem Globus an."
+              },
+              "erklaerung": "Das Kuschanreich war über den Handel mit Rom verbunden: Römisches Glas, Bronze und Gold kamen ins Land. Dass sich Menschen aus beiden Reichen direkt trafen, ist nicht sicher belegt."
+            }
+          ],
+          "quellen": [
+            "Vgl. Liu, Silk Road.",
+            "Vgl. Casson, Periplus.",
+            "Vgl. McLaughlin, Distant East."
+          ],
+          "source_ids": [
+            "liu2010",
+            "casson1989",
+            "mclaughlin2010"
+          ]
         },
         {
           "id": "kusch-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Im 3. Jahrhundert eroberten die Sasaniden Baktrien. Dort setzten sie eigene Herrscher ein, die „Kuschanschahs“. Die indischen Teile des Reiches zerfielen in kleine Reiche. Im 4. Jahrhundert wurden einige davon Teil des Gupta-Reiches."
+            },
+            {
+              "typ": "merke",
+              "text": "Das Kuschanreich endete nicht an einem Tag, sondern zerfiel nach und nach: als großes Reich um 240 n. Chr., in Resten bis ins 4. Jahrhundert. Ein genaues Enddatum gibt es nicht.",
+              "titel": "Unsicher"
+            }
+          ],
+          "quellen": [
+            "Vgl. Kulke, Indische Geschichte."
+          ],
+          "source_ids": [
+            "kulke2005"
+          ]
         },
         {
           "id": "kusch-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Auf Kuschanmünzen stehen Götter aus Griechenland, Iran und Indien nebeneinander: Helios, Mithra, Nana, Shiva (auf den Münzen „Oesho“) und sogar Buddha („Boddo“).\n\nIn der Region **Gandhara** entstanden unter den Kuschan einige der frühesten Bilder Buddhas in Menschengestalt. Sie zeigen indische Inhalte in griechisch-römischen Formen, zum Beispiel ein Gewand mit Falten und lockiges Haar.\n\nKuschanische Mönche wie Lokakshema übersetzten im 2. Jahrhundert in Luoyang buddhistische Texte ins Chinesische.\n\nDas Kuschanreich war vor allem wichtig, weil hier Waren, Götter und Ideen aus vielen Richtungen zusammenkamen. Ob es sich selbst als Mitte der Welt sah, wissen wir nicht. Die vielen Herrschertitel zeigen aber einen großen Anspruch."
+            },
+            {
+              "typ": "merke",
+              "text": "Die Kuschan selbst, mit Münzen und Inschriften, zum Beispiel der Inschrift von Rabatak in baktrischer Sprache. Dazu kommen chinesische Berichte (Zhang Qian, Ban Chao) und griechische Texte wie der *Periplus*. Vieles wissen wir nur aus Ausgrabungen und Kunst. Deshalb sind viele Jahreszahlen unsicher.",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Vgl. Mukherjee, Kuṣāṇa Empire."
+          ],
+          "source_ids": [
+            "mukherjee1988"
+          ]
         }
       ]
     },
@@ -317,28 +912,130 @@
       "vignetten": [
         {
           "id": "gupta-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Um 320 n. Chr. begann König Chandragupta I. eine eigene Zeitrechnung. Sein Sohn Samudragupta (ca. 335–375) führte viele Kriege. Danach war die Familie der Gupta die stärkste Macht in Nordindien.\n\nDer Hofdichter Harishena schrieb ein Loblied auf Samudragupta. Es wurde in eine viel ältere Säule des Königs Ashoka gemeißelt. Sie steht heute in Allahabad (Prayagraj). Darin werden besiegte Könige aufgezählt und Herrscher, die **Tribut** zahlen mussten, also Abgaben an einen Mächtigeren.\n\nUnter Chandragupta II. (ca. 375–415) eroberten die Gupta Westindien. Damals war das Reich am größten. Sein Zentrum war die Gangesebene. Wichtige Städte waren Pataliputra und Ujjain."
+            }
+          ],
+          "quellen": [
+            "Vgl. Fleet, Inscriptions of the Early Gupta Kings.",
+            "Vgl. Kulke/Rothermund, Geschichte Indiens."
+          ],
+          "source_ids": [
+            "fleet1888",
+            "kulke-rothermund2006"
+          ]
         },
         {
           "id": "gupta-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Der Herrscher nannte sich *maharajadhiraja*, „Oberkönig der Großkönige“. Direkt regiert wurde aber nur das Kernland in der Gangesebene. In anderen Gebieten herrschten abhängige Fürsten. Sie zahlten Tribut und mussten im Krieg mit ihren Truppen helfen.\n\nDie Könige schenkten Land an **Brahmanen** (Priester) und an religiöse Einrichtungen. Mit dem Land gaben sie auch Rechte und Einnahmen ab.\n\nDie Gesellschaft war in *varna* (Stände) und *jati* (Gruppen nach Beruf und Herkunft) gegliedert. Der chinesische Pilgermönch Faxian reiste etwa von 399 bis 412 durch Indien. Er beschreibt ein friedliches Land mit milden Strafen. Er berichtet aber auch: Menschen, die von anderen als „unrein“ angesehen wurden (die *Chandala*), mussten außerhalb der Städte wohnen. Kamen sie in die Stadt, mussten sie sich durch Klappern ankündigen."
+            }
+          ],
+          "quellen": [
+            "Vgl. Legge, Faxian."
+          ],
+          "source_ids": [
+            "legge1886"
+          ]
         },
         {
           "id": "gupta-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Das Gupta-Reich war Teil eines großen Handelsnetzes im Indischen Ozean. Über das Meer gingen Waren nach Südostasien, China, Persien und in den oströmischen Raum.\n\nEin spannendes Detail: Die Goldmünze der Gupta heißt in Inschriften *dinara*. Das Wort kommt vom lateinischen *denarius*, einer römischen Münze."
+            },
+            {
+              "typ": "merke",
+              "text": "Der direkte Handel zwischen Rom und Indien war im 1. und 2. Jahrhundert am stärksten. Das war, bevor es das Gupta-Reich gab. Die Gupta lebten zur Zeit des späten Rom. Prüft das auf der Zeitleiste!",
+              "titel": "Auf die Zeit achten"
+            },
+            {
+              "typ": "einfach",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatte das Gupta-Reich direkten oder indirekten Kontakt zu Rom?",
+              "antworten": [
+                {
+                  "text": "Direkt: Es gab Kriege, Verträge oder Gesandte zwischen beiden Reichen.",
+                  "feedback": "Von Kriegen oder Gesandten zwischen Gupta und Rom erzählt diese Schriftrolle nichts. Die Verbindung lief über den Handel."
+                },
+                {
+                  "text": "Indirekt: Waren und Nachrichten kamen über andere Völker und Händler.",
+                  "richtig": true
+                },
+                {
+                  "text": "Gar keine Verbindung.",
+                  "feedback": "Denk an das Wort *dinara*."
+                }
+              ],
+              "mischen": false,
+              "tipp": "Lies die Vignette noch einmal: Trafen sich Menschen aus beiden Reichen, oder kamen nur Waren an?",
+              "feedback": {
+                "richtig": "Richtig! Trage das in deine Vignette 3 ein.",
+                "falsch": "Noch nicht. Schau dir die Handelswege und Gesandtschaften auf dem Globus an."
+              },
+              "erklaerung": "Das Gupta-Reich war über den Seehandel im Indischen Ozean mit dem oströmischen Raum verbunden. Das Wort *dinara* erinnert an römisches Geld. Die Verbindung lief über Händler und Waren."
+            }
+          ],
+          "quellen": [
+            "Vgl. Thapar, Early India."
+          ],
+          "source_ids": [
+            "thapar2002"
+          ]
         },
         {
           "id": "gupta-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Ab der Mitte des 5. Jahrhunderts drangen Gruppen aus dem Nordwesten vor, die in Indien „Huna“ genannt wurden, darunter die Alchon. Skandagupta konnte sie um 455 noch abwehren. Anfang des 6. Jahrhunderts eroberten ihre Anführer Toramana und Mihirakula aber Teile Nordindiens. Gleichzeitig machten sich viele Fürsten selbstständig. Um 550 endete die Herrschaft der Gupta."
+            },
+            {
+              "typ": "merke",
+              "text": "Das erinnert an Rom und die Völkerwanderung. Aber Vorsicht: Ob die Huna in Indien und die Hunnen in Europa zusammengehören, ist in der Forschung umstritten. Man darf das nicht einfach behaupten.",
+              "titel": "Umstritten"
+            }
+          ],
+          "quellen": [
+            "Vgl. Kulke, Indische Geschichte.",
+            "Vgl. Kim, Huns."
+          ],
+          "source_ids": [
+            "kulke2005",
+            "kim2013"
+          ]
         },
         {
           "id": "gupta-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Gupta-Könige verehrten vor allem die Götter Vishnu und Shiva. Aus dieser Zeit stammen frühe Tempel aus Stein. Buddhismus und Jainismus gab es weiter. Das Kloster Nalanda wurde ein wichtiger Ort für buddhistische Gelehrte.\n\nAm Hof schrieben Dichter wie Kalidasa auf Sanskrit, der alten Sprache der Gelehrten. Der Mathematiker Aryabhata arbeitete 499 mit dem **Stellenwertsystem**: Der Wert einer Ziffer hängt davon ab, an welcher Stelle sie steht. Über arabische Gelehrte kam dieses System nach Europa. Daraus wurden „unsere“ Ziffern.\n\nManche Bücher nennen die Gupta-Zeit das „goldene Zeitalter“ Indiens. Dieser Name entstand aber erst im 19. und 20. Jahrhundert, bei Geschichtsschreibern der Kolonialzeit und der indischen Nationalbewegung. Er ist eine spätere Deutung, keine Tatsache."
+            },
+            {
+              "typ": "merke",
+              "text": "Die Gupta selbst, zum Beispiel mit der Inschrift auf der Säule von Allahabad. Sie wurde geschrieben, um den König zu loben. Und der chinesische Pilger Faxian: Er war Buddhist und schrieb mit diesem Blick. Beide Quellen zeigen also eine bestimmte Sicht.",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Vgl. Thapar, Early India.",
+            "Vgl. Grewe, Geschichtsdidaktik postkolonial."
+          ],
+          "source_ids": [
+            "thapar2002",
+            "grewe2016"
+          ]
         }
       ]
     },
@@ -351,28 +1048,129 @@
       "vignetten": [
         {
           "id": "xiong-1",
-          "titel": "",
-          "bloecke": []
+          "titel": "Aufstieg und Ausdehnung",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Um 209 v. Chr. übernahm Modu (auch Maodun genannt) die Macht. Er vereinte viele Gruppen aus der **Steppe**, einem weiten Grasland, zu einem Bund. An der Spitze stand der **Chanyu**, der oberste Herrscher.\n\nModu unterwarf Nachbarn, darunter die Yuezhi (siehe Kuschanreich). Bald beherrschten die Xiongnu die Steppen von der Mandschurei bis an den Rand des Tarimbeckens, vor allem in der heutigen Mongolei.\n\n200 v. Chr. kesselte Modu den Han-Kaiser Gaozu bei Baideng ein."
+            },
+            {
+              "typ": "merke",
+              "text": "Ein Steppenreich hatte keine festen Grenzen wie Rom. Die Fläche auf dem Globus ist deshalb nur eine ungefähre Rekonstruktion.",
+              "titel": "Karte prüfen"
+            }
+          ],
+          "quellen": [
+            "Vgl. Di Cosmo, Ancient China."
+          ],
+          "source_ids": [
+            "dicosmo2002"
+          ]
         },
         {
           "id": "xiong-2",
-          "titel": "",
-          "bloecke": []
+          "titel": "Herrschaft, Gesellschaft, Alltag",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Xiongnu waren ein Bund von Stämmen. Eine Herrscherfamilie stand an der Spitze. Zusammengehalten wurde der Bund durch Treue zu den Anführern, durch Verwandtschaft und durch das Verteilen von Beute und Geschenken.\n\nDie meisten Menschen lebten von Pferden, Schafen und Rindern und zogen mit ihren Herden umher. Ausgrabungen zeigen aber auch Siedlungen mit Mauern, zum Beispiel Ivolga. Dort gab es Ackerbau und Handwerk.\n\nEine eigene Schrift der Xiongnu ist nicht überliefert. Das bekannteste Bild von ihnen stammt vom chinesischen Geschichtsschreiber Sima Qian, also von ihren Gegnern. Er beschreibt sie als Volk ohne Städte und Schrift, das Stärke ehrt und die Alten wenig achtet. Das ähnelt dem Bild, das die Römer von den Germanen hatten: Sie nannten sie abwertend „Barbaren“."
+            },
+            {
+              "typ": "merke",
+              "text": "Wer hat dieses Bild von den Xiongnu gezeichnet? Und passt es zu den Siedlungen, die man ausgegraben hat?",
+              "titel": "Nachgefragt"
+            }
+          ],
+          "quellen": [
+            "Vgl. Brosseder/Miller, Xiongnu Archaeology.",
+            "Shiji 110, vgl. Watson, Records of the Grand Historian."
+          ],
+          "source_ids": [
+            "brosseder-miller2011",
+            "watson1993"
+          ]
         },
         {
           "id": "xiong-3",
-          "titel": "",
-          "bloecke": []
+          "titel": "Nachbarn: Krieg, Handel, Austausch",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Nach Baideng schloss das Han-Reich Verträge mit den Xiongnu (*heqin*). China lieferte Seide, Getreide und Prinzessinnen zur Heirat. Dafür verzichteten die Xiongnu auf Raubzüge. Für die Xiongnu war das ein Austausch auf Augenhöhe. Der Han-Hof fand die Verträge eher demütigend.\n\nAb 133 v. Chr. griff Kaiser Wu die Xiongnu an. 119 v. Chr. kam es zur Schlacht von Mobei.\n\nIn Fürstengräbern in Noin-Ula (Mongolei) fanden Archäologen chinesische Seide und Lackarbeiten. Daneben lagen Stoffe mit Mustern aus Westasien und der griechischen Welt. Die Xiongnu waren also selbst Teil weiter Austauschnetze."
+            },
+            {
+              "typ": "wahrfalsch",
+              "titel": "Verbindung zu Rom?",
+              "frage": "Hatten die Xiongnu direkten oder indirekten Kontakt zu Rom? Prüfe die Aussagen.",
+              "aussagen": [
+                {
+                  "text": "Xiongnu und Römer trafen sich direkt.",
+                  "richtig": false,
+                  "feedback": "Davon berichtet keine Quelle in dieser Schriftrolle."
+                },
+                {
+                  "text": "In Gräbern der Xiongnu lagen Stoffe mit Mustern aus Westasien und der griechischen Welt.",
+                  "richtig": true
+                },
+                {
+                  "text": "Die Xiongnu hatten Kontakt zum Han-Reich, durch Krieg und durch Verträge.",
+                  "richtig": true
+                }
+              ],
+              "feedback": {
+                "richtig": "Richtig!",
+                "falsch": "Lies noch einmal den Absatz über Noin-Ula."
+              },
+              "erklaerung": "Ein direkter Kontakt zu Rom ist nicht bekannt. Die Funde zeigen aber weite Verbindungen nach Westen. Ob ihr in Vignette 3 „indirekt“ oder „keine“ ankreuzt: Wichtig ist, dass ihr es begründet."
+            }
+          ],
+          "quellen": [
+            "Vgl. Barfield, Perilous Frontier.",
+            "Vgl. Brosseder/Miller, Xiongnu Archaeology."
+          ],
+          "source_ids": [
+            "barfield1989",
+            "brosseder-miller2011"
+          ]
         },
         {
           "id": "xiong-4",
-          "titel": "",
-          "bloecke": []
+          "titel": "Krise und Zerfall",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Streit um den Thron spaltete die Xiongnu 57 v. Chr. Ein Teil unterstellte sich 51 v. Chr. offiziell dem Han-Kaiser. 48 n. Chr. teilten sich die Xiongnu endgültig: Die Südlichen Xiongnu wurden innerhalb der Han-Grenzen angesiedelt, die Nördlichen blieben in der Steppe.\n\n89 n. Chr. besiegten Han-Truppen die Nördlichen Xiongnu am Berg Yanran. Eine Inschrift, die diesen Sieg feiert, wurde 2017 in der Mongolei wiederentdeckt. Danach übernahmen die Xianbei die Vorherrschaft in der Steppe."
+            }
+          ],
+          "quellen": [
+            "Vgl. Di Cosmo, Ancient China."
+          ],
+          "source_ids": [
+            "dicosmo2002"
+          ]
         },
         {
           "id": "xiong-5",
-          "titel": "",
-          "bloecke": []
+          "titel": "Religion, Weltbild, Erbe",
+          "bloecke": [
+            {
+              "typ": "text",
+              "text": "Die Xiongnu verehrten den Himmel, die Sonne, den Mond und ihre Ahnen. Der Chanyu galt als vom Himmel eingesetzt. In chinesischen Texten heißt sein Titel „vom Himmel und der Erde geboren“.\n\nStammen die Hunnen, die im 4. Jahrhundert in Europa auftauchten, von den Xiongnu ab? Das ist in der Forschung **umstritten**. Manche Forscher meinen ja, andere bezweifeln es. ChronoGlobe zeigt beide deshalb getrennt.\n\nDie Xiongnu zeigen: Ein großes, mächtiges Reich braucht nicht unbedingt Städte, eine eigene Schrift und feste Grenzen."
+            },
+            {
+              "typ": "merke",
+              "text": "Fast nur ihre Gegner: chinesische Geschichtsschreiber wie Sima Qian (*Shiji*, Kapitel 110). Eigene Texte der Xiongnu gibt es nicht. Deshalb sind Ausgrabungen so wichtig: Gräber wie in Noin-Ula und Siedlungen wie Ivolga erzählen von ihrem Leben.",
+              "titel": "Wer berichtet über dieses Reich?"
+            }
+          ],
+          "quellen": [
+            "Vgl. Kim, Huns.",
+            "Vgl. Grewe, Geschichtsdidaktik postkolonial."
+          ],
+          "source_ids": [
+            "kim2013",
+            "grewe2016"
+          ]
         }
       ]
     },

@@ -151,6 +151,16 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 - Die Zeichnung gehört zum Zustand (`zeichnung`) und gilt wie die Filter immer für alle, auch bei „selbst bedienen“. Höchstens 3000 Punkte, damit der Zustand unter der Grenze von 64 KB in `teacher_update_state` bleibt.
 - Gezeichnet wird auf einer eigenen Fläche über dem Globus (`.stift-flaeche`, `STIFT` in `js/app.js`); solange der Stift an ist, nehmen Beschriftungen keine Klicks an.
 
+### Suche (`js/suche.js`, `sucheEinrichten` in `js/app.js`)
+
+- Suchfeld in der Kopfzeile im freien Modus, in Tafelbildern und in der Lehreransicht. Schüler:innen haben keins (`.cg-schueler #suche`).
+- Bedienung: `/` oder Strg+K setzt den Fokus, ↑/↓ wählen, Enter führt aus, Umschalt+Enter öffnet bei Reichen die Schriftrolle, Esc leert das Feld.
+- Durchsucht werden Reiche, Orte (Reichsorte und Handelsorte; gleiche Orte mehrerer Reiche als ein Treffer), Ereignisse (Titel), Schlachten und die Historische Geographie mit antikem und heutigem Namen (`data/geographie.json`, wird beim ersten Fokus nachgeladen).
+- Toleranz: Beide Seiten werden gefaltet (`Suche.falten`): ohne Akzente und Apostrophe, `c`→`k`, `ph`→`f`, `th`→`t`, `sch`→`sh`, `ae`→`a`, `ei`/`y`→`i`, Doppelbuchstaben einfach. So gilt Chang'an = Changan, Ktesiphon = Ctesiphon, Kuschan = Kushan. Mehrere Wörter passen auch gebeugt („Gelbe Turbane“); ab fünf Zeichen wird ein Tippfehler toleriert.
+- Ein Treffer wirkt nur über `setState`: Kamera, Jahr (Ereignis/Schlacht immer, Reich/Ort nur, wenn das aktuelle Jahr nicht passt), betroffene Reiche und Ebenen, Fenster (Infokarte „Handelsort“, Schriftrolle). In der Live-Session sieht die Klasse das deshalb wie jede andere Bedienung der Lehrkraft; einen eigenen Sync-Weg gibt es nicht. Hinweise (Toast) und das Hervorheben der Infokarte bleiben lokal.
+- Tafelbilder: Treffer außerhalb des Zeitraums erscheinen ausgegraut am Ende der Liste und lassen sich nicht ausführen. Dafür merkt sich `reicheFiltern` die herausgefilterten Reiche, Ereignisse, Orte und Schlachten (`DATA_AUSSEN`). Ebenen, die das Tafelbild nicht anbietet (`ebenen.verfuegbar`), schaltet die Suche nicht ein; sie fliegt dann nur hin.
+- Tests: `node tests/suche.test.js`, `python tests/test_suche_browser.py`.
+
 ### Schülerrechte
 
 | Recht | „Lehreransicht“ | „selbst bedienen“ |
@@ -160,7 +170,7 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 | `reiche` (Schriftrolle) | nur die Schriftrolle der Lehrkraft | eigene Schriftrollen, nur lokal |
 | `routen` (Routen, Orte, Gesandtschaften, Texte, Warenübersicht) | nur Fenster der Lehrkraft | eigene Fenster, nur lokal |
 
-- Filter wirken immer für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Weltbild, Leuchtstift-Zeichnung.
+- Filter der Lehrkraft wirken für alle: Ansicht, Reiche, Ebenen, Handel, Straßen, Zheng He, Niveau, Weltbild, Leuchtstift-Zeichnung. Ausnahme: Filter, die die Lehrkraft unter „Schüleransicht anpassen“ freigeschaltet hat (siehe unten).
 - Öffnet oder schließt die Lehrkraft ein Fenster und ist „Fenster mitsenden“ an, passiert das bei allen, auch bei „selbst bedienen“.
 - Die Lehrerhinweise werden nie mitgesendet.
 - Sobald Schüler:innen abweichen, erscheint „Zur Lehreransicht zurück“.
@@ -168,6 +178,26 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 **Umsetzung der Sperren:**
 - `DARF(recht)` in `js/app.js` sperrt eigene Eingaben in `setYear`, `togglePlay`, `openMap`, allen Infokarten und der Warenübersicht.
 - Zustände, die von der Lehrkraft kommen (`quelle: 'lehrer'`), sind davon ausgenommen.
+- `DARF('ui:<teil>')` fragt die Schüleransicht ab (z. B. ob die Suche auf dem Schülergerät Reiche einblenden darf).
+
+### Schüleransicht anpassen (`schueler_ui`)
+
+Im Lehrermenü legt die Lehrkraft fest, welche Bedienelemente die Schüler:innen sehen. Damit lässt sich die Schüleransicht auf den Unterrichtsbedarf zuschneiden.
+
+| Teil | Standard | Wirkung, wenn eingeschaltet |
+|---|---|---|
+| `reiche` (Reiche-Liste) | aus | Menü mit der Reiche-Liste; eigene Auswahl wirkt nur lokal |
+| `ebenen` (Ebenen-Schalter) | aus | Menü mit Globus-Ebenen, Handel & Austausch, Netzen und Themenebenen; wirkt nur lokal |
+| `suche` | aus | Suchfeld; wirkt nur lokal und nur im Rahmen der Schülerrechte (Kamera nur mit „Globus“, Jahr nur mit „Zeitriegel“ auf „selbst bedienen“) |
+| `spuren` (Spuren der Zeitleiste) | an | ausgeschaltet: Ereignisspuren und „Nachbarreiche“ ausgeblendet |
+| `infokarten` (Infoband) | an | ausgeschaltet: Infoband rechts ausgeblendet |
+
+- **Standard = bisheriges Verhalten:** kein Menü, keine Suche. „Standard (kein Menü)“ im Lehrermenü stellt das wieder her. Ansicht, Fokus-Knöpfe, „Automatisch drehen“ und „Mein Standort“ bleiben für Schüler:innen immer ausgeblendet.
+- **Lokale Filter:** Ein Schülergerät mit freigeschalteter Reiche-Liste bzw. freigeschalteten Ebenen behält seine eigene Einstellung je Schalter, solange die Lehrkraft diesen Wert nicht neu setzt. Stellt die Lehrkraft denselben Schalter um, gilt ihr Wert wieder für alle (gleiches Muster wie bei den Fenstern). „Alle zurück zu meiner Ansicht“ und „Zur Lehreransicht zurück“ setzen alle lokalen Filter zurück. Wird ein Teil wieder abgeschaltet, folgen die Geräte sofort der Lehrkraft.
+- **Speicherung und Übertragung:** Spalte `schueler_ui` (jsonb) neben `rechte`. `teacher_update_rechte` nimmt sie als fünften, optionalen Parameter (`null` = unverändert) und sendet sie mit dem Ereignis `rechte`. `get_session_public` und `teacher_snapshot` liefern sie mit; Nachzügler und Reload bekommen so sofort die aktuelle Ansicht. `cg_schueler_ui_ok` lässt nur die fünf Schlüssel mit `true`/`false` zu.
+- **Voreinstellung pro Tafelbild:** `schueler_ui` in `tafelbild.json` (siehe `docs/TAFELBILD_ERSTELLEN.md`). Sie gilt, solange die Lehrkraft in dieser Session noch nichts verstellt hat.
+- **Datenschutz unverändert:** Schülergeräte schreiben nichts in die Datenbank; ihre lokalen Filter verlassen das Gerät nicht.
+- Umsetzung: `js/session.js` (Lehrermenü, `anwenden` mit `FILTER`), Klassen `cg-ui-*` auf `<html>` und die Regeln in `css/style.css`; Abschnitte des Menüs sind mit `ps-ansicht`, `ps-reiche` und `ps-ebenen` markiert.
 
 ### Sicherheitsmodell
 

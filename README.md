@@ -18,6 +18,8 @@ Die Startseite (`index.html`) bietet vier Wege:
     - bei gesperrtem Zeitriegel ohne Abspiel- und ±10-Knöpfe.
 - **Tafelbilder ansehen**: Galerie aus `tafelbilder/index.json`, jedes Tafelbild einzeln (`app.html?tafelbild=<id>`).
 
+In der Live-Session legt die Lehrkraft im Lehrermenü unter **„Schüleransicht anpassen“** fest, welche Bedienelemente die Schüler:innen sehen: Reiche-Liste, Ebenen-Schalter, Suche, Spuren der Zeitleiste und Infokarten. Freigeschaltete Filter wirken nur auf dem eigenen Gerät, die Filter der Lehrkraft gelten weiter für alle. Standard ist wie bisher: kein Menü.
+
 Live-Sessions brauchen ein eigenes Supabase-Projekt (`docs/SETUP.md`). Ohne Einrichtung funktionieren freier Modus und Tafelbilder weiter; die Session-Kacheln zeigen dann „Supabase nicht eingerichtet“.
 
 Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafelbild: `docs/TAFELBILD_ERSTELLEN.md`. Regeln für Änderungen (Kern oder einzelnes Tafelbild): `CLAUDE.md`.
@@ -34,6 +36,7 @@ Aufbau, Zustand, Synchronisierung und Rechte: `docs/ARCHITEKTUR.md`. Neues Tafel
 - `node tests/synctakt.test.js`: Sendetakt der Live-Session (Geräteanzahl, Realtime-Grenze).
 - `python tools/check_tafelbilder.py`: alle Tafelbilder (Schema, IDs, Dateien).
 - `node tests/strassenzeit.test.js`, `python tests/test_strassen_browser.py`: Römerstraßen.
+- `node tests/suche.test.js`, `python tests/test_suche_browser.py`: Suche (Schreibvarianten, Tafelbild-Zeitraum, Live-Session).
 - `node tests/netze.test.js`, `python tests/test_netze_browser.py`: Handels- und Verkehrsnetze.
 - `python tools/check_sources.py`: Quellenregister, lokale Dateiverweise, Literatur- und Fußnoten-IDs sowie Vollständigkeit (jede Datei unter `data/` und `img/` im Register).
 
@@ -53,6 +56,7 @@ Die Seite [Datensätze, Literatur und Quellen](quellen.html) dokumentiert die na
 
   - **Erste Schritte**: Kurzanleitung, Hinweise zu Daten und Darstellung, Lizenzen.
   - **Lehrerhinweise**: Reiter aus `tafelbild.json` → `lehrerhinweise`. Die Markdown-Dateien liegen im Tafelbild, z. B. `tafelbilder/rom-zentrum-der-welt/lehrerhinweise/` (derzeit Platzhalter). Im freien Modus gibt es keine Lehrerhinweise.
+- **Suche** oben rechts (Kürzel `/` oder Strg+K): Reiche, Orte, Ereignisse, Schlachten, Flüsse, Gebirge, Meere und Landschaften mit antikem und heutigem Namen. Schreibvarianten werden erkannt (Chang'an/Changan, Ktesiphon/Ctesiphon). ↑/↓ und Enter wählen; ein Treffer fliegt hin, stellt bei Bedarf das Jahr und öffnet die passende Infokarte, Umschalt+Enter bei Reichen die Schriftrolle. In Tafelbildern sind Treffer außerhalb des Zeitraums ausgegraut. In der Live-Session hat nur die Lehrkraft die Suche; die Klasse folgt ihr über den normalen Zustand.
 - Der Titel oben links führt zurück zur Startseite.
 - Die Knöpfe „→ Rom“, „→ China“, „Eurasien“ kommen aus den Fokuspunkten des Tafelbilds.
 - Ansicht Satellit/Schematisch, Rom, Han, 11 Nachbarreiche und 9 europäische Nachfolgestaaten (Gruppe „Europa (Kontext)“, ausgegraut, ohne Schriftrolle) ein-/ausblenden („Alle einblenden/ausblenden“), Menü einklappbar.

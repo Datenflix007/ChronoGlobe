@@ -407,7 +407,7 @@
     DATA.reihen.forEach(function (r) {
       if (!state.on[r]) return;
       var m = M(r), d = document.createElement('div');
-      d.className = 'card'; d.style.setProperty('--c', m.farbe);
+      d.className = 'card'; d.dataset.r = r; d.style.setProperty('--c', m.farbe);
       if (!m.haupt) {
         if (!regionsAt(r, state.year).length) return;
         d.classList.add('mini');
@@ -4312,6 +4312,7 @@
     ['regionen', 'ereignisse', 'schlachten', 'orte', 'wanderungen', 'epochen', 'alexander_stationen'].forEach(function (k) { DATA[k] = (DATA[k] || []).concat(f[k] || []); });
     if (f.epochen_quelle) DATA.epochen_quelle = f.epochen_quelle;
   }
+  var DATA_AUSSEN = null;
   function reicheFiltern(tb) {
     var z = tb && tb.zeitraum; if (!z) return;
     var weg = {}, liste = tb.reiche && Array.isArray(tb.reiche.verfuegbar) ? tb.reiche.verfuegbar : null;
@@ -4323,6 +4324,10 @@
       else if (m.frueh && !m.mittelalter && z.von >= SEGS[0].von && !(liste && liste.indexOf(r) >= 0)) weg[r] = 1;
     });
     if (!Object.keys(weg).length) return;
+    // für die Suche merken: Treffer außerhalb des Tafelbild-Zeitraums erscheinen ausgegraut
+    var am = {}; Object.keys(weg).forEach(function (r) { am[r] = DATA.meta[r]; });
+    DATA_AUSSEN = { meta: am, ereignisse: DATA.ereignisse.filter(function (e) { return weg[e.reich]; }), orte: DATA.orte.filter(function (o) { return weg[o.reich]; }),
+      schlachten: DATA.schlachten.filter(function (s) { return !s.reiche.some(function (r) { return !weg[r]; }); }) };
     DATA.reihen = DATA.reihen.filter(function (r) { return !weg[r]; });
     Object.keys(weg).forEach(function (r) { delete DATA.meta[r]; });
     DATA.regionen = DATA.regionen.filter(function (f) { return !weg[f.properties.reich]; });
@@ -4452,6 +4457,153 @@
         .catch(function () { sec.innerHTML = '<p class="hint">Datei <code>' + esc(sec.getAttribute('data-md')) + '</code> konnte nicht geladen werden (Seite über einen Webserver öffnen).</p>'; LEHRER_GELADEN = false; });
     });
   }
+  /* ---------- Suche (js/suche.js; Feld in der Kopfzeile, Kürzel „/“ oder Strg+K) ----------
+     Ein Treffer wirkt nur über setState (Kamera, Jahr, Reiche, Ebenen, Fenster). In der Live-Session sieht die Klasse
+     das wie jede andere Bedienung der Lehrkraft; einen eigenen Sync-Weg gibt es nicht. Schüler:innen haben kein Suchfeld. */
+  var SUCHE = { index: null, treffer: [], aktiv: -1 };
+  function ebeneErlaubt(k) {
+    var tb = window.CG && CG.tafelbild, ev = tb && tb.ebenen && tb.ebenen.verfuegbar;
+    return !Array.isArray(ev) || ev.indexOf(k) >= 0;
+  }
+  function reichErlaubt(r) {
+    var tb = window.CG && CG.tafelbild, rv = tb && tb.reiche && tb.reiche.verfuegbar;
+    return !!DATA.meta[r] && (!Array.isArray(rv) || rv.indexOf(r) >= 0);
+  }
+  function sucheIndex() {
+    if (!window.Suche) return [];
+    if (!SUCHE.index) SUCHE.index = Suche.bauen({ meta: DATA.meta, ereignisse: DATA.ereignisse, schlachten: DATA.schlachten, orte: DATA.orte,
+      handelOrte: HANDEL ? HANDEL.orte : [], geo: GEO, aussen: DATA_AUSSEN });
+    return SUCHE.index;
+  }
+  function sucheZeitraum() { var tb = window.CG && CG.tafelbild; return tb && tb.zeitraum ? { von: YMIN, bis: YMAX } : {}; }
+  function sucheUnterzeile(e) {
+    var t = [Suche.ARTEN[e.art].name];
+    if (e.art === 'reich') t.push(fmtYear(e.von) + ' bis ' + fmtYear(e.bis));
+    else if (e.art === 'geo') { if (e.heute) t.push('heute: ' + e.heute); }
+    else {
+      var rs = (e.reiche && e.reiche.length ? e.reiche : e.reich ? [e.reich] : []).map(function (r) {
+        var m = DATA.meta[r] || (DATA_AUSSEN && DATA_AUSSEN.meta[r]); return m ? m.name : null; }).filter(Boolean);
+      if (rs.length) t.push(rs.slice(0, 2).join(', ') + (rs.length > 2 ? ' …' : ''));
+      if (e.jahr != null) t.push(e.label || fmtYear(e.jahr));
+    }
+    return t.join(' · ');
+  }
+  function sucheAussenText() {
+    var z = sucheZeitraum(); return 'Liegt außerhalb des Zeitraums dieses Tafelbilds (' + fmtYear(z.von) + ' bis ' + fmtYear(z.bis) + ').';
+  }
+  function sucheZeigen() {
+    var feld = $('#sucheFeld'), liste = $('#sucheListe'), q = feld.value.trim();
+    SUCHE.treffer = q ? Suche.suchen(sucheIndex(), q, Object.assign({ max: 12 }, sucheZeitraum())) : [];
+    SUCHE.aktiv = SUCHE.treffer.length ? 0 : -1;
+    liste.innerHTML = '';
+    if (q && !SUCHE.treffer.length) { var leer = el('li', 'such-leer', 'Keine Treffer'); leer.setAttribute('role', 'presentation'); liste.appendChild(leer); }
+    SUCHE.treffer.forEach(function (t, i) {
+      var e = t.e, li = el('li', 'such-treffer' + (t.aussen ? ' aussen' : ''));
+      li.id = 'such-' + i; li.setAttribute('role', 'option'); li.dataset.art = e.art;
+      if (t.aussen) { li.setAttribute('aria-disabled', 'true'); li.title = sucheAussenText(); }
+      li.appendChild(el('span', 'such-ico', { reich: '◆', ort: '●', geo: '≈', schlacht: '⚔', ereignis: '◷' }[e.art]));
+      var tx = el('span', 'such-tx'); tx.appendChild(el('b', null, e.name)); tx.appendChild(el('small', null, sucheUnterzeile(e))); li.appendChild(tx);
+      if (e.art === 'reich' && !t.aussen && hatRolle(e.id)) {
+        var rb = el('button', 'such-rolle', '📜'); rb.type = 'button'; rb.title = 'Schriftrolle öffnen (Umschalt+Enter)'; rb.tabIndex = -1;
+        rb.addEventListener('mousedown', function (ev) { ev.preventDefault(); ev.stopPropagation(); sucheWaehlen(i, true); });
+        li.appendChild(rb);
+      }
+      li.addEventListener('mousedown', function (ev) { ev.preventDefault(); sucheWaehlen(i, false); });
+      li.addEventListener('mousemove', function () { if (SUCHE.aktiv !== i) { SUCHE.aktiv = i; sucheMarkieren(); } });
+      liste.appendChild(li);
+    });
+    liste.hidden = !q;
+    feld.setAttribute('aria-expanded', String(!!q));
+    sucheMarkieren();
+  }
+  function sucheMarkieren() {
+    var feld = $('#sucheFeld');
+    document.querySelectorAll('#sucheListe .such-treffer').forEach(function (li, i) {
+      var an = i === SUCHE.aktiv; li.classList.toggle('aktiv', an); li.setAttribute('aria-selected', String(an));
+      if (an) li.scrollIntoView({ block: 'nearest' });
+    });
+    if (SUCHE.aktiv >= 0) feld.setAttribute('aria-activedescendant', 'such-' + SUCHE.aktiv); else feld.removeAttribute('aria-activedescendant');
+  }
+  function sucheSchliessen(leeren) {
+    var feld = $('#sucheFeld'); $('#sucheListe').hidden = true; feld.setAttribute('aria-expanded', 'false'); feld.removeAttribute('aria-activedescendant');
+    if (leeren) feld.value = '';
+  }
+  /* Treffer i ausführen; mitRolle: bei Reichen zusätzlich die Schriftrolle öffnen */
+  function sucheWaehlen(i, mitRolle) {
+    var t = SUCHE.treffer[i]; if (!t) return;
+    var e = t.e;
+    if (t.aussen) { toast(e.name + ': ' + sucheAussenText()); return; }
+    var z = sucheZeitraum(), tz = { globus: {}, reiche: {} }, jahr = Suche.zieljahr(e, state.year, z.von, z.bis), alt = 1.0;
+    var reiche = (e.reiche && e.reiche.length ? e.reiche : e.reich ? [e.reich] : []).filter(reichErlaubt);
+    reiche.forEach(function (r) { tz.reiche[r] = true; });
+    if (e.art === 'reich') {
+      var m = DATA.meta[e.id], rh = m.rahmen;
+      alt = rh ? Math.max(0.9, Math.min(2.6, Math.max(rh[2] - rh[0], rh[3] - rh[1]) / 28)) : 1.6;
+      if (mitRolle && hatRolle(e.id)) tz.fenster = Object.assign(kopie(FENSTER), { rolle: { reich: e.id, reiter: 'vig' } });
+    } else if (e.art === 'ort') {
+      alt = 0.8;
+      if (ebeneErlaubt('orte') && !e.handel) tz.globus.orte = true;
+      if (e.handel) tz.fenster = Object.assign(kopie(FENSTER), { rolle: null, info: { art: 'ort', id: e.handel } });
+    } else if (e.art === 'schlacht') {
+      alt = 0.9; if (ebeneErlaubt('schlachten')) tz.globus.schlachten = true;
+    } else if (e.art === 'ereignis') {
+      var mm = DATA.meta[e.reich], rr = mm && mm.rahmen; alt = rr ? Math.max(0.9, Math.min(2.6, Math.max(rr[2] - rr[0], rr[3] - rr[1]) / 28)) : 1.6;
+    } else if (e.art === 'geo') {
+      alt = e.geoArt === 'meer' ? 1.6 : e.geoArt === 'landschaft' ? 1.1 : 1.2;
+      if (ebeneErlaubt('geo')) tz.globus.geo = true;
+    }
+    if (e.lat != null && e.lng != null) { tz.kamera = { lat: e.lat, lng: e.lng, alt: alt }; tz.drehen = false; }
+    if (jahr != null) tz.jahr = jahr;
+    if (!tz.fenster && FENSTER.rolle) tz.fenster = Object.assign(kopie(FENSTER), { rolle: null });   // Globus wieder sichtbar machen
+    // Schüler:innen (Suche über „Schüleransicht anpassen“ freigeschaltet): nur, was ihre Rechte erlauben; alles bleibt lokal.
+    // Lehrkraft und freier Modus dürfen alles (DARF ist dort immer wahr).
+    if (!darfLokal('globus')) { delete tz.kamera; delete tz.drehen; }
+    if (!darfLokal('zeit')) delete tz.jahr;
+    if (!darfLokal('ui:reiche')) delete tz.reiche;
+    if (!darfLokal('ui:ebenen')) delete tz.globus;
+    if (tz.fenster && ((tz.fenster.rolle && !darfLokal('reiche')) || (tz.fenster.info && !darfLokal('routen')))) delete tz.fenster;
+    if (!tz.kamera && !tz.jahr && !tz.fenster) { sucheSchliessen(true); toast(e.name + ': Die Lehrkraft hat Globus und Zeitleiste gerade nicht freigegeben.'); return; }
+    sucheSchliessen(true); $('#sucheFeld').blur();
+    setState(tz, { dauer: 1400 });
+    if (tz.kamera) document.dispatchEvent(new CustomEvent('chronoglobe:eigeneKamera'));
+    // Nachricht nur auf diesem Gerät; die Klasse sieht Kamera, Jahr und Fenster
+    if (e.art === 'schlacht') toast('⚔ ' + e.name + ', ' + fmtYear(e.jahr) + (e.note ? ': ' + e.note : ''));
+    else if (e.art === 'geo') toast(e.name + (e.heute ? ' (heute: ' + e.heute + ')' : '') + (e.hinweis ? ' – ' + e.hinweis : '') + (ebeneErlaubt('geo') ? '' : ' · Die Ebene „Historische Geographie“ gehört nicht zu diesem Tafelbild.'));
+    else if (e.art === 'ort' && !e.handel) toast(e.name + ' · ' + sucheUnterzeile(e).replace(/^Ort · /, ''));
+    // passende Infokarte im Infoband hervorheben (Reich, Ereignis, Ort eines Reiches)
+    var kr = e.art === 'reich' ? e.id : e.reich;
+    if (kr && !tz.fenster) setTimeout(function () {
+      var c = document.querySelector('#cards .card[data-r="' + kr + '"]'); if (!c) return;
+      c.classList.remove('such-hl'); void c.offsetWidth; c.classList.add('such-hl');
+      c.scrollIntoView({ block: 'nearest', behavior: RUHIG.matches ? 'auto' : 'smooth' });
+    }, 80);
+  }
+  function sucheEinrichten() {
+    var feld = $('#sucheFeld'), box = $('#suche'); if (!feld || !window.Suche) { if (box) box.hidden = true; return; }
+    box.hidden = false;
+    // Geographie wird für die Suche nachgeladen (eigene Datei, keine fremden Server); der Index entsteht beim ersten Tippen
+    feld.addEventListener('focus', function () {
+      if (!GEO && NACHLADEN.geo) ebeneLaden('geo').then(function () { SUCHE.index = null; if (feld.value.trim()) sucheZeigen(); });
+    });
+    feld.addEventListener('input', sucheZeigen);
+    feld.addEventListener('blur', function () { setTimeout(function () { sucheSchliessen(false); }, 120); });
+    feld.addEventListener('keydown', function (e) {
+      var n = SUCHE.treffer.length;
+      if (e.key === 'ArrowDown' && n) { e.preventDefault(); if ($('#sucheListe').hidden) sucheZeigen(); else { SUCHE.aktiv = (SUCHE.aktiv + 1) % n; sucheMarkieren(); } }
+      else if (e.key === 'ArrowUp' && n) { e.preventDefault(); SUCHE.aktiv = (SUCHE.aktiv - 1 + n) % n; sucheMarkieren(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (SUCHE.aktiv >= 0) sucheWaehlen(SUCHE.aktiv, e.shiftKey); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (feld.value) { sucheSchliessen(true); } else feld.blur(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      var hc = document.documentElement.classList;
+      if (hc.contains('cg-schueler') && !hc.contains('cg-ui-suche')) return;   // Suche nur, wenn die Lehrkraft sie freigibt
+      var tippt = e.target && (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable);
+      if ((e.key === '/' && !tippt && !e.ctrlKey && !e.metaKey && !e.altKey) || ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K'))) {
+        e.preventDefault(); feld.focus(); feld.select();
+      }
+    }, true);
+  }
+
   function load(url) { return fetch(window.cgUrl ? cgUrl(url) : url).then(function (r) { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); }); }
   function daten(k, url) { return window.CG && CG.daten ? CG.daten(k, url) : load(url); }
   (window.CG && CG.bereit ? CG.bereit : Promise.resolve(null)).then(function () { return Promise.all([daten('reiche', 'data/reiche.json'), load('data/land.json'), load('data/land_rom.json'), load('data/land_han.json'), daten('handel', 'data/handel.json'), daten('zhenghe', 'data/zhenghe.json'),
@@ -4484,6 +4636,7 @@
     if (window.ResizeObserver) new ResizeObserver(setTlh).observe(tl);
     initGlobe(); buildChips(); buildTicks(); buildLanes(); bind(); wbRolleBinden(); lastKey = ''; setYear(state.year);
     tafelbildAnwenden(window.CG ? CG.tafelbild : null);
+    sucheEinrichten();
     // freier Modus mit vielen Reichen: Spuren zunächst eingeklappt, damit der Globus groß bleibt (eigene Wahl geht vor)
     if (!LANES_OFFEN_GEWAEHLT && MA_DURCHGEHEND && DATA.reihen.filter(function (r) { return !M(r).haupt && state.on[r]; }).length > 12) {
       $('#lanes').classList.add('collapsed'); $('#lanesToggle').setAttribute('aria-expanded', false); $('#lanesToggle').classList.add('closed');

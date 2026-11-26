@@ -37,7 +37,8 @@ Für die Sachinhalte gelten die Regeln in `docs/GRUNDREGELN.md`. Erfundene Erzä
 - Hat ein Reich gar keine Vignetten, zeigt die Rolle `platzhalter` leere Kacheln (Standard 5; fünf Vignetten je Rolle sind das vorgesehene Maß).
 - `schriftrolle`: `false` heißt, das Reich hat keine Schriftrolle. Es lässt sich dann nicht anklicken, und im Infoband fehlt der Knopf. So legt die Lehrkraft fest, welche Kulturen die Klasse erarbeitet.
 - Die europäischen Nachfolgestaaten (Kontext) haben grundsätzlich keine Schriftrolle. Nur ein ausdrückliches `"schriftrolle": true` gibt ihnen eine.
-- `quellen` (optional) erscheinen am Ende der Vignette als Liste.
+- `quellen` (optional) erscheinen am Ende der Vignette als Liste (Kurzbeleg, z. B. „Vgl. Lewis, Early Chinese Empires.“).
+- `source_ids` (optional) verknüpft die Vignette mit Einträgen im Quellenregister `data/sources.json`. Die Liste wird nicht angezeigt. `python tools/check_sources.py` prüft, dass jede ID registriert ist, auch in Tafelbild-Dateien.
 
 ## Bausteine (`bloecke`)
 

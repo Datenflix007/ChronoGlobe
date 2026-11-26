@@ -9,6 +9,9 @@
 
    Schülerrechte (je „lehrer“ = nur Lehreransicht oder „selbst“ = selbst bedienen):
      zeit (Zeitriegel) · globus (drehen/zoomen) · reiche (Schriftrolle) · routen (Routen, Orte, Gesandtschaften, Texte)
+   Schüleransicht (schueler_ui, „Schüleransicht anpassen“): welche Bedienelemente die Schüler:innen sehen
+     reiche (Reiche-Liste) · ebenen (Ebenen-Schalter) · suche · spuren (Spuren der Zeitleiste) · infokarten (Infoband).
+     Freigeschaltete Filter wirken nur auf dem eigenen Gerät; stellt die Lehrkraft denselben Filter um, gilt ihr Wert.
    Von Schüler-Geräten wird nichts gespeichert und nichts Personenbezogenes übertragen. */
 (function () {
   'use strict';
@@ -16,6 +19,12 @@
   var LOKAL = /[?&]sync=lokal\b/.test(location.search);
   var S = window.CGSession = { lokal: LOKAL, status: 'aus', anzahl: 0 };
   var RECHTE_STANDARD = { zeit: 'lehrer', globus: 'lehrer', reiche: 'lehrer', routen: 'lehrer' };
+  // Standard = heutiges Verhalten: kein Menü, keine Suche; Spuren der Zeitleiste und Infokarten sichtbar
+  var UI_STANDARD = { reiche: false, ebenen: false, suche: false, spuren: true, infokarten: true };
+  var UI_TXT = { reiche: 'Reiche-Liste', ebenen: 'Ebenen-Schalter (Handel, Gesandtschaften, Straßen …)', suche: 'Suche',
+    spuren: 'Spuren der Zeitleiste', infokarten: 'Infokarten (Infoband)' };
+  function uiNorm(u) { var o = {}; Object.keys(UI_STANDARD).forEach(function (k) { o[k] = u && typeof u[k] === 'boolean' ? u[k] : UI_STANDARD[k]; }); return o; }
+  S.UI_STANDARD = UI_STANDARD;
   var RECHTE_TXT = { zeit: 'Zeitriegel', globus: 'Globus drehen/zoomen', reiche: 'Reiche anklicken (Schriftrolle)', routen: 'Routen, Orte, Gesandtschaften, Schülertexte' };
 
   /* ---------- Hilfen ---------- */
@@ -74,7 +83,7 @@
       oeffentlich: function (code) { return rpc('get_session_public', { p_code: code }); },
       lehrerStand: function (code, tok) { return rpc('teacher_snapshot', { p_code: code, p_token: tok }); },
       senden: function (code, tok, st, modus) { return rpc('teacher_update_state', { p_code: code, p_token: tok, p_state: st, p_modus: modus || 'state' }); },
-      rechteSetzen: function (code, tok, r, mit) { return rpc('teacher_update_rechte', { p_code: code, p_token: tok, p_rechte: r, p_fenster_mitsenden: mit }); },
+      rechteSetzen: function (code, tok, r, mit, ui) { return rpc('teacher_update_rechte', { p_code: code, p_token: tok, p_rechte: r, p_fenster_mitsenden: mit, p_schueler_ui: ui || null }); },
       offenSetzen: function (code, tok, offen) { return rpc('set_session_open', { p_code: code, p_token: tok, p_is_open: offen }); },
       beenden: function (code, tok) { return rpc('delete_session', { p_code: code, p_token: tok }); },
       /* privater Kanal: nur lesen + Anwesenheit. Schlägt das mit dem Publishable Key fehl, einmal anonym anmelden
@@ -112,7 +121,7 @@
     function bc(code) { return new BroadcastChannel('cg.lokal.' + code); }
     function senden(code, ev, p) { var b = bc(code); b.postMessage({ ev: ev, p: p }); b.close(); }
     function lehrer(code, tok) { var s = lesen(code); if (!s || s.token !== tok) throw new Error('Lehrer-Zugriff verweigert'); return s; }
-    function oeff(s) { return s ? { code: s.code, tafelbild_id: s.tafelbild_id, kanal: s.code, state: s.state, rechte: s.rechte, fenster_mitsenden: s.fenster_mitsenden, is_open: s.is_open, seq: s.seq } : null; }
+    function oeff(s) { return s ? { code: s.code, tafelbild_id: s.tafelbild_id, kanal: s.code, state: s.state, rechte: s.rechte, fenster_mitsenden: s.fenster_mitsenden, schueler_ui: s.schueler_ui || null, is_open: s.is_open, seq: s.seq } : null; }
     var P = Promise.resolve.bind(Promise);
     return {
       erstellen: function (tb) {
@@ -128,10 +137,10 @@
           senden(code, modus || 'state', { state: st, seq: s.seq }); ok(s.seq);
         });
       },
-      rechteSetzen: function (code, tok, r, mit) {
+      rechteSetzen: function (code, tok, r, mit, ui) {
         return new Promise(function (ok) {
-          var s = lehrer(code, tok); s.rechte = r; s.fenster_mitsenden = mit; s.seq++; schreiben(code, s);
-          senden(code, 'rechte', { rechte: r, fenster_mitsenden: mit, seq: s.seq }); ok();
+          var s = lehrer(code, tok); s.rechte = r; s.fenster_mitsenden = mit; if (ui) s.schueler_ui = ui; s.seq++; schreiben(code, s);
+          senden(code, 'rechte', { rechte: r, fenster_mitsenden: mit, schueler_ui: s.schueler_ui || null, seq: s.seq }); ok();
         });
       },
       offenSetzen: function (code, tok, offen) { return new Promise(function (ok) { var s = lehrer(code, tok); s.is_open = offen; schreiben(code, s); senden(code, 'offen', { is_open: offen }); ok(); }); },
@@ -265,7 +274,8 @@
     function pollen() {
       WEG.oeffentlich(SITZ.code).then(function (o) {
         if (!o) { nachricht('beendet', {}); return; }
-        if (!gleich(o.rechte, h.rechte && h.rechte()) || o.fenster_mitsenden !== (h.mitsenden && h.mitsenden())) nachricht('rechte', { rechte: o.rechte, fenster_mitsenden: o.fenster_mitsenden });
+        if (!gleich(o.rechte, h.rechte && h.rechte()) || o.fenster_mitsenden !== (h.mitsenden && h.mitsenden()) || (h.ui && !gleich(uiNorm(o.schueler_ui), h.ui())))
+          nachricht('rechte', { rechte: o.rechte, fenster_mitsenden: o.fenster_mitsenden, schueler_ui: o.schueler_ui });
         if (o.seq > seq) nachricht('state', { state: o.state, seq: o.seq });
       }).catch(function () {});
     }
@@ -288,7 +298,12 @@
   function lehrerStarten() {
     var CGL = window.ChronoGlobe, o = SITZ.oeff;
     var L = { rechte: Object.assign({}, RECHTE_STANDARD, o.rechte || {}), mitsenden: o.fenster_mitsenden !== false, offen: o.is_open !== false };
+    // Schüleransicht: gespeicherter Stand, sonst Voreinstellung des Tafelbilds (tafelbild.json → schueler_ui), sonst Standard
+    var tbUi = window.CG && CG.tafelbild && CG.tafelbild.schueler_ui;
+    L.ui = uiNorm(o.schueler_ui || tbUi);
     S.lehrer = L;
+    S.rechteSenden = function () { return WEG.rechteSetzen(SITZ.code, SITZ.token, L.rechte, L.mitsenden, L.ui); };
+    if (!o.schueler_ui && tbUi) S.rechteSenden();
     // Fortsetzen nach Reload: gespeicherten Lehrerzustand übernehmen
     if (o.state && o.state.v) CGL.applyState(o.state, { quelle: 'tafelbild' });
     lehrerMenu(L);
@@ -391,7 +406,7 @@
         b.addEventListener('click', function () {
           L.rechte[k] = w[0];
           seg.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
-          WEG.rechteSetzen(SITZ.code, SITZ.token, L.rechte, L.mitsenden);
+          S.rechteSenden();
         });
         seg.appendChild(b);
       });
@@ -399,8 +414,24 @@
     });
     sec.appendChild(tab);
     var lab = el('label', 'cg-check'), cb = el('input'); cb.type = 'checkbox'; cb.checked = L.mitsenden; cb.id = 'cgFenster';
-    cb.addEventListener('change', function () { L.mitsenden = cb.checked; WEG.rechteSetzen(SITZ.code, SITZ.token, L.rechte, L.mitsenden); S.senden(); });
+    cb.addEventListener('change', function () { L.mitsenden = cb.checked; S.rechteSenden(); S.senden(); });
     lab.appendChild(cb); lab.appendChild(document.createTextNode(' Geöffnete Fenster mitsenden')); sec.appendChild(lab);
+
+    // Schüleransicht anpassen: welche Bedienelemente die Schüler:innen sehen. Freigeschaltete Filter wirken nur lokal.
+    var ui = el('details', 'cg-ui'); ui.id = 'cgUi';
+    var us = el('summary'); us.appendChild(el('span', 'cg-h3', 'Schüleransicht anpassen')); ui.appendChild(us);
+    ui.appendChild(el('p', 'hint', 'Was die Schüler:innen auf ihren Geräten sehen. Freigeschaltete Filter wirken nur auf dem eigenen Gerät; deine Filter gelten weiter für alle.'));
+    Object.keys(UI_TXT).forEach(function (k) {
+      var l = el('label', 'cg-check'), c = el('input'); c.type = 'checkbox'; c.checked = !!L.ui[k]; c.dataset.ui = k;
+      c.addEventListener('change', function () { L.ui[k] = c.checked; S.rechteSenden(); });
+      l.appendChild(c); l.appendChild(document.createTextNode(' ' + UI_TXT[k])); ui.appendChild(l);
+    });
+    var std = el('button', 'small', 'Standard (kein Menü)'); std.type = 'button';
+    std.addEventListener('click', function () {
+      L.ui = uiNorm(null); ui.querySelectorAll('input[data-ui]').forEach(function (c) { c.checked = !!L.ui[c.dataset.ui]; }); S.rechteSenden();
+    });
+    ui.appendChild(std);
+    sec.appendChild(ui);
     var pb = document.querySelector('#panelBody'); pb.insertBefore(sec, pb.firstChild);
   }
   function qrFenster() {
@@ -417,21 +448,33 @@
   /* ---------- Schüler:innen ---------- */
   function schuelerStarten() {
     var CGL = window.ChronoGlobe, o = SITZ.oeff, g = CGL.globe;
-    var R = Object.assign({}, RECHTE_STANDARD, o.rechte || {}), mitsenden = o.fenster_mitsenden !== false;
-    var T = null, abw = { zeit: false, globus: false, fenster: false }, wendet = 0;
+    var R = Object.assign({}, RECHTE_STANDARD, o.rechte || {}), mitsenden = o.fenster_mitsenden !== false, UI = uiNorm(o.schueler_ui);
+    var T = null, abw = { zeit: false, globus: false, fenster: false, filter: false }, wendet = 0;
+    // Filter, die Schüler:innen mit freigeschalteter Schüleransicht selbst stellen dürfen (Schlüssel aus getState)
+    var FILTER = { reiche: 'reiche', globus: 'ebenen', handel: 'ebenen', strassen: 'ebenen', zh: 'ebenen', weltbild: 'ebenen' };
+    function eigenerFilter(k) { return !!UI[FILTER[k]]; }
+    function filterAbweichung() {
+      if (!T) return false;
+      var st = CGL.getState();
+      return Object.keys(FILTER).some(function (k) { return eigenerFilter(k) && T[k] && st[k] && Object.keys(T[k]).some(function (s) { return !gleich(st[k][s], T[k][s]); }); });
+    }
     var takt = 1000 / rate(), zuletzt = 0;   // gemessener Abstand der Updates → Gleitdauer der Kamera
-    S.schueler = { rechte: function () { return R; }, abweichung: function () { return abw; } };
+    S.schueler = { rechte: function () { return R; }, abweichung: function () { return abw; }, ui: function () { return UI; } };
     var badge = statusBadge(), zur = el('button', 'cg-zurueck', 'Zur Lehreransicht zurück'); zur.type = 'button'; zur.hidden = true;
     badge.appendChild(zur);
-    zur.addEventListener('click', function () { abw = { zeit: false, globus: false, fenster: false }; hinweis(); if (T) anwenden(T, null, true); });
-    function hinweis() { zur.hidden = !(abw.zeit || abw.globus || abw.fenster); }
+    zur.addEventListener('click', function () { abw = { zeit: false, globus: false, fenster: false, filter: false }; hinweis(); if (T) anwenden(T, null, true); });
+    function hinweis() { zur.hidden = !(abw.zeit || abw.globus || abw.fenster || abw.filter); }
 
     function rechteAnwenden() {
-      CGL.setzeRechte(function (k) { return R[k] === 'selbst'; });
+      // „ui:…“ fragt die Schüleransicht ab (z. B. ob die Suche Reiche einblenden darf), sonst die vier Schülerrechte
+      CGL.setzeRechte(function (k) { return k.indexOf('ui:') === 0 ? !!UI[k.slice(3)] : R[k] === 'selbst'; });
       g.controls().enabled = R.globus === 'selbst';
       var h = document.documentElement;
       h.classList.toggle('cg-zeit-aus', R.zeit !== 'selbst');
       h.classList.toggle('cg-globus-aus', R.globus !== 'selbst');
+      h.classList.toggle('cg-ui-reiche', UI.reiche); h.classList.toggle('cg-ui-ebenen', UI.ebenen); h.classList.toggle('cg-ui-suche', UI.suche);
+      h.classList.toggle('cg-ui-ohne-spuren', !UI.spuren); h.classList.toggle('cg-ui-ohne-infokarten', !UI.infokarten);
+      if (!UI.reiche && !UI.ebenen) abw.filter = false;
       ['zeit', 'globus'].forEach(function (k) { if (R[k] !== 'selbst') abw[k] = false; });
       if (R.reiche !== 'selbst' && R.routen !== 'selbst') abw.fenster = false;
       hinweis();
@@ -440,7 +483,17 @@
     function anwenden(st, alt, alles) {
       if (!st || !st.v) return;
       var t = {};
-      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau', 'zeichnung', 'weltbild'].forEach(function (k) { if (k in st) t[k] = st[k]; });
+      ['ansicht', 'reiche', 'globus', 'handel', 'strassen', 'zh', 'niveau', 'zeichnung', 'weltbild'].forEach(function (k) {
+        if (!(k in st)) return;
+        if (alles || !FILTER[k] || !eigenerFilter(k) || !st[k] || typeof st[k] !== 'object') { t[k] = st[k]; return; }
+        // freigeschalteter Filter: eigene Einstellung behalten, solange die Lehrkraft diesen Wert nicht neu setzt
+        var vorher = (alt || st)[k] || {}, jetzt = CGL.getState()[k] || {}, teil = {};
+        Object.keys(st[k]).forEach(function (s) {
+          var eigen = !gleich(jetzt[s], vorher[s]), lehrerNeu = !gleich(vorher[s], st[k][s]);
+          if (!eigen || lehrerNeu) teil[s] = st[k][s];
+        });
+        t[k] = teil;
+      });
       if (alles || R.zeit !== 'selbst' || !abw.zeit) t.jahr = st.jahr;
       if (alles || R.globus !== 'selbst' || !abw.globus) {
         // gleicher Bildausschnitt auf anderem Format: Abstand im Verhältnis der Standardabstände umrechnen
@@ -459,17 +512,20 @@
       }
       wendet++;
       try { CGL.applyState(t, { quelle: 'lehrer', dauer: alles ? 900 : TAKT.gleitdauer(takt) }); } finally { wendet--; }
+      var fa = filterAbweichung(); if (fa !== abw.filter) { abw.filter = fa; hinweis(); }
     }
     function nachricht(ev, p) {
       if (ev === 'state' || ev === 'fokus' || ev === 'zurueck') {
         if (!p.state) return;
         var alt = T, j = Date.now(); T = p.state;
         if (ev === 'state') { if (zuletzt) takt = TAKT.glaetten(takt, j - zuletzt); zuletzt = j; }
-        if (ev === 'zurueck') { abw = { zeit: false, globus: false, fenster: false }; hinweis(); anwenden(T, alt, true); }
+        if (ev === 'zurueck') { abw = { zeit: false, globus: false, fenster: false, filter: false }; hinweis(); anwenden(T, alt, true); }
         else if (ev === 'fokus') { abw.globus = false; hinweis(); anwenden(T, alt, false); }
         else anwenden(T, alt, false);
       } else if (ev === 'rechte') {
-        R = Object.assign({}, RECHTE_STANDARD, p.rechte || {}); mitsenden = p.fenster_mitsenden !== false; rechteAnwenden();
+        R = Object.assign({}, RECHTE_STANDARD, p.rechte || {}); mitsenden = p.fenster_mitsenden !== false;
+        if ('schueler_ui' in p) UI = uiNorm(p.schueler_ui);
+        rechteAnwenden();
       } else if (ev === 'beendet') {
         sperre('Session beendet', 'Die Lehrkraft hat die Session beendet. Vielen Dank fürs Mitmachen!');
         if (S.abo) S.abo.stop();
@@ -481,12 +537,15 @@
       var st = CGL.getState();
       if (R.zeit === 'selbst' && st.jahr !== T.jahr) abw.zeit = true;
       if ((R.reiche === 'selbst' || R.routen === 'selbst') && T.fenster && !gleich(st.fenster, Object.assign({}, T.fenster, { modal: T.fenster.modal === 'lehrer' ? null : T.fenster.modal }))) abw.fenster = true;
+      abw.filter = filterAbweichung();
       hinweis();
     });
+    // Suche auf dem Schülergerät (wenn freigeschaltet) bewegt die eigene Kamera: wie selbst gedreht
+    document.addEventListener('chronoglobe:eigeneKamera', function () { if (R.globus === 'selbst') { abw.globus = true; hinweis(); } });
     g.controls().addEventListener('start', function () { if (R.globus === 'selbst') { abw.globus = true; hinweis(); } });
     if (o.state && o.state.v) { T = o.state; }
     rechteAnwenden();
     if (T) anwenden(T, null, true);
-    S.abo = verbinden({ nachricht: nachricht, rechte: function () { return R; }, mitsenden: function () { return mitsenden; } }, true);
+    S.abo = verbinden({ nachricht: nachricht, rechte: function () { return R; }, mitsenden: function () { return mitsenden; }, ui: function () { return UI; } }, true);
   }
 })();

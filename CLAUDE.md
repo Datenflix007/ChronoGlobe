@@ -27,6 +27,7 @@ ChronoGlobe ist eine statische Seite ohne Build-Schritt: globe.gl, d3 und reines
      - `python tests/test_session.py` und `node tests/synctakt.test.js` (Live-Sessions, Sendetakt)
      - `node tests/netze.test.js`
      - `python tests/test_netze_browser.py`
+     - `node tests/suche.test.js` und `python tests/test_suche_browser.py` (Suche)
      - `python tests/test_csp.py` (bei neuen Skripten, Seiten oder externen Verbindungen)
      - `python tests/test_weltbilder.py` (Weltbilder, Schriftrolle, Hülle auf dem Globus)
      - `python tests/test_editor.py`, `node tests/ki.test.js` und `node tools/check_beitraege.js` (Editor, KI-Assistent, Themenebenen, Beiträge)

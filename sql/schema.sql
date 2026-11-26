@@ -31,6 +31,8 @@ create table if not exists public.cg_sessions (
 -- Spalten nachrüsten, falls eine ältere Fassung der Tabelle existiert
 alter table public.cg_sessions add column if not exists kanal uuid not null default extensions.gen_random_uuid();
 alter table public.cg_sessions add column if not exists seq bigint not null default 0;
+-- Schüleransicht (welche Bedienelemente die Schüler:innen sehen); null = Standard bzw. Voreinstellung des Tafelbilds
+alter table public.cg_sessions add column if not exists schueler_ui jsonb;
 create index if not exists cg_sessions_created_idx on public.cg_sessions(created_at);
 create unique index if not exists cg_sessions_kanal_idx on public.cg_sessions(kanal);
 
@@ -84,6 +86,14 @@ returns boolean language sql immutable as $$
      and not exists (select 1 from jsonb_each_text(p_rechte) where value not in ('lehrer', 'selbst'));
 $$;
 
+-- Schüleransicht prüfen: Objekt, nur bekannte Schlüssel, nur true/false
+create or replace function public.cg_schueler_ui_ok(p_ui jsonb)
+returns boolean language sql immutable as $$
+  select jsonb_typeof(p_ui) = 'object'
+     and not exists (select 1 from jsonb_each(p_ui)
+                     where key not in ('reiche', 'ebenen', 'suche', 'spuren', 'infokarten') or jsonb_typeof(value) <> 'boolean');
+$$;
+
 -- Realtime-Richtlinie: Gehört ein Kanal zu einer bestehenden, offenen Session?
 create or replace function public.cg_kanal_offen(p_topic text)
 returns boolean language sql stable security definer set search_path = public as $$
@@ -124,7 +134,7 @@ begin
     return jsonb_build_object('code', s.code, 'tafelbild_id', s.tafelbild_id, 'is_open', false);
   end if;
   return jsonb_build_object('code', s.code, 'tafelbild_id', s.tafelbild_id, 'kanal', s.kanal, 'state', s.state,
-    'rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden, 'is_open', s.is_open, 'seq', s.seq);
+    'rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden, 'schueler_ui', s.schueler_ui, 'is_open', s.is_open, 'seq', s.seq);
 end $$;
 
 create or replace function public.teacher_snapshot(p_code text, p_token text)
@@ -133,7 +143,7 @@ declare s public.cg_sessions;
 begin
   s := public.cg_lehrer(p_code, p_token);
   return jsonb_build_object('code', s.code, 'tafelbild_id', s.tafelbild_id, 'kanal', s.kanal, 'state', s.state,
-    'rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden, 'is_open', s.is_open, 'seq', s.seq,
+    'rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden, 'schueler_ui', s.schueler_ui, 'is_open', s.is_open, 'seq', s.seq,
     'created_at', s.created_at);
 end $$;
 
@@ -151,15 +161,22 @@ begin
   return s.seq;
 end $$;
 
-create or replace function public.teacher_update_rechte(p_code text, p_token text, p_rechte jsonb, p_fenster_mitsenden boolean)
+-- Rechte, „Fenster mitsenden“ und Schüleransicht. p_schueler_ui null = unverändert lassen.
+-- Die ältere Fassung ohne p_schueler_ui wird entfernt, damit es keine zwei gleichnamigen Funktionen gibt.
+drop function if exists public.teacher_update_rechte(text, text, jsonb, boolean);
+create or replace function public.teacher_update_rechte(p_code text, p_token text, p_rechte jsonb, p_fenster_mitsenden boolean,
+  p_schueler_ui jsonb default null)
 returns void language plpgsql security definer set search_path = public, extensions as $$
 declare s public.cg_sessions;
 begin
   s := public.cg_lehrer(p_code, p_token);
   if not public.cg_rechte_ok(p_rechte) then raise exception 'Ungültige Rechte'; end if;
-  update public.cg_sessions set rechte = p_rechte, fenster_mitsenden = coalesce(p_fenster_mitsenden, true), updated_at = now()
+  if p_schueler_ui is not null and not public.cg_schueler_ui_ok(p_schueler_ui) then raise exception 'Ungültige Schüleransicht'; end if;
+  update public.cg_sessions set rechte = p_rechte, fenster_mitsenden = coalesce(p_fenster_mitsenden, true),
+    schueler_ui = coalesce(p_schueler_ui, schueler_ui), updated_at = now()
     where id = s.id returning * into s;
-  perform public.cg_senden(s, 'rechte', jsonb_build_object('rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden));
+  perform public.cg_senden(s, 'rechte', jsonb_build_object('rechte', s.rechte, 'fenster_mitsenden', s.fenster_mitsenden,
+    'schueler_ui', s.schueler_ui));
 end $$;
 
 -- Sperren: Niemand kann neu beitreten (Beitritt und Kanalanmeldung prüfen is_open); Verbundene bleiben verbunden.
@@ -220,6 +237,7 @@ revoke execute on function public.cg_hash(text) from public, anon, authenticated
 revoke execute on function public.cg_lehrer(text, text) from public, anon, authenticated;
 revoke execute on function public.cg_state_ok(jsonb) from public, anon, authenticated;
 revoke execute on function public.cg_rechte_ok(jsonb) from public, anon, authenticated;
+revoke execute on function public.cg_schueler_ui_ok(jsonb) from public, anon, authenticated;
 revoke execute on function public.cg_senden(public.cg_sessions, text, jsonb) from public, anon, authenticated;
 revoke execute on function public.cleanup_old_sessions() from public, anon, authenticated;
 -- cg_kanal_offen wird in der Realtime-Richtlinie mit der Rolle des Geräts ausgewertet
@@ -230,7 +248,7 @@ grant execute on function public.create_session(text) to anon, authenticated;
 grant execute on function public.get_session_public(text) to anon, authenticated;
 grant execute on function public.teacher_snapshot(text, text) to anon, authenticated;
 grant execute on function public.teacher_update_state(text, text, jsonb, text) to anon, authenticated;
-grant execute on function public.teacher_update_rechte(text, text, jsonb, boolean) to anon, authenticated;
+grant execute on function public.teacher_update_rechte(text, text, jsonb, boolean, jsonb) to anon, authenticated;
 grant execute on function public.set_session_open(text, text, boolean) to anon, authenticated;
 grant execute on function public.delete_session(text, text) to anon, authenticated;
 

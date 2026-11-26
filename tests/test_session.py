@@ -8,7 +8,7 @@ Filter, „Fenster mitsenden“, „Alle zurück“, Nachzügler, Reload beider 
 Benötigt: playwright und Microsoft Edge oder Chromium. Die Supabase-Anbindung selbst (RPCs, private Kanäle) kann
 dieser Test NICHT prüfen; dafür docs/SETUP.md, Abschnitt „Prüfen“.
 """
-import mimetypes, os, sys, tempfile, urllib.parse
+import json, mimetypes, os, sys, tempfile, urllib.parse
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -187,6 +187,51 @@ with sync_playwright() as p:
     check('Reload Lehrkraft: stehen gelassene Beschriftung bleibt', T.evaluate(Z + '.length === 1 && ' + Z + '[0].fest'))
     T.click('.stift-alle'); check('„Alles löschen“ bei allen', warte(S, Z + '.length === 0', 5000))
 
+    # --- Schüleransicht anpassen (schueler_ui) ---
+    S.reload(); warte(S, 'window.ChronoGlobe', 15000); S.wait_for_timeout(1200)
+    sichtbar = lambda pg, sel: pg.evaluate("(() => { const e = document.querySelector('%s'); return !!e && e.getClientRects().length > 0 && getComputedStyle(e).display !== 'none'; })()" % sel)
+    check('UI Standard: kein Menü, keine Suche, Infokarten und Spuren sichtbar',
+          not sichtbar(S, '#panel') and not sichtbar(S, '#sucheFeld') and sichtbar(S, '#side') and sichtbar(S, '#lanes'))
+    check('UI: Lehrermenü „Schüleransicht anpassen“ mit fünf Schaltern', T.locator('#cgUi input[data-ui]').count() == 5)
+    T.click('#cgUi summary')
+    for k in ('reiche', 'ebenen', 'suche'): T.check('#cgUi input[data-ui="%s"]' % k)
+    for k in ('infokarten', 'spuren'): T.uncheck('#cgUi input[data-ui="%s"]' % k)
+    check('UI: Schülergerät zeigt Reiche-Liste und Ebenen-Schalter', warte(S, "document.documentElement.classList.contains('cg-ui-ebenen')", 6000)
+          and sichtbar(S, '#panel') and sichtbar(S, '.ps-reiche') and sichtbar(S, '#handelSec') and not sichtbar(S, '.ps-ansicht') and not sichtbar(S, '.cg-lehrer'))
+    check('UI: Suche freigeschaltet, Infokarten und Spuren ausgeblendet', sichtbar(S, '#sucheFeld') and not sichtbar(S, '#side') and not sichtbar(S, '#lanes'))
+    lokal = lambda: json.loads(S.evaluate("localStorage.getItem('cg.lokal." + code + "')"))
+    vorher = lokal()
+    S.click('.chip.nb[data-r="kusch"]'); S.wait_for_timeout(300)
+    check('Filter lokal: eigenes Reich nur auf dem Schülergerät', S.evaluate(ST + '.reiche.kusch') is True and T.evaluate(ST + '.reiche.kusch') is False)
+    check('Filter lokal: Hinweis „Zur Lehreransicht zurück“', warte(S, "!document.querySelector('.cg-zurueck').hidden", 2000))
+    T.evaluate("ChronoGlobe.setState({ jahr: 150 })"); warte(S, ST + '.jahr === 150 || true', 3000); T.wait_for_timeout(900)
+    check('Filter lokal bleibt, wenn die Lehrkraft anderes ändert', S.evaluate(ST + '.reiche.kusch') is True)
+    T.evaluate("ChronoGlobe.setState({ handel: { on: true } })")
+    check('Filter der Lehrkraft gilt weiter für alle', warte(S, ST + '.handel.on === true', 5000))
+    S.click('#tglHandel'); S.wait_for_timeout(300); T.evaluate("ChronoGlobe.setState({ jahr: 160 })"); T.wait_for_timeout(900)
+    check('Eigene Ebene (Handel aus) bleibt lokal', S.evaluate(ST + '.handel.on') is False and T.evaluate(ST + '.handel.on') is True)
+    T.evaluate("ChronoGlobe.setState({ handel: { on: false } })"); T.wait_for_timeout(700); T.evaluate("ChronoGlobe.setState({ handel: { on: true } })")
+    check('Neue Einstellung der Lehrkraft für denselben Filter gilt wieder', warte(S, ST + '.handel.on === true', 5000))
+    nachher = lokal()
+    check('Datenschutz: Schülergerät schreibt nichts (gespeicherter Zustand ohne Schülerfilter)',
+          nachher['state']['reiche'].get('kusch') is False and nachher['schueler_ui']['suche'] is True and nachher['seq'] >= vorher['seq'])
+    T.click('.cg-lehrer >> text=Alle zurück zu meiner Ansicht')
+    check('„Alle zurück“ setzt lokale Filter zurück', warte(S, ST + '.reiche.kusch === false', 5000))
+    for k in ('zeit', 'globus'): T.click('.cg-seg button[data-recht="%s"][data-wert="selbst"]' % k)
+    warte(S, "CGSession.schueler.rechte().globus === 'selbst'", 4000)
+    tj = T.evaluate(ST + '.jahr')
+    S.keyboard.press('/'); S.type('#sucheFeld', 'Carrhae'); S.wait_for_timeout(300); S.keyboard.press('Enter')
+    check('Suche auf dem Schülergerät wirkt nur lokal', warte(S, ST + '.jahr === -53', 5000) and T.evaluate(ST + '.jahr') == tj, [S.evaluate(ST + '.jahr'), T.evaluate(ST + '.jahr')])
+    S.reload(); warte(S, 'window.ChronoGlobe', 15000); S.wait_for_timeout(1200)
+    check('Reload Schüler: Schüleransicht bleibt', sichtbar(S, '#panel') and sichtbar(S, '#sucheFeld') and not sichtbar(S, '#side'))
+    S.click('.chip.nb[data-r="kusch"]'); S.wait_for_timeout(300)
+    T.click('#cgUi >> text=Standard (kein Menü)')
+    check('„Standard“: Menü und Suche wieder weg, Infokarten zurück', warte(S, "!document.documentElement.classList.contains('cg-ui-reiche')", 6000)
+          and not sichtbar(S, '#panel') and not sichtbar(S, '#sucheFeld') and sichtbar(S, '#side'))
+    check('„Standard“: Filter folgen wieder der Lehrkraft', warte(S, ST + '.reiche.kusch === false', 5000))
+    T.reload(); warte(T, 'window.ChronoGlobe', 15000); T.wait_for_timeout(1000)
+    check('Reload Lehrkraft: Schüleransicht bleibt gespeichert', T.is_checked('#cgUi input[data-ui="infokarten"]') and not T.is_checked('#cgUi input[data-ui="suche"]'))
+
     # --- Sperren, Beenden ---
     T.click('.cg-lehrer >> text=Session sperren'); T.wait_for_timeout(400)
     G = neu(); G.goto(URL + 'app.html?session=' + code + '&rolle=schueler&sync=lokal')
@@ -198,6 +243,22 @@ with sync_playwright() as p:
     check('Beenden: Daten gelöscht', S.evaluate("localStorage.getItem('cg.lokal." + code + "')") is None)
     U = neu(); U.goto(URL + 'app.html?session=' + code + '&rolle=schueler&sync=lokal')
     check('Beendete Session: Code ungültig', warte(U, "document.querySelector('.cg-sperre') && /keine Session/.test(document.querySelector('.cg-sperre').textContent)", 15000))
+    # --- Voreinstellung der Schüleransicht aus tafelbild.json (schueler_ui) ---
+    ctx2 = b.new_context(viewport={'width': 1400, 'height': 900}, bypass_csp=True); ctx2.route(URL + '**', serve)
+    def mit_ui(route):
+        u = urllib.parse.urlparse(route.request.url); fp = os.path.join(ROOT, urllib.parse.unquote(u.path.lstrip('/')))
+        d = json.load(open(fp, encoding='utf-8')); d['schueler_ui'] = {'ebenen': True, 'infokarten': False}
+        route.fulfill(status=200, content_type='application/json', body=json.dumps(d))
+    ctx2.route('**/tafelbilder/*/tafelbild.json*', mit_ui)
+    L2 = ctx2.new_page(); L2.on('pageerror', lambda e: errs.append(str(e))); L2.goto(URL + 'index.html?sync=lokal'); L2.wait_for_timeout(800)
+    L2.click('#btnStarten'); warte(L2, "document.querySelector('#nsCode').textContent.length >= 4")
+    code2 = L2.inner_text('#nsCode')
+    T2 = ctx2.new_page(); T2.goto(L2.get_attribute('#nsOeffnen', 'href')); warte(T2, 'window.ChronoGlobe', 15000); T2.wait_for_timeout(1200)
+    S2 = ctx2.new_page(); S2.goto(URL + 'app.html?session=' + code2 + '&rolle=schueler&sync=lokal'); warte(S2, 'window.ChronoGlobe', 15000); S2.wait_for_timeout(1200)
+    check('Voreinstellung aus tafelbild.json: Lehrermenü übernimmt sie', T2.is_checked('#cgUi input[data-ui="ebenen"]') and not T2.is_checked('#cgUi input[data-ui="infokarten"]'))
+    check('Voreinstellung aus tafelbild.json: Schülergerät zeigt Ebenen, keine Infokarten',
+          warte(S2, "document.documentElement.classList.contains('cg-ui-ebenen') && document.documentElement.classList.contains('cg-ui-ohne-infokarten')", 6000))
+
     check('keine Skriptfehler', not errs, '; '.join(errs[:3]))
     b.close()
 
