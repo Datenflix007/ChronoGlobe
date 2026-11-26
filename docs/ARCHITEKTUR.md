@@ -106,7 +106,8 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 2. **Lehreransicht** (`rolle=lehrer`):
    - `teacher_snapshot` prüft das Token. Fehlt es, wird der Lehrer-Schlüssel abgefragt.
    - Ein gespeicherter Zustand wird übernommen (Fortsetzen nach Reload).
-   - Jede Änderung sendet die Lehreransicht gedrosselt (Standard 3 Updates/s, `SYNC_RATE` in `js/config.js`) per `teacher_update_state`. Die Datenbank speichert den Zustand und verteilt ihn über `realtime.send`.
+   - Jede Änderung sendet die Lehreransicht gedrosselt per `teacher_update_state`. Die Datenbank speichert den Zustand und verteilt ihn über `realtime.send`.
+   - Der Sendetakt richtet sich nach der Zahl der Geräte (`js/synctakt.js`, siehe „Mengen“). `SYNC_RATE` in `js/config.js` ist die Obergrenze (Standard 3 Updates/s).
 3. **Schüleransicht** (`rolle=schueler`):
    - `get_session_public` liefert Zustand, Rechte und Kanal; Nachzügler und Reload bekommen so sofort den aktuellen Stand.
    - Danach Abo des privaten Kanals `cg:<kanal-uuid>` und eine leere Presence-Meldung für die Teilnehmerzahl.
@@ -180,7 +181,25 @@ Der gesamte sichtbare Zustand ist ein serialisierbares Objekt:
 - **Kanalname:** `cg:` plus eine zufällige UUID. Er wird erst nach Eingabe des Codes bekannt.
 - **Rückfall B:** Darf die Rolle `anon` einen privaten Kanal in einem Projekt nicht abonnieren, meldet sich das Gerät einmalig anonym an (Supabase „Anonymous Sign-ins“, ohne Name und E-Mail) und versucht es erneut. Klappt auch das nicht, bleibt die Abfrage per RPC. Siehe `docs/SETUP.md`.
 - **Keine personenbezogenen Daten:** Schüler-Geräte schreiben nichts in die Datenbank. Die Presence-Meldung ist ein leeres Objekt unter einem zufälligen Schlüssel; die Lehrkraft sieht nur die Zahl.
-- **Mengen:** Der Free-Plan erlaubt 100 Realtime-Nachrichten/s, gezählt je Empfänger. 3 Updates/s reichen deshalb für etwa 30 Geräte. Die Kamera wird bei Schüler:innen zwischen den Updates geglättet.
+- **Mengen (Sendetakt, `js/synctakt.js`):**
+  - Supabase zählt jede Broadcast-Nachricht einmal beim Senden und einmal je empfangendem Gerät. Der Free-Plan erlaubt 100 Nachrichten/s (`REALTIME_GRENZE` in `js/config.js`), darüber werden Verbindungen getrennt. Ein Beitritt erreicht als Anwesenheitsmeldung ebenfalls alle Geräte.
+  - Nachrichten je Update: 1 + Schülergeräte + 2 (Lehreransicht und ein mögliches zweites Lehrergerät).
+  - Budget für laufende Updates: höchstens 60 Nachrichten/s und immer so viel weniger, dass ein Beitritt plus 10 Nachrichten Puffer unter der Grenze bleiben. Daraus folgt der Takt, höchstens `SYNC_RATE`, mindestens 0,5 Updates/s.
+  - Zustandswechsel (Jahr, Reiche, Ebenen, Fenster, Leuchtstift) gehen mit vollem Takt raus, reine Kamerabewegungen mit halbem.
+  - Steht „Globus drehen/zoomen“ auf „selbst bedienen“, werden reine Kamerabewegungen nicht gesendet. „Fokus für alle“, „Aktuelle Ansicht für alle“ und „Alle zurück“ gehen immer sofort raus.
+  - Die Schülergeräte messen den Abstand der Updates und lassen die Kamera entsprechend lange gleiten.
+  - Beispiele (Free-Plan, `SYNC_RATE` 3):
+
+    | Schülergeräte | Updates/s | Kamera/s | Nachrichten/s (Dauerbetrieb) | mit einem Beitritt |
+    |---|---|---|---|---|
+    | 5 | 3,0 | 1,5 | 24 | 31 |
+    | 20 | 2,6 | 1,3 | 60 | 82 |
+    | 28 | 1,9 | 1,0 | 59 | 89 |
+    | 45 | 0,9 | 0,5 | 42 | 89 |
+
+  - Ab etwa 60 Geräten reicht der Free-Plan nicht mehr sicher; dann den Pro-Plan nehmen und `REALTIME_GRENZE` auf 500 setzen.
+  - Den aktuellen Takt zeigt die Lehreransicht als Tooltip über „… Geräte verbunden“.
+  - Monatskontingent (Free: 2 Mio. Nachrichten): Eine Doppelstunde mit 28 Geräten und viel Kamerabewegung braucht mit dem angepassten Takt grob 30 000–50 000 Nachrichten (vorher mit festen 3 Updates/s etwa doppelt so viel). Das Kontingent gilt für das ganze Supabase-Projekt, also für alle Lehrkräfte, die es nutzen.
 
 ## Laden, Geräteprofil und Offline-Betrieb
 

@@ -5,7 +5,9 @@
 window.APP_CONFIG = {
   SUPABASE_URL: "https://sgwqrfvsocuyiyhezosn.supabase.co",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_Lzuvm8sD-R5C4yQlxXYuFg_La25UMdj",
-  // Live-Updates je Sekunde für Zeitriegel und Kamera (Free-Plan: 100 Realtime-Nachrichten/s, gezählt je Empfänger;
-  // 3/s reicht bei ~30 Geräten). Mit dem Pro-Plan kann der Wert erhöht werden.
-  SYNC_RATE: 3
+  // Höchstens so viele Live-Updates je Sekunde. Der tatsächliche Takt sinkt mit der Zahl der Geräte (js/synctakt.js),
+  // damit die Realtime-Grenze nicht überschritten wird; Kamerabewegungen gehen mit halbem Takt raus.
+  SYNC_RATE: 3,
+  // Realtime-Nachrichten/s des Supabase-Plans, gezählt je Empfänger (Free 100, Pro 500).
+  REALTIME_GRENZE: 100
 };
